@@ -46,7 +46,6 @@ const Viewer: React.FC<IViewerProps> = ({ data }): JSX.Element => {
             document.getElementById('canvasWrapper')?.appendChild(canvas)
           })
         })
-        break
       }
     })
   }, [])
