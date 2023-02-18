@@ -19,7 +19,9 @@ const Viewer: React.FC<IViewerProps> = ({ data }): JSX.Element => {
 
       for (let i = 1; i < numPages + 1; i++) {
         pdf.getPage(i).then((page) => {
-          const container = document.getElementById('textLayer')
+          const container = document.createElement('textLayer')
+          container.setAttribute('id', 'textLayer')
+
           page.getTextContent().then((textContent) => {
             pdfjs.renderTextLayer({
               textContent,
@@ -51,9 +53,8 @@ const Viewer: React.FC<IViewerProps> = ({ data }): JSX.Element => {
   }, [])
 
   return (
-    <div className="evilFlowersViewer">
+    <div className="evilFlowersViewer bg-gray-100">
       <div id="canvasWrapper" />
-      <div id="textLayer" />
     </div>
   )
 }
