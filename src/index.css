@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Making text layer elements transparent and position absolute for proper positioning */
+
+#textLayer span {
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+#textLayer span::selection {
+  color: transparent;
+  background: #8f8fe352;
+}
