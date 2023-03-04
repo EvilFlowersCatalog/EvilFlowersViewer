@@ -10,12 +10,13 @@ interface IDocumentProps {
 }
 
 const Document = ({ data }: IDocumentProps) => {
-  const [activePage, setActivePage] = useState(1)
+  const [activePage, setActivePage] = useState(2)
   const [pdf, setPdf] = useState<PDFDocumentProxy>()
 
   const loadDocument = () => {
     pdfjs.getDocument({ data }).promise.then((doc) => {
       setPdf(doc)
+      //console.log(pdf?.numPages)
     })
   }
 
