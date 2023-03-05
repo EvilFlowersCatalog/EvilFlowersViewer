@@ -4,6 +4,7 @@ import * as PDFJSWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry'
 import { base64ToBinary } from '../utils'
 import Document from './document/Document'
 import Sidebar from './sidebar/Sidebar'
+import BottomBar from './bottom_bar/BottomBar'
 
 pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
 

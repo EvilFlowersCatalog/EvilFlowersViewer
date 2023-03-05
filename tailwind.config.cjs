@@ -38,6 +38,7 @@ module.exports = {
       pink: colors.pink,
       emerald: colors.emerald,
       trueGray: colors.neutral,
+      transparent: colors.transparent,
     },
     spacing: {
       px: '1px',
