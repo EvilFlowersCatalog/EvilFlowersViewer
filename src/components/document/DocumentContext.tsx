@@ -6,6 +6,7 @@ interface IDocumentContext {
   activePage: number
   nextPage: () => void
   prevPage: () => void
+  currPage: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)

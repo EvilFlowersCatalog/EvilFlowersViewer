@@ -15,7 +15,10 @@ const Page = () => {
     pdf?.getPage(activePage).then((page) => {
       const container = document.createElement('textLayer')
       container.setAttribute('id', 'textLayer')
-      container.setAttribute('class', 'absolute w-full h-full top-0 left-0 leading-none text-transparent')
+      container.setAttribute(
+        'class',
+        'absolute w-full h-full top-0 left-0 leading-none text-transparent'
+      )
 
       page.getTextContent().then((textContent) => {
         pdfjs.renderTextLayer({
@@ -39,7 +42,9 @@ const Page = () => {
       }
       const renderTask = page.render(renderContext)
       renderTask.promise.then(() => {
-        document.getElementById('evilFlowersContent')?.replaceChildren(container)
+        document
+          .getElementById('evilFlowersContent')
+          ?.replaceChildren(container)
         document.getElementById('evilFlowersContent')?.appendChild(canvas)
       })
     })
@@ -52,7 +57,10 @@ const Page = () => {
   return (
     <PageContext.Provider value={{}}>
       <div className={'pt-10'}>
-        <div id={'evilFlowersContent'} className={'w-fit mx-auto shadow relative'} />
+        <div
+          id={'evilFlowersContent'}
+          className={'w-fit mx-auto shadow relative'}
+        />
       </div>
     </PageContext.Provider>
   )
