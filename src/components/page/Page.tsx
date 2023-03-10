@@ -9,7 +9,7 @@ interface IPageProps {
 }
 
 const Page = () => {
-  const { pdf, activePage } = useDocumentContext()
+  const { pdf, activePage, scale } = useDocumentContext()
 
   const renderPage = () => {
     pdf?.getPage(activePage).then((page) => {
@@ -20,6 +20,8 @@ const Page = () => {
         'absolute w-full h-full top-0 left-0 leading-none text-transparent'
       )
 
+      const viewport = page.getViewport({ scale })
+
       page.getTextContent().then((textContent) => {
         pdfjs.renderTextLayer({
           textContent,
@@ -28,8 +30,6 @@ const Page = () => {
           textDivs: [],
         })
       })
-
-      const viewport = page.getViewport({ scale: 1 })
 
       const canvas = document.createElement('canvas')
       canvas.height = viewport.height
@@ -52,7 +52,7 @@ const Page = () => {
 
   useEffect(() => {
     renderPage()
-  }, [activePage, pdf])
+  }, [activePage, pdf, scale])
 
   return (
     <PageContext.Provider value={{}}>

@@ -9,7 +9,7 @@ import { useDocumentContext } from '../document/DocumentContext'
 
 const BottomBar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(true)
-  const { pdf, activePage, prevPage, nextPage, currPage } = useDocumentContext()
+  const { pdf, activePage, prevPage, nextPage, setPage, zoomIn, zoomOut } = useDocumentContext()
   const toggleDropdown = () => {
     setIsDropdownOpen((prevState) => !prevState)
   }
@@ -31,7 +31,7 @@ const BottomBar = () => {
           <input
             type="text"
             value={activePage}
-            onChange={currPage}
+            onChange={setPage}
             className="w-7 bg-gray-200 text-black rounded-md mr-2 pl-2"
           ></input>
           of {pdf?.numPages}
@@ -43,7 +43,7 @@ const BottomBar = () => {
             className={
               'px-5 py-2 text-lg text-black bg-blue-200 rounded-md hover:bg-blue-500'
             }
-            onClick={prevPage}
+            onClick={zoomOut}
           >
             <FaAngleLeft />
           </button>
@@ -54,7 +54,7 @@ const BottomBar = () => {
             className={
               'px-5 py-2 text-lg text-black bg-blue-200 rounded-md hover:bg-blue-500'
             }
-            onClick={nextPage}
+            onClick={zoomIn}
           >
             <FaAngleRight />
           </button>
