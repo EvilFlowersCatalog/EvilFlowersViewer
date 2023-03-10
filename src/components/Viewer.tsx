@@ -3,8 +3,6 @@ import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 import * as PDFJSWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry'
 import { base64ToBinary } from '../utils'
 import Document from './document/Document'
-import Sidebar from './sidebar/Sidebar'
-import BottomBar from './bottom_bar/BottomBar'
 
 pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
 
@@ -25,7 +23,6 @@ const Viewer = ({ data }: IViewerProps) => {
 
   return (
     <div className="evilFlowersViewer bg-gray-100 w-screen h-screen">
-      <Sidebar />
       {documentData && <Document data={documentData} />}
     </div>
   )

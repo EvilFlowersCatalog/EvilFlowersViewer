@@ -17,7 +17,7 @@ const BottomBar = () => {
   let pagePreviews = 7 //temp static value just for now.
 
   return (
-    <div className="flex mt-5 flex-col items-center  justify-center bg-blue-300 py-5">
+    <div className="flex flex-col items-center justify-center bg-blue-300 py-5 fixed bottom-0 left-0 w-full">
       <div className="flex justify-between items-center w-full mb-4 px-10">
         <div></div>
 

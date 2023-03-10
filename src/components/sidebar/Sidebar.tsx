@@ -37,7 +37,7 @@ export const SidebarData = [
 const Sidebar: React.FunctionComponent = () => {
   return (
     <>
-      <div className="w-15 h-screen bg-blue-200 fixed top-0 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50">
+      <div className="w-15 h-screen bg-blue-200 fixed top-0 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 z-10">
         {SidebarData.map((item) => (
           <div className={'list-none flex items-center w-full h-90 px-2 py-5 '}>
             <button
