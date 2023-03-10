@@ -9,7 +9,7 @@ import { useDocumentContext } from '../document/DocumentContext'
 
 const BottomBar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(true)
-  const { pdf, activePage, prevPage, nextPage, setPage, zoomIn, zoomOut } = useDocumentContext()
+  const { pdf, activePage, prevPage, nextPage, setPage } = useDocumentContext()
   const toggleDropdown = () => {
     setIsDropdownOpen((prevState) => !prevState)
   }
@@ -43,7 +43,7 @@ const BottomBar = () => {
             className={
               'px-5 py-2 text-lg text-black bg-blue-200 rounded-md hover:bg-blue-500'
             }
-            onClick={zoomOut}
+            onClick={prevPage}
           >
             <FaAngleLeft />
           </button>
@@ -54,7 +54,7 @@ const BottomBar = () => {
             className={
               'px-5 py-2 text-lg text-black bg-blue-200 rounded-md hover:bg-blue-500'
             }
-            onClick={zoomIn}
+            onClick={nextPage}
           >
             <FaAngleRight />
           </button>
