@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
 import BottomBar from '../bottom_bar/BottomBar'
+import Sidebar from '../sidebar/Sidebar'
 
 interface IDocumentProps {
   data: string
@@ -17,7 +18,6 @@ const Document = ({ data }: IDocumentProps) => {
   const loadDocument = () => {
     pdfjs.getDocument({ data }).promise.then((doc) => {
       setPdf(doc)
-      //console.log(pdf?.numPages)
     })
   }
 
@@ -34,7 +34,7 @@ const Document = ({ data }: IDocumentProps) => {
   const currPage = (e: React.ChangeEvent<HTMLInputElement>) => {
     let page = parseInt(e.target.value)
     if (page < 1) setActivePage(1)
-    else if (page > pdf?.numPages) setActivePage(pdf?.numPages)
+    else if (pdf?.numPages && page > pdf?.numPages) setActivePage(pdf?.numPages)
     else setActivePage(page)
   }
 
@@ -47,6 +47,7 @@ const Document = ({ data }: IDocumentProps) => {
     <DocumentContext.Provider
       value={{ pdf, activePage, nextPage, prevPage, currPage }}
     >
+      <Sidebar />
       <Page />
       <BottomBar />
     </DocumentContext.Provider>
