@@ -6,7 +6,11 @@ interface IDocumentContext {
   activePage: number
   nextPage: () => void
   prevPage: () => void
-  currPage: (e: React.ChangeEvent<HTMLInputElement>) => void
+  setPage: (e: React.ChangeEvent<HTMLInputElement>) => void
+  scale: number,
+  setScale: (scale: number) => void
+  zoomIn: () => void
+  zoomOut: () => void
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)
