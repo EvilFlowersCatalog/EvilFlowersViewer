@@ -1,13 +1,12 @@
-import React from 'react'
+import { SIDEBAR_TABS } from '../../utils/enums'
 
-interface ChildProps {
-  setHomeIconClicked: (bool: any) => void
+interface IHomeProps {
+  setActiveSidebar: (bool: any) => void
 }
 
-const Home: React.FC<ChildProps> = (props: any) => {
+const Home = ({ setActiveSidebar }: IHomeProps) => {
   const handleClick = () => {
-    props.setHomeIconClicked(false)
-    console.log('home icon clicked')
+    setActiveSidebar(SIDEBAR_TABS.NULL)
   }
 
   return (

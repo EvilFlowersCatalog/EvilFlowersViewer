@@ -1,88 +1,58 @@
 import React from 'react'
 import { useState } from 'react'
 import * as FaIcons from 'react-icons/fa'
+import { SIDEBAR_TABS } from '../../utils/enums'
 
 import Home from './Home'
-
-export const SidebarData = [
-  {
-    name: 'home',
-    icon: <FaIcons.FaHome />,
-  },
-  {
-    name: 'search',
-    icon: <FaIcons.FaSearch />,
-  },
-  {
-    name: 'pen',
-    icon: <FaIcons.FaPen />,
-  },
-  {
-    name: 'citations',
-    icon: <FaIcons.FaFileExport />,
-  },
-  {
-    name: 'share',
-    icon: <FaIcons.FaShareAlt />,
-  },
-  {
-    name: 'info',
-    icon: <FaIcons.FaInfoCircle />,
-  },
-  {
-    name: 'download',
-    icon: <FaIcons.FaDownload />,
-  },
-]
+import Search from './Search'
+import Pen from './Pen'
+import Citations from './Citations'
+import Share from './Share'
+import Info from './Info'
+import Download from './Download'
 
 const Sidebar: React.FunctionComponent = () => {
-  const [homeIconClicked, setHomeIconClicked] = useState(false)
-  const [searchIconClicked, setSearchIconClicked] = useState(false)
-  const [penIconClicked, setPenIconClicked] = useState(false)
-  const [citationsIconClicked, setCitationsIconClicked] = useState(false)
-  const [shareIconClicked, setShareIconClicked] = useState(false)
-  const [infoIconClicked, setInfoIconClicked] = useState(false)
-  const [downloadIconClicked, setDownloadIconClicked] = useState(false)
+  const [activeSidebar, setActiveSidebar] = useState<SIDEBAR_TABS>(
+    SIDEBAR_TABS.NULL
+  )
 
-  //function to set all to false and then set the one that was clicked to true
-  const setIconsFalse = () => {
-    setHomeIconClicked(false)
-    setSearchIconClicked(false)
-    setPenIconClicked(false)
-    setCitationsIconClicked(false)
-    setShareIconClicked(false)
-    setInfoIconClicked(false)
-    setDownloadIconClicked(false)
-  }
-
-  const toggleIconClicked = (icon: string) => {
-    setIconsFalse()
-    switch (icon) {
-      case 'home':
-        setHomeIconClicked((prevState) => !prevState)
-        break
-      case 'search':
-        setSearchIconClicked((prevState) => !prevState)
-        break
-      case 'pen':
-        setPenIconClicked((prevState) => !prevState)
-        break
-      case 'citations':
-        setCitationsIconClicked((prevState) => !prevState)
-        break
-      case 'share':
-        setShareIconClicked((prevState) => !prevState)
-        break
-      case 'info':
-        setInfoIconClicked((prevState) => !prevState)
-        break
-      case 'download':
-        setDownloadIconClicked((prevState) => !prevState)
-        break
-      default:
-        break
-    }
-  }
+  const SidebarData = [
+    {
+      name: 'home',
+      icon: <FaIcons.FaHome />,
+      onClick: () => setActiveSidebar(SIDEBAR_TABS.HOME),
+    },
+    {
+      name: 'search',
+      icon: <FaIcons.FaSearch />,
+      onClick: () => setActiveSidebar(SIDEBAR_TABS.SEARCH),
+    },
+    {
+      name: 'pen',
+      icon: <FaIcons.FaPen />,
+      onClick: () => setActiveSidebar(SIDEBAR_TABS.PEN),
+    },
+    {
+      name: 'citations',
+      icon: <FaIcons.FaFileExport />,
+      onClick: () => setActiveSidebar(SIDEBAR_TABS.CITATIONS),
+    },
+    {
+      name: 'share',
+      icon: <FaIcons.FaShareAlt />,
+      onClick: () => setActiveSidebar(SIDEBAR_TABS.SHARE),
+    },
+    {
+      name: 'info',
+      icon: <FaIcons.FaInfoCircle />,
+      onClick: () => setActiveSidebar(SIDEBAR_TABS.INFO),
+    },
+    {
+      name: 'download',
+      icon: <FaIcons.FaDownload />,
+      onClick: () => setActiveSidebar(SIDEBAR_TABS.DOWNLOAD),
+    },
+  ]
 
   return (
     <>
@@ -94,24 +64,39 @@ const Sidebar: React.FunctionComponent = () => {
           >
             <button
               id={item.name}
+              onClick={item.onClick}
               className={`px-5 py-2 text-lg text-white bg-blue-200 rounded-md hover:bg-blue-500 ${
                 item.name === 'home' ? 'mb-16' : 'mb-2'
               }`}
-              onClick={() => toggleIconClicked(item.name)}
             >
               {item.icon}
             </button>
           </div>
         ))}
       </div>
-      {homeIconClicked && <Home setHomeIconClicked={setHomeIconClicked} />}
-      {searchIconClicked && <div className={'w-60 h-60 bg-red-200'}></div>}
-      {penIconClicked && <div className={'w-60 h-60 bg-red-200'}></div>}
-      {citationsIconClicked && <div className={'w-60 h-60 bg-red-200'}></div>}
-      {shareIconClicked && <div className={'w-60 h-60 bg-red-200'}></div>}
-      {infoIconClicked && <div className={'w-60 h-60 bg-red-200'}></div>}
-      {downloadIconClicked && <div className={'w-60 h-60 bg-red-200'}></div>}
+      {activeSidebar === SIDEBAR_TABS.HOME && (
+        <Home setActiveSidebar={setActiveSidebar} />
+      )}
+      {activeSidebar === SIDEBAR_TABS.SEARCH && (
+        <Search setActiveSidebar={setActiveSidebar} />
+      )}
+      {activeSidebar === SIDEBAR_TABS.PEN && (
+        <Pen setActiveSidebar={setActiveSidebar} />
+      )}
+      {activeSidebar === SIDEBAR_TABS.CITATIONS && (
+        <Citations setActiveSidebar={setActiveSidebar} />
+      )}
+      {activeSidebar === SIDEBAR_TABS.SHARE && (
+        <Share setActiveSidebar={setActiveSidebar} />
+      )}
+      {activeSidebar === SIDEBAR_TABS.INFO && (
+        <Info setActiveSidebar={setActiveSidebar} />
+      )}
+      {activeSidebar === SIDEBAR_TABS.DOWNLOAD && (
+        <Download setActiveSidebar={setActiveSidebar} />
+      )}
     </>
   )
 }
+
 export default Sidebar
