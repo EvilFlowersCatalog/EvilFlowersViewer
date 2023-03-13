@@ -1,25 +1,34 @@
+import { useState } from 'react'
 import { SIDEBAR_TABS } from '../../utils/enums'
+import ModalWrapper from '../modal/Modal'
 
 interface IHomeProps {
   setActiveSidebar: (bool: any) => void
+  title: string
+  text: string
 }
 
-const Home = ({ setActiveSidebar }: IHomeProps) => {
+const Download = ({ setActiveSidebar, title, text }: IHomeProps) => {
+  const [isOpen, setIsOpen] = useState(true)
+
   const handleClick = () => {
+    setIsOpen(false)
     setActiveSidebar(SIDEBAR_TABS.NULL)
   }
 
   return (
-    <div
-      className={
-        'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-60 h-60 bg-green-200'
-      }
-    >
-      <button
-        onClick={handleClick}
-        className={'w-10 h-10 bg-blue-200 float-right'}
-      ></button>
+    <div>
+      <ModalWrapper
+        label="Download"
+        isOpen={isOpen}
+        onClose={() => handleClick()}
+      >
+        <h2 className="text-lg font-medium leading-6 text-gray-900">{title}</h2>
+        <div className="mt-3 text-sm text-gray-500">
+          <p>{text}</p>
+        </div>
+      </ModalWrapper>
     </div>
   )
 }
-export default Home
+export default Download

@@ -93,7 +93,7 @@ const Sidebar: React.FunctionComponent = () => {
         <Info setActiveSidebar={setActiveSidebar} />
       )}
       {activeSidebar === SIDEBAR_TABS.DOWNLOAD && (
-        <Download setActiveSidebar={setActiveSidebar} />
+        <Download setActiveSidebar={setActiveSidebar} text='Some text before download' title='Download Title' />
       )}
     </>
   )
