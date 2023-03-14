@@ -87,13 +87,13 @@ const Sidebar: React.FunctionComponent = () => {
         <Citations setActiveSidebar={setActiveSidebar} />
       )}
       {activeSidebar === SIDEBAR_TABS.SHARE && (
-        <Share setActiveSidebar={setActiveSidebar} />
+        <Share setActiveSidebar={setActiveSidebar} text='Some text before share' title='Share Title'/>
       )}
       {activeSidebar === SIDEBAR_TABS.INFO && (
         <Info setActiveSidebar={setActiveSidebar} />
       )}
       {activeSidebar === SIDEBAR_TABS.DOWNLOAD && (
-        <Download setActiveSidebar={setActiveSidebar} />
+        <Download setActiveSidebar={setActiveSidebar} text='Some text before download' title='Download Title' />
       )}
     </>
   )
