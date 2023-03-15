@@ -18,10 +18,6 @@ jobs:
         run: npx pnpm@7.15.0 install
       - name: Build
         run: npx pnpm@7.15.0 build
-      - name: Change scope
-        run: npm init --scope=evilflowerscatalog
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
       - name: Publish
         run: npm publish --access public
         env:
