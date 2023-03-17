@@ -6,6 +6,7 @@ import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
 import BottomBar from '../bottomBar/BottomBar'
 import Sidebar from '../sidebar/Sidebar'
+import ZoomControls from '../zoom/ZoomControls'
 
 interface IDocumentProps {
   data: string
@@ -54,11 +55,22 @@ const Document = ({ data }: IDocumentProps) => {
 
   return (
     <DocumentContext.Provider
-      value={{ pdf, activePage, nextPage, prevPage, setPage, scale, setScale, zoomIn, zoomOut }}
+      value={{
+        pdf,
+        activePage,
+        nextPage,
+        prevPage,
+        setPage,
+        scale,
+        setScale,
+        zoomIn,
+        zoomOut,
+      }}
     >
       <Sidebar />
       <Page />
       <BottomBar />
+      <ZoomControls />
     </DocumentContext.Provider>
   )
 }
