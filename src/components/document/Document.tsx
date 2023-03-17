@@ -11,6 +11,7 @@ interface IDocumentProps {
   data: string
 }
 
+
 const Document = ({ data }: IDocumentProps) => {
   const [activePage, setActivePage] = useState(1)
   const [scale, setScale] = useState(1)
@@ -24,13 +25,17 @@ const Document = ({ data }: IDocumentProps) => {
 
   const downloadDocument = () => {
     const link = document.createElement('a')
-    pdf?.getData().then((data) => {
-      const blob = new Blob([data], { type: 'application/pdf' })
-      link.href = URL.createObjectURL(blob)
-      console.log(link.href)
-      link.download = 'document.pdf'
-      link.click()
-    }) 
+    pdf?.getMetadata().then((meta) => {
+      var fileName = meta.info?.Title || 'document.pdf'
+
+      pdf?.getData().then((data) => {
+        const blob = new Blob([data], { type: 'application/pdf' })
+        link.href = URL.createObjectURL(blob)
+        link.download = fileName
+        link.click()
+      }) 
+    })
+    
   }
 
   const nextPage = () => {
