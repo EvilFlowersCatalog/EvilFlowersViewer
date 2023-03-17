@@ -1,5 +1,5 @@
 {
-  "name": "@evilflowerscatalog/evilflowersviewer",
+  "name": "@evilflowers/evilflowersviewer",
   "version": "0.0.0",
   "type": "module",
   "main": "dist/evilFlowersViewer.js",
