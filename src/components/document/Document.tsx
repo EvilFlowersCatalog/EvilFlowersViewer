@@ -22,6 +22,17 @@ const Document = ({ data }: IDocumentProps) => {
     })
   }
 
+  const downloadDocument = () => {
+    const link = document.createElement('a')
+    pdf?.getData().then((data) => {
+      const blob = new Blob([data], { type: 'application/pdf' })
+      link.href = URL.createObjectURL(blob)
+      console.log(link.href)
+      link.download = 'document.pdf'
+      link.click()
+    }) 
+  }
+
   const nextPage = () => {
     setActivePage((prevPage) =>
       pdf && pdf?.numPages > prevPage ? prevPage + 1 : prevPage
@@ -54,7 +65,7 @@ const Document = ({ data }: IDocumentProps) => {
 
   return (
     <DocumentContext.Provider
-      value={{ pdf, activePage, nextPage, prevPage, setPage, scale, setScale, zoomIn, zoomOut }}
+      value={{ pdf, activePage, downloadDocument, nextPage, prevPage, setPage, scale, setScale, zoomIn, zoomOut }}
     >
       <Sidebar />
       <Page />
