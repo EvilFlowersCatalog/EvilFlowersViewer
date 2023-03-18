@@ -1,10 +1,5 @@
 import { useState } from 'react'
-import {
-  FaAngleDown,
-  FaAngleUp,
-  FaAngleRight,
-  FaAngleLeft,
-} from 'react-icons/fa'
+import { FaMinus, FaPlus, FaAlignJustify } from 'react-icons/fa'
 import { useDocumentContext } from '../document/DocumentContext'
 
 const ZoomButton = ({
@@ -14,22 +9,27 @@ const ZoomButton = ({
   icon: string
   onClick: () => void
 }) => (
-  <button
-    className="w-7 h-7 rounded-md shadow-lg text-white bg-blue-500 hover:bg-blue-600 active:bg-blue-700 focus:outline-none"
+  <button //Maybe todo tooltips for buttons
+    className="w-9 h-9 px-2 py-2 rounded-md shadow-lg text-black bg-blue-300 hover:bg-blue-600 focus:outline-none"
     onClick={onClick}
   >
-    <i className={icon}></i>
+    {icon == 'zoomIn' && <FaPlus />}
+    {icon == 'zoomOut' && <FaMinus />}
+    {icon == 'resetScale' && <FaAlignJustify />}
   </button>
 )
 
 const ZoomControls = () => {
-  const { zoomIn, zoomOut, setScale } = useDocumentContext()
+  const { zoomIn, zoomOut, resetScale, scale } = useDocumentContext()
 
   return (
-    <div className="fixed right-200 top-200 flex flex-col gap-4 z-50">
-      <ZoomButton icon="fas fa-plus" onClick={zoomIn} />
-      <ZoomButton icon="fas fa-minus" onClick={zoomOut} />
-      {/* <ZoomButton icon="fas fa-compress" onClick={setScale} /> */}
+    <div className="fixed right-20 bottom-72 flex items-center flex-col gap-1 z-50">
+      <ZoomButton icon="zoomIn" onClick={zoomIn} />
+      <ZoomButton icon="zoomOut" onClick={zoomOut} />
+      <ZoomButton icon="resetScale" onClick={resetScale} />
+      <div className="w-16 h-9 py-2 rounded-md shadow-lg text-center bg-white">
+        {scale * 100}%
+      </div>
     </div>
   )
 }
