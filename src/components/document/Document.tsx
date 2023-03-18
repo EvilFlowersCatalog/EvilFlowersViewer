@@ -6,6 +6,7 @@ import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
 import BottomBar from '../bottomBar/BottomBar'
 import Sidebar from '../sidebar/Sidebar'
+import ZoomControls from '../zoom/ZoomControls'
 
 interface IDocumentProps {
   data: string
@@ -33,18 +34,26 @@ const Document = ({ data }: IDocumentProps) => {
   }
 
   const setPage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let page = parseInt(e.target.value)
-    if (page < 1) setActivePage(1)
-    else if (pdf?.numPages && page > pdf?.numPages) setActivePage(pdf?.numPages)
-    else setActivePage(page)
+    if (e.target.validity.valid) {
+      // Fix for valid number input
+      let page = parseInt(e.target.value)
+      if (page < 1) setActivePage(1)
+      else if (pdf?.numPages && page > pdf?.numPages)
+        setActivePage(pdf?.numPages)
+      else setActivePage(page)
+    }
   }
 
   const zoomIn = () => {
-    setScale((prevScale) => prevScale + 0.25)
+    setScale((prevScale) => (prevScale < 2.5 ? prevScale + 0.25 : prevScale))
   }
 
   const zoomOut = () => {
     setScale((prevScale) => (prevScale > 0.5 ? prevScale - 0.25 : prevScale))
+  }
+
+  const resetScale = () => {
+    setScale(1)
   }
 
   // Loads the document every time the data changes
@@ -54,11 +63,23 @@ const Document = ({ data }: IDocumentProps) => {
 
   return (
     <DocumentContext.Provider
-      value={{ pdf, activePage, nextPage, prevPage, setPage, scale, setScale, zoomIn, zoomOut }}
+      value={{
+        pdf,
+        activePage,
+        nextPage,
+        prevPage,
+        setPage,
+        scale,
+        setScale,
+        zoomIn,
+        zoomOut,
+        resetScale,
+      }}
     >
       <Sidebar />
       <Page />
       <BottomBar />
+      <ZoomControls />
     </DocumentContext.Provider>
   )
 }
