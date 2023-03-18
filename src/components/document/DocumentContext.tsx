@@ -7,7 +7,8 @@ interface IDocumentContext {
   nextPage: () => void
   prevPage: () => void
   setPage: (e: React.ChangeEvent<HTMLInputElement>) => void
-  scale: number,
+  searchPage: (n: number) => void
+  scale: number
   setScale: (scale: number) => void
   zoomIn: () => void
   zoomOut: () => void

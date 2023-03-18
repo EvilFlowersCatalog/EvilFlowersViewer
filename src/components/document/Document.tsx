@@ -39,6 +39,11 @@ const Document = ({ data }: IDocumentProps) => {
     else setActivePage(page)
   }
 
+  const searchPage = (page: number) => {
+    if (page < 1 || (pdf?.numPages && pdf?.numPages < page)) return
+    else setActivePage(page)
+  }
+
   const zoomIn = () => {
     setScale((prevScale) => prevScale + 0.25)
   }
@@ -54,7 +59,18 @@ const Document = ({ data }: IDocumentProps) => {
 
   return (
     <DocumentContext.Provider
-      value={{ pdf, activePage, nextPage, prevPage, setPage, scale, setScale, zoomIn, zoomOut }}
+      value={{
+        pdf,
+        activePage,
+        nextPage,
+        prevPage,
+        setPage,
+        searchPage,
+        scale,
+        setScale,
+        zoomIn,
+        zoomOut,
+      }}
     >
       <Sidebar />
       <Page />
