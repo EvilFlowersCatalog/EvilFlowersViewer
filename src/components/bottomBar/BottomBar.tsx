@@ -31,6 +31,7 @@ const BottomBar = () => {
           <input
             type="text"
             value={activePage}
+            pattern="[0-9]*" //fix for only number input
             onChange={setPage}
             className="w-7 bg-gray-200 text-black rounded-md mr-2 pl-2"
           ></input>

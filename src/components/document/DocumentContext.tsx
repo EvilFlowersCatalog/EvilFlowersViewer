@@ -10,6 +10,7 @@ interface IDocumentContext {
   searchPage: (n: number) => void
   scale: number
   setScale: (scale: number) => void
+  resetScale: () => void
   zoomIn: () => void
   zoomOut: () => void
 }
