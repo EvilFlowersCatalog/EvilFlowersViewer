@@ -44,6 +44,11 @@ const Document = ({ data }: IDocumentProps) => {
     }
   }
 
+  const searchPage = (page: number) => {
+    if (page < 1 || (pdf?.numPages && pdf?.numPages < page)) return
+    else setActivePage(page)
+  }
+
   const zoomIn = () => {
     setScale((prevScale) => (prevScale < 2.5 ? prevScale + 0.25 : prevScale))
   }
@@ -69,6 +74,7 @@ const Document = ({ data }: IDocumentProps) => {
         nextPage,
         prevPage,
         setPage,
+        searchPage,
         scale,
         setScale,
         zoomIn,
