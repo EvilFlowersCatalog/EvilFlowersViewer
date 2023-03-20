@@ -15,18 +15,10 @@ jobs:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
       - name: Install
-        working-directory: ${{env.PACKAGE_DIR}}
         run: npx pnpm@7.15.0 install
       - name: Build
-        working-directory: ${{env.PACKAGE_DIR}}
         run: npx pnpm@7.15.0 build
-      - name: Change scope
-        working-directory: ${{env.PACKAGE?_DIR}}
-        run: npm init --scope=evilflowerscatalog
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
       - name: Publish
-        working-directory: ${{env.PACKAGE_DIR}}
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
