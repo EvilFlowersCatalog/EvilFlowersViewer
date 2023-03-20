@@ -4,6 +4,7 @@ import { createContext, useContext } from 'react'
 interface IDocumentContext {
   pdf?: PDFDocumentProxy
   activePage: number
+  downloadDocument: () => void
   nextPage: () => void
   prevPage: () => void
   setPage: (e: React.ChangeEvent<HTMLInputElement>) => void
