@@ -27,6 +27,7 @@ const Document = ({ data }: IDocumentProps) => {
   const downloadDocument = () => {
     const link = document.createElement('a')
     pdf?.getMetadata().then((meta) => {
+      // @ts-ignore
       var fileName = meta.info?.Title || 'document.pdf'
 
       pdf?.getData().then((data) => {

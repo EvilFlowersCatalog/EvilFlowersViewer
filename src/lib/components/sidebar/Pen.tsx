@@ -1,10 +1,10 @@
-import { SIDEBAR_TABS } from '../../utils/enums'
+import { SIDEBAR_TABS } from '../../../utils/enums'
 
-interface IHomeProps {
+interface IPenProps {
   setActiveSidebar: (bool: any) => void
 }
 
-const Home = ({ setActiveSidebar }: IHomeProps) => {
+const Pen = ({ setActiveSidebar }: IPenProps) => {
   const handleClick = () => {
     setActiveSidebar(SIDEBAR_TABS.NULL)
   }
@@ -17,9 +17,9 @@ const Home = ({ setActiveSidebar }: IHomeProps) => {
     >
       <button
         onClick={handleClick}
-        className={'w-10 h-10 bg-blue-200 float-right'}
+        className={'w-10 h-10 bg-purple-200 float-right'}
       ></button>
     </div>
   )
 }
-export default Home
+export default Pen

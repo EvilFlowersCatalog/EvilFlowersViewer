@@ -1,7 +1,7 @@
 import { ReactElement, ReactNode, useEffect, useState } from 'react'
-import { SIDEBAR_TABS } from '../../utils/enums'
+import { SIDEBAR_TABS } from '../../../utils/enums'
 import { useDocumentContext } from '../document/DocumentContext'
-import { FaAngleLeft } from 'react-icons/fa'
+// import { FaAngleLeft } from 'react-icons/fa'
 
 interface ISearchProps {
   setActiveSidebar: (bool: any) => void
@@ -118,7 +118,7 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
           className="px-2 py-2 text-lg text-black bg-blue-100 rounded-md hover:bg-blue-500 mr-1"
           onClick={handleClick}
         >
-          <FaAngleLeft />
+          {/* <FaAngleLeft /> */}
         </button>
       </div>
       {showSearchResults()}

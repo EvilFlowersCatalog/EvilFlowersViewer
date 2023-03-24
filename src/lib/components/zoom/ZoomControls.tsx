@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FaMinus, FaPlus, FaAlignJustify } from 'react-icons/fa'
+// import { FaMinus, FaPlus, FaAlignJustify } from 'react-icons/fa'
 import { useDocumentContext } from '../document/DocumentContext'
 
 const ZoomButton = ({
@@ -13,9 +13,9 @@ const ZoomButton = ({
     className="w-9 h-9 px-2 py-2 rounded-md shadow-lg text-black bg-blue-300 hover:bg-blue-600 focus:outline-none"
     onClick={onClick}
   >
-    {icon == 'zoomIn' && <FaPlus />}
+    {/* {icon == 'zoomIn' && <FaPlus />}
     {icon == 'zoomOut' && <FaMinus />}
-    {icon == 'resetScale' && <FaAlignJustify />}
+    {icon == 'resetScale' && <FaAlignJustify />} */}
   </button>
 )
 
