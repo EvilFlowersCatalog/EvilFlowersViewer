@@ -1,7 +1,7 @@
 import React from 'react'
 import { useState } from 'react'
-import * as FaIcons from 'react-icons/fa'
-import { SIDEBAR_TABS } from '../../utils/enums'
+// import * as FaIcons from 'react-icons/fa'
+import { SIDEBAR_TABS } from '../../../utils/enums'
 
 import Home from './Home'
 import Search from './Search'
@@ -19,43 +19,43 @@ const Sidebar: React.FunctionComponent = () => {
   const SidebarData = [
     {
       name: 'home',
-      icon: <FaIcons.FaHome />,
+      // icon: <FaIcons.FaHome />,
       tooltip: 'Home',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.HOME),
     },
     {
       name: 'search',
-      icon: <FaIcons.FaSearch />,
+      // icon: <FaIcons.FaSearch />,
       tooltip: 'Full text search',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.SEARCH),
     },
     {
       name: 'pen',
-      icon: <FaIcons.FaPen />,
+      // icon: <FaIcons.FaPen />,
       tooltip: 'Document editing',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.PEN),
     },
     {
       name: 'citations',
-      icon: <FaIcons.FaFileExport />,
+      // icon: <FaIcons.FaFileExport />,
       tooltip: 'Generate citations',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.CITATIONS),
     },
     {
       name: 'share',
-      icon: <FaIcons.FaShareAlt />,
+      // icon: <FaIcons.FaShareAlt />,
       tooltip: 'Share document',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.SHARE),
     },
     {
       name: 'info',
-      icon: <FaIcons.FaInfoCircle />,
+      // icon: <FaIcons.FaInfoCircle />,
       tooltip: 'Document information',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.INFO),
     },
     {
       name: 'download',
-      icon: <FaIcons.FaDownload />,
+      // icon: <FaIcons.FaDownload />,
       tooltip: 'Download document',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.DOWNLOAD),
     },
@@ -77,6 +77,7 @@ const Sidebar: React.FunctionComponent = () => {
               }`}
               title={item.tooltip}
             >
+              {/* @ts-ignore */}
               {item.icon}
             </button>
           </div>

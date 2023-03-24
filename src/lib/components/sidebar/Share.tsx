@@ -1,14 +1,14 @@
 import { useState } from 'react'
-import { SIDEBAR_TABS } from '../../utils/enums'
+import { SIDEBAR_TABS } from '../../../utils/enums'
 import ModalWrapper from '../modal/Modal'
 
-interface IHomeProps {
+interface IShareProps {
   setActiveSidebar: (bool: any) => void
   title: string
   text: string
 }
 
-const Download = ({ setActiveSidebar, title, text }: IHomeProps) => {
+const Share = ({ setActiveSidebar, title, text }: IShareProps) => {
   const [isOpen, setIsOpen] = useState(true)
 
   const handleClick = () => {
@@ -19,7 +19,7 @@ const Download = ({ setActiveSidebar, title, text }: IHomeProps) => {
   return (
     <div>
       <ModalWrapper
-        label="Download"
+        label="Share"
         isOpen={isOpen}
         onClose={() => handleClick()}
       >
@@ -31,4 +31,4 @@ const Download = ({ setActiveSidebar, title, text }: IHomeProps) => {
     </div>
   )
 }
-export default Download
+export default Share
