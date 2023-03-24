@@ -5,8 +5,6 @@ import * as PDFJSWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry'
 import { base64ToBinary } from '../../utils'
 import Document from './document/Document'
 
-import '../../index.css'
-
 pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
 
 interface IViewerProps {
