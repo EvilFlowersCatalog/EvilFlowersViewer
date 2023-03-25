@@ -1,11 +1,24 @@
-
 export enum SIDEBAR_TABS {
-    HOME,
-    SEARCH,
-    PEN,
-    CITATIONS,
-    SHARE,
-    INFO,
-    DOWNLOAD,
-    NULL,
+  HOME,
+  SEARCH,
+  PEN,
+  CITATIONS,
+  SHARE,
+  INFO,
+  DOWNLOAD,
+  NULL,
 }
+
+export enum RENDERING_STATES {
+  LOADING,
+  RENDERING,
+  RENDERED,
+}
+
+export enum SEARCH_STATES {
+  LOADING,
+  DONE,
+  ERROR,
+}
+
+export const DEBOUNCE_TIMEOUT = 300
