@@ -1,4 +1,6 @@
 import { ReactNode } from 'react';
+import { useDocumentContext } from '../document/DocumentContext';
+
 
 type Props = {
   label: string;
@@ -8,6 +10,7 @@ type Props = {
 };
 
 const ModalWrapper = ({ label, isOpen, onClose, children }: Props) => {
+  const { downloadDocument } = useDocumentContext()
   return (
     <>
       {isOpen && (
@@ -22,7 +25,8 @@ const ModalWrapper = ({ label, isOpen, onClose, children }: Props) => {
               <div className="mt-4 flex justify-end">
                 <button
                   className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
-                  onClick={() => console.log(label+ ' clicked')}
+                  {... (label === 'Download' && {onClick: () => {downloadDocument()}})}
+                  //console.log(label + ' clicked')
                   // TODO: Add functionality
                 >
                   {label}

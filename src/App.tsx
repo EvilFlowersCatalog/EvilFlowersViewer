@@ -1,4 +1,4 @@
-import Viewer from './components/Viewer'
+import { Viewer } from './lib/components/Viewer'
 import { pdf_data } from './examples_PDF/samplePDF'
 
 export function App() {

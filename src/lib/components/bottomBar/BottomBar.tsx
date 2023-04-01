@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import {
-  FaAngleDown,
-  FaAngleUp,
-  FaAngleRight,
-  FaAngleLeft,
-} from 'react-icons/fa'
+// import {
+//   FaAngleDown,
+//   FaAngleUp,
+//   FaAngleRight,
+//   FaAngleLeft,
+// } from 'react-icons/fa'
 import { useDocumentContext } from '../document/DocumentContext'
 
 const BottomBar = () => {
@@ -25,12 +25,13 @@ const BottomBar = () => {
           className={`px-5 py-2 text-lg text-black bg-blue-200 rounded-md hover:bg-blue-500`}
           onClick={toggleDropdown}
         >
-          {isDropdownOpen ? <FaAngleDown /> : <FaAngleUp />}
+          {/* {isDropdownOpen ? <FaAngleDown /> : <FaAngleUp />} */}
         </button>
         <div className="text-white">
           <input
             type="text"
             value={activePage}
+            pattern="[0-9]*" //fix for only number input
             onChange={setPage}
             className="w-7 bg-gray-200 text-black rounded-md mr-2 pl-2"
           ></input>
@@ -45,7 +46,7 @@ const BottomBar = () => {
             }
             onClick={prevPage}
           >
-            <FaAngleLeft />
+            {/* <FaAngleLeft /> */}
           </button>
           {Array.from({ length: pagePreviews }).map((_, index) => (
             <div key={index} className="h-20 w-12 bg-white mr-3 ml-3"></div>
@@ -56,7 +57,7 @@ const BottomBar = () => {
             }
             onClick={nextPage}
           >
-            <FaAngleRight />
+            {/* <FaAngleRight /> */}
           </button>
         </div>
       )}
