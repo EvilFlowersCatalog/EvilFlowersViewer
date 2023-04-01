@@ -1,6 +1,4 @@
 import {
-  ReactElement,
-  ReactNode,
   useCallback,
   useEffect,
   useState,
@@ -44,6 +42,7 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
               ?.getPage(n + 1)
               .then((page) => page.getTextContent())
               .then((content) => {
+                console.log(content)
                 const text = content.items.map((i: any) => i.str).join('')
                 textContent = [...textContent, { text, page: n + 1 }]
               })
@@ -57,13 +56,13 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
             return 1
           })
 
-          const matches = textContent.map((content) => {
+          let matches: { text: string; page: number }[] = []
+          textContent.map((content) => {
             const match = content.text.match(reg)
             if (match) {
-              return {
-                page: content.page,
-                text: match[0],
-              }
+              match.map((text) => {
+                matches = [...matches, { page: content.page, text: text}]
+              }) 
             }
           })
 
