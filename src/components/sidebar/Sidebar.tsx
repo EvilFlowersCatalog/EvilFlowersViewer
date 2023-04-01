@@ -19,37 +19,38 @@ const Sidebar: React.FunctionComponent = () => {
   const SidebarData = [
     {
       name: 'home',
-      icon: <FaIcons.FaHome />,
+      icon: 'src/utils/images/home.svg',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.HOME),
     },
     {
       name: 'search',
-      icon: <FaIcons.FaSearch />,
+      icon: 'src/utils/images/search.svg',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.SEARCH),
     },
     {
       name: 'pen',
-      icon: <FaIcons.FaPen />,
+      icon: 'src/utils/images/pen.svg',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.PEN),
     },
     {
       name: 'citations',
-      icon: <FaIcons.FaFileExport />,
+      icon: 'src/utils/images/citations.svg',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.CITATIONS),
     },
     {
       name: 'share',
-      icon: <FaIcons.FaShareAlt />,
+      icon: 'src/utils/images/share.svg',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.SHARE),
     },
     {
       name: 'info',
-      icon: <FaIcons.FaInfoCircle />,
+      icon: 'src/utils/images/info.svg',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.INFO),
     },
     {
       name: 'download',
-      icon: <FaIcons.FaDownload />,
+      icon: 'src/utils/images/download.svg',
+
       onClick: () => setActiveSidebar(SIDEBAR_TABS.DOWNLOAD),
     },
   ]
@@ -69,7 +70,7 @@ const Sidebar: React.FunctionComponent = () => {
                 item.name === 'home' ? 'mb-16' : 'mb-2'
               }`}
             >
-              {item.icon}
+              <img src={item.icon} className="w-6 h-6" />
             </button>
           </div>
         ))}
@@ -87,13 +88,21 @@ const Sidebar: React.FunctionComponent = () => {
         <Citations setActiveSidebar={setActiveSidebar} />
       )}
       {activeSidebar === SIDEBAR_TABS.SHARE && (
-        <Share setActiveSidebar={setActiveSidebar} text='Some text before share' title='Share Title'/>
+        <Share
+          setActiveSidebar={setActiveSidebar}
+          text="Some text before share"
+          title="Share Title"
+        />
       )}
       {activeSidebar === SIDEBAR_TABS.INFO && (
         <Info setActiveSidebar={setActiveSidebar} />
       )}
       {activeSidebar === SIDEBAR_TABS.DOWNLOAD && (
-        <Download setActiveSidebar={setActiveSidebar} text='Some text before download' title='Download Title' />
+        <Download
+          setActiveSidebar={setActiveSidebar}
+          text="Some text before download"
+          title="Download Title"
+        />
       )}
     </>
   )
