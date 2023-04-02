@@ -6,7 +6,7 @@ import {
 import { debounce } from '../../../utils'
 import { SEARCH_STATES, SIDEBAR_TABS } from '../../../utils/enums'
 import { useDocumentContext } from '../document/DocumentContext'
-import { TextItem } from 'pdfjs-dist/types/src/display/api'
+import { TextContent, TextItem, TextMarkedContent, getTextContentParameters } from 'pdfjs-dist/types/src/display/api'
 // import { FaAngleLeft } from 'react-icons/fa'
 
 interface ISearchProps {
@@ -16,7 +16,7 @@ interface ISearchProps {
 const Search = ({ setActiveSidebar }: ISearchProps) => {
   const [searchPattern, setSearchPattern] = useState<string>('')
   const [matches, setMatches] = useState<
-    ({ page: number; text: string, occurance: number } | undefined)[]
+    ({ page: number; text: string, transform: Array<number>, width: number, height: number } | undefined)[]
   >([])
   const [searching, setSearching] = useState<SEARCH_STATES>(SEARCH_STATES.DONE)
 
@@ -35,16 +35,19 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
   const searchInDocument = useCallback(
     debounce(async (pattern: string) => {
       new Promise((resolve) => {
-        let textContent: { text: string; page: number }[] = []
+        let textContent: { textItems: Array<TextItem>; page: number }[] = []
 
         const pagesContent = Array.from(Array(pdf?.numPages).keys()).map(
           (n) => {
             return pdf
               ?.getPage(n + 1)
-              .then((page) => page.getTextContent())
-              .then((content) => {
-                const text = content.items.map((i: any) => i.str).join(' ')
-                textContent = [...textContent, { text, page: n + 1 }]
+              .then((page) => {
+                // ensure text content includes only textItems
+                let e:getTextContentParameters = {disableCombineTextItems: false, includeMarkedContent: false}
+                return page.getTextContent(e)
+              })
+              .then((content: any) => {
+                textContent = [...textContent, { textItems: content.items, page: n + 1 }]
               })
           }
         )
@@ -55,15 +58,17 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
             if (a.page < b.page) return -1
             return 1
           })
-
-          let matches: { text: string; page: number, occurance: number }[] = []
+          // keep matched string, page number, and information for highlighting: transformation matrix, width and height of text
+          let matches: { text: string; page: number, transform: Array<number>, width: number, height: number }[] = []
           textContent.map((content) => {
-            const match = content.text.match(reg)
-            if (match) {
-              match.map((text, index) => {
-                matches = [...matches, { page: content.page, text: text, occurance: index+1}]
-              }) 
-            }
+            content.textItems.map((textItem: any) => {
+              const match: RegExpMatchArray | null = textItem.str.match(reg)
+              if (match) {
+                match.map((text, index) => {
+                  matches = [...matches, { page: content.page, text: text, transform: textItem.transform, width: textItem.width, height: textItem.height}]
+                }) 
+              }
+            })
           })
 
           setMatches(matches)
@@ -74,46 +79,24 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
     []
   )
 
-  const findMatchedText = (match: { page: number; text: string, occurance: number }) => {
+  const findMatchedText = (match: { page: number; text: string, transform: Array<number>, width: number, height: number}) => {
     searchPage(match.page)
 
-    const reg = new RegExp(searchPattern, 'gimu')
-    pdf?.getPage(match.page)
-    .then((page) => page.getTextContent())
-    .then((content) => {
-      let occurance = 0
-      let matchedTextItem: TextItem | null = null
-      for (let i in content.items) {
-        let item: any = content.items[i]
-        let matches = item.str.match(reg)
-        if (matches) 
-          for (let j in matches) {
-            occurance++
-            if (occurance == match.occurance) {
-              matchedTextItem = item
-              break
-            }
-          }
-        if (occurance == match.occurance) break
-      }
-      if (matchedTextItem) {
-        const x: number = matchedTextItem.transform[4]
-        const y: number = matchedTextItem.transform[5]
-        const width: number = matchedTextItem.width
-        const height: number = matchedTextItem.height
+    const x: number = match.transform[4]
+    const y: number = match.transform[5]
+    const width: number = match.width
+    const height: number = match.height
 
-        const canvas: HTMLCanvasElement | null = document.getElementById('viewer canvas') as HTMLCanvasElement
-        const canvas_height = canvas.getAttribute('height')
-        if (canvas) {
-          const context: CanvasRenderingContext2D | null = canvas.getContext('2d')
-          if (context) {
-            context.fillStyle = 'yellow'
-            context.globalAlpha = 0.3
-            context.fillRect(x*scale, parseInt(canvas_height!) - y * scale - height * scale, width*scale, height*scale)
-          }
-        }
+    const canvas: HTMLCanvasElement | null = document.getElementById('viewer canvas') as HTMLCanvasElement
+    const canvas_height = canvas.getAttribute('height')
+    if (canvas) {
+      const context: CanvasRenderingContext2D | null = canvas.getContext('2d')
+      if (context) {
+        context.fillStyle = 'yellow'
+        context.globalAlpha = 0.3
+        context.fillRect(x*scale, parseInt(canvas_height!) - y * scale - height * scale, width*scale, height*scale)
       }
-    })
+    }
   }
 
   useEffect(() => {
