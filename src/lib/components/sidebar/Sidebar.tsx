@@ -1,6 +1,5 @@
 import React from 'react'
 import { useState } from 'react'
-// import * as FaIcons from 'react-icons/fa'
 import { SIDEBAR_TABS } from '../../../utils/enums'
 
 import Home from './Home'
@@ -19,43 +18,44 @@ const Sidebar: React.FunctionComponent = () => {
   const SidebarData = [
     {
       name: 'home',
-      // icon: <FaIcons.FaHome />,
+      icon: 'src/utils/images/home.svg',
       tooltip: 'Home',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.HOME),
     },
     {
       name: 'search',
-      // icon: <FaIcons.FaSearch />,
+      icon: 'src/utils/images/search.svg',
       tooltip: 'Full text search',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.SEARCH),
     },
     {
       name: 'pen',
-      // icon: <FaIcons.FaPen />,
+      icon: 'src/utils/images/pen.svg',
       tooltip: 'Document editing',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.PEN),
     },
     {
       name: 'citations',
-      // icon: <FaIcons.FaFileExport />,
+      icon: 'src/utils/images/citations.svg',
       tooltip: 'Generate citations',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.CITATIONS),
     },
     {
       name: 'share',
-      // icon: <FaIcons.FaShareAlt />,
+      icon: 'src/utils/images/share.svg',
       tooltip: 'Share document',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.SHARE),
     },
     {
       name: 'info',
-      // icon: <FaIcons.FaInfoCircle />,
+      icon: 'src/utils/images/info.svg',
       tooltip: 'Document information',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.INFO),
     },
     {
       name: 'download',
-      // icon: <FaIcons.FaDownload />,
+      icon: 'src/utils/images/download.svg',
+
       tooltip: 'Download document',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.DOWNLOAD),
     },
@@ -77,8 +77,7 @@ const Sidebar: React.FunctionComponent = () => {
               }`}
               title={item.tooltip}
             >
-              {/* @ts-ignore */}
-              {item.icon}
+              <img src={item.icon} className="w-6 h-6" />
             </button>
           </div>
         ))}
