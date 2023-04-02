@@ -6,6 +6,7 @@ import {
 import { debounce } from '../../../utils'
 import { SEARCH_STATES, SIDEBAR_TABS } from '../../../utils/enums'
 import { useDocumentContext } from '../document/DocumentContext'
+import { TextItem } from 'pdfjs-dist/types/src/display/api'
 // import { FaAngleLeft } from 'react-icons/fa'
 
 interface ISearchProps {
@@ -15,11 +16,11 @@ interface ISearchProps {
 const Search = ({ setActiveSidebar }: ISearchProps) => {
   const [searchPattern, setSearchPattern] = useState<string>('')
   const [matches, setMatches] = useState<
-    ({ page: number; text: string } | undefined)[]
+    ({ page: number; text: string, occurance: number } | undefined)[]
   >([])
   const [searching, setSearching] = useState<SEARCH_STATES>(SEARCH_STATES.DONE)
 
-  const { pdf, searchPage } = useDocumentContext()
+  const { pdf, searchPage, scale } = useDocumentContext()
 
   const handleClick = () => {
     setActiveSidebar(SIDEBAR_TABS.NULL)
@@ -42,8 +43,7 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
               ?.getPage(n + 1)
               .then((page) => page.getTextContent())
               .then((content) => {
-                console.log(content)
-                const text = content.items.map((i: any) => i.str).join('')
+                const text = content.items.map((i: any) => i.str).join(' ')
                 textContent = [...textContent, { text, page: n + 1 }]
               })
           }
@@ -56,12 +56,12 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
             return 1
           })
 
-          let matches: { text: string; page: number }[] = []
+          let matches: { text: string; page: number, occurance: number }[] = []
           textContent.map((content) => {
             const match = content.text.match(reg)
             if (match) {
-              match.map((text) => {
-                matches = [...matches, { page: content.page, text: text}]
+              match.map((text, index) => {
+                matches = [...matches, { page: content.page, text: text, occurance: index+1}]
               }) 
             }
           })
@@ -74,9 +74,53 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
     []
   )
 
+  const findMatchedText = (match: { page: number; text: string, occurance: number }) => {
+    searchPage(match.page)
+
+    const reg = new RegExp(searchPattern, 'gimu')
+    pdf?.getPage(match.page)
+    .then((page) => page.getTextContent())
+    .then((content) => {
+      let occurance = 0
+      let matchedTextItem: TextItem | null = null
+      for (let i in content.items) {
+        let item: any = content.items[i]
+        let matches = item.str.match(reg)
+        if (matches) 
+          for (let j in matches) {
+            occurance++
+            if (occurance == match.occurance) {
+              matchedTextItem = item
+              break
+            }
+          }
+        if (occurance == match.occurance) break
+      }
+      if (matchedTextItem) {
+        const x: number = matchedTextItem.transform[4]
+        const y: number = matchedTextItem.transform[5]
+        const width: number = matchedTextItem.width
+        const height: number = matchedTextItem.height
+
+        const canvas: HTMLCanvasElement | null = document.getElementById('viewer canvas') as HTMLCanvasElement
+        const canvas_height = canvas.getAttribute('height')
+        if (canvas) {
+          const context: CanvasRenderingContext2D | null = canvas.getContext('2d')
+          if (context) {
+            context.fillStyle = 'yellow'
+            context.globalAlpha = 0.3
+            context.fillRect(x*scale, parseInt(canvas_height!) - y * scale - height * scale, width*scale, height*scale)
+          }
+        }
+      }
+    })
+  }
+
   useEffect(() => {
-    setSearching(SEARCH_STATES.LOADING)
-    searchInDocument(searchPattern)
+    if (searchPattern !== '') {
+      setSearching(SEARCH_STATES.LOADING)
+      searchInDocument(searchPattern)
+    }
   }, [searchPattern])
 
   return (
@@ -112,7 +156,7 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
                 <button
                   className="text-black text-xs bg-blue-100 rounded-md hover:bg-blue-500 w-48 break-all ml-2"
                   onClick={() => {
-                    searchPage(match.page)
+                    findMatchedText(match)
                   }}
                 >
                   <p className="break-all"> {match.text} </p>

@@ -32,6 +32,7 @@ const Page = () => {
         })
 
         const canvas = document.createElement('canvas')
+        canvas.setAttribute('id', 'viewer canvas')
         canvas.height = viewport.height
         canvas.width = viewport.width
         const context = canvas.getContext('2d')
