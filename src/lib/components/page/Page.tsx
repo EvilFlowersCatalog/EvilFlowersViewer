@@ -4,10 +4,21 @@ import PageContext from './PageContext'
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 import { RENDERING_STATES } from '../../../utils/enums'
 
+/**
+ * Returns the page component after rendering
+ * 
+ * @returns Page component
+ * 
+ */
 const Page = () => {
   const [isRendering, setRendering] = useState<RENDERING_STATES | null>(null)
   const { pdf, activePage, scale } = useDocumentContext()
 
+  /**
+   * Renders the page and all its layers
+   * 
+   * @returns A promise that resolves when the page is rendered
+   */
   const renderPage = useCallback(async () => {
     setRendering(RENDERING_STATES.RENDERING)
 

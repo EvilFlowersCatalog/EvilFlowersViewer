@@ -4,6 +4,15 @@ interface IInfoProps {
   setActiveSidebar: (bool: any) => void
 }
 
+/**
+ * Shows the document information based on metadata from the document
+ * in a sidebar component
+ * 
+ * @param param0 - props
+ * @param param0.setActiveSidebar - function to set sidebar state
+ 
+ * @returns - The document information sidebar component
+ */
 const Info = ({ setActiveSidebar }: IInfoProps) => {
   const handleClick = () => {
     setActiveSidebar(SIDEBAR_TABS.NULL)

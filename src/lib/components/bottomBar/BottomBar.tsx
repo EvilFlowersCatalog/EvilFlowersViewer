@@ -6,7 +6,12 @@ import { useState } from 'react'
 //   FaAngleLeft,
 // } from 'react-icons/fa'
 import { useDocumentContext } from '../document/DocumentContext'
-
+/**
+ * This method renders the bottom bar component
+ * used to navigate through the document
+ * 
+ * @returns The bottom bar component
+ */
 const BottomBar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(true)
   const { pdf, activePage, prevPage, nextPage, setPage } = useDocumentContext()
