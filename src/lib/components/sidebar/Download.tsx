@@ -8,6 +8,18 @@ interface IHomeProps {
   text: string
 }
 
+
+/**
+ * Component for document download modal
+ * 
+ * @param param0 - Download component props
+ * @param param0.setActiveSidebar - function to set active button in sidebar
+ * @param param0.title - title of the modal
+ * @param param0.text - text of the modal
+ * 
+ * 
+ * @returns - Download component
+ */
 const Download = ({ setActiveSidebar, title, text }: IHomeProps) => {
   const [isOpen, setIsOpen] = useState(true)
 
