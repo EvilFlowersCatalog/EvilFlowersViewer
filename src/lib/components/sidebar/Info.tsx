@@ -15,6 +15,15 @@ interface IPdfMetadataProps {
   author: string
 }
 
+/**
+ * Shows the document information based on metadata from the document
+ * in a sidebar component
+ * 
+ * @param param0 - props
+ * @param param0.setActiveSidebar - function to set sidebar state
+ 
+ * @returns - The document information sidebar component
+ */
 const Info = ({ setActiveSidebar }: IInfoProps) => {
   const { pdf } = useDocumentContext()
   const [metadata, setMetadata] = useState<any>([])

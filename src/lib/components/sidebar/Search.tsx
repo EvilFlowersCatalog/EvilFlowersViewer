@@ -14,6 +14,12 @@ interface ISearchProps {
   setActiveSidebar: (bool: any) => void
 }
 
+/**
+ * 
+ * @param param0 - props
+ * @param param0.setActiveSidebar - function to set the active sidebar
+ * @returns The search sidebar component
+ */
 const Search = ({ setActiveSidebar }: ISearchProps) => {
   const [searchPattern, setSearchPattern] = useState<string>('')
   const [matches, setMatches] = useState<
@@ -27,17 +33,40 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
     setActiveSidebar(SIDEBAR_TABS.NULL)
   }
 
+  /**
+   * 
+   * @param e - the change event
+   * @returns - the search pattern
+   */
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (searchPattern === '') setMatches([])
     return setSearchPattern(e.target.value)
   }
 
+  /**
+   * Looks for the search pattern in the whole document
+   * and returns them and their page number in sidebar component
+   * 
+   * @param pattern - the search pattern
+   * @returns - the matches with their page number 
+   * 
+   * @todo - consider using web workers to unblock the main thread
+   * 
+   * @alpha
+   */
   //NOTE: This is a first version of the search function, consider refactoring it to use a web worker, to unblock the main thread
   const searchInDocument = useCallback(
     debounce(async (pattern: string) => {
       new Promise((resolve) => {
         let textContent: { text: string; page: number }[] = []
 
+        /**
+         * Get the text content of page
+         * 
+         * @param n - the page number
+         * 
+         * @returns - an array of promises
+         */
         const pagesContent = Array.from(Array(pdf?.numPages).keys()).map(
           (n) => {
             return pdf

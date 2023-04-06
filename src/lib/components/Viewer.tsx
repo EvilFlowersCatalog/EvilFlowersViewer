@@ -11,6 +11,13 @@ interface IViewerProps {
   data?: string
 }
 
+/**
+ * The Viewer component. It takes a base64 encoded string of the PDF file and renders it.
+ * 
+ * @param param0 - props
+ * @param param0.data - The base64 encoded string of the PDF file
+ * @returns - The Viewer component
+ */
 export const Viewer = ({ data }: IViewerProps) => {
   const [documentData, setDocumentData] = useState<string>()
 

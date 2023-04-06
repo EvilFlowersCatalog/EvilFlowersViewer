@@ -2,6 +2,15 @@ import { useState } from 'react'
 // import { FaMinus, FaPlus, FaAlignJustify } from 'react-icons/fa'
 import { useDocumentContext } from '../document/DocumentContext'
 
+/**
+ * The buttons for the zoom controls
+ * 
+ * @param icon - the icon to be displayed
+ * @param onClick - the function to be called when the button is clicked
+ * 
+ * @returns - the zoom buttons with the icon and the onClick function
+ * 
+ */
 const ZoomButton = ({
   icon,
   onClick,

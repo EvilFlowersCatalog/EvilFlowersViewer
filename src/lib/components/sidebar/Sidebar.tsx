@@ -10,6 +10,11 @@ import Share from './Share'
 import Info from './Info'
 import Download from './Download'
 
+/**
+ * The sidebar component
+ * 
+ * @returns - Sidebar component
+ */
 const Sidebar: React.FunctionComponent = () => {
   const [activeSidebar, setActiveSidebar] = useState<SIDEBAR_TABS>(
     SIDEBAR_TABS.NULL

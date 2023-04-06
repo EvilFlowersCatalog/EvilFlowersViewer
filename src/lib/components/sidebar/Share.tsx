@@ -8,6 +8,17 @@ interface IShareProps {
   text: string
 }
 
+/**
+ * Returns the share modal component
+ * 
+ * @param param0 - props
+ * @param param0.setActiveSidebar - function to set sidebar state
+ * @param param0.title - title of modal
+ * @param param0.text - text of modal
+ * 
+ * @returns - The share modal component
+ */
+
 const Share = ({ setActiveSidebar, title, text }: IShareProps) => {
   const [isOpen, setIsOpen] = useState(true)
 
