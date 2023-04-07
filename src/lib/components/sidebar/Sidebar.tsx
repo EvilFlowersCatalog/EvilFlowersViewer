@@ -1,7 +1,6 @@
 import React from 'react'
 import { useState } from 'react'
-import * as FaIcons from 'react-icons/fa'
-import { SIDEBAR_TABS } from '../../utils/enums'
+import { SIDEBAR_TABS } from '../../../utils/enums'
 
 import Home from './Home'
 import Search from './Search'
@@ -11,6 +10,11 @@ import Share from './Share'
 import Info from './Info'
 import Download from './Download'
 
+/**
+ * The sidebar component
+ * 
+ * @returns - Sidebar component
+ */
 const Sidebar: React.FunctionComponent = () => {
   const [activeSidebar, setActiveSidebar] = useState<SIDEBAR_TABS>(
     SIDEBAR_TABS.NULL
@@ -20,37 +24,44 @@ const Sidebar: React.FunctionComponent = () => {
     {
       name: 'home',
       icon: 'src/utils/images/home.svg',
+      tooltip: 'Home',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.HOME),
     },
     {
       name: 'search',
       icon: 'src/utils/images/search.svg',
+      tooltip: 'Full text search',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.SEARCH),
     },
     {
       name: 'pen',
       icon: 'src/utils/images/pen.svg',
+      tooltip: 'Document editing',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.PEN),
     },
     {
       name: 'citations',
       icon: 'src/utils/images/citations.svg',
+      tooltip: 'Generate citations',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.CITATIONS),
     },
     {
       name: 'share',
       icon: 'src/utils/images/share.svg',
+      tooltip: 'Share document',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.SHARE),
     },
     {
       name: 'info',
       icon: 'src/utils/images/info.svg',
+      tooltip: 'Document information',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.INFO),
     },
     {
       name: 'download',
       icon: 'src/utils/images/download.svg',
 
+      tooltip: 'Download document',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.DOWNLOAD),
     },
   ]
@@ -66,9 +77,10 @@ const Sidebar: React.FunctionComponent = () => {
             <button
               id={item.name}
               onClick={item.onClick}
-              className={`px-5 py-2 text-lg text-white bg-blue-200 rounded-md hover:bg-blue-500 ${
+              className={`px-5 py-2 text-lg text-white bg-blue-200 rounded-md hover:bg-blue-500 hover:text-white ${
                 item.name === 'home' ? 'mb-16' : 'mb-2'
               }`}
+              title={item.tooltip}
             >
               <img src={item.icon} className="w-6 h-6" />
             </button>

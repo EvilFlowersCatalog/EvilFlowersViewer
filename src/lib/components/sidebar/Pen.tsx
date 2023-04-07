@@ -1,9 +1,17 @@
-import { SIDEBAR_TABS } from '../../utils/enums'
+import { SIDEBAR_TABS } from '../../../utils/enums'
 
 interface IPenProps {
   setActiveSidebar: (bool: any) => void
 }
 
+/**
+ * Shows the sidebar component for annotation creation
+ * 
+ * @param param0 - props
+ * @param param0.setActiveSidebar - function to set the active sidebar
+ 
+ * @returns - The sidebar component for annotation creation
+ */
 const Pen = ({ setActiveSidebar }: IPenProps) => {
   const handleClick = () => {
     setActiveSidebar(SIDEBAR_TABS.NULL)

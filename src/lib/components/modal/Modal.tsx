@@ -1,5 +1,17 @@
 import { ReactNode } from 'react';
+import { useDocumentContext } from '../document/DocumentContext';
 
+
+/**
+ * ModalWrapper
+ * @param label - Label of the caller button
+ * @param isOpen - Is the modal open?
+ * @param onClose - Function to close the modal
+ * @param children - Children of the modal
+ * @constructor
+ * @returns {JSX.Element}
+ * 
+ */
 type Props = {
   label: string;
   isOpen: boolean;
@@ -7,7 +19,17 @@ type Props = {
   children: ReactNode;
 };
 
+/**
+ * 
+ * @param label - Label of the caller button
+ * @param isOpen - Is the modal open?
+ * @param onClose - Function to close the modal
+ * @param children - Children of the modal
+ *  
+ * @returns Modal window based on the label from props
+ */
 const ModalWrapper = ({ label, isOpen, onClose, children }: Props) => {
+  const { downloadDocument } = useDocumentContext()
   return (
     <>
       {isOpen && (
@@ -22,7 +44,8 @@ const ModalWrapper = ({ label, isOpen, onClose, children }: Props) => {
               <div className="mt-4 flex justify-end">
                 <button
                   className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
-                  onClick={() => console.log(label+ ' clicked')}
+                  {... (label === 'Download' && {onClick: () => {downloadDocument()}})}
+                  //console.log(label + ' clicked')
                   // TODO: Add functionality
                 >
                   {label}

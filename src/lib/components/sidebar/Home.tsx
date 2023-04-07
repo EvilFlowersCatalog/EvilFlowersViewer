@@ -1,10 +1,18 @@
-import { SIDEBAR_TABS } from '../../utils/enums'
+import { SIDEBAR_TABS } from '../../../utils/enums'
 
-interface IInfoProps {
+interface IHomeProps {
   setActiveSidebar: (bool: any) => void
 }
 
-const Info = ({ setActiveSidebar }: IInfoProps) => {
+/**
+ * Set the active sidebar to home - default state
+ * 
+ * @param param0 - props
+ * @param param0.setActiveSidebar - function to set the active sidebar
+ * 
+ * @returns - The default home sidebar
+ */
+const Home = ({ setActiveSidebar }: IHomeProps) => {
   const handleClick = () => {
     setActiveSidebar(SIDEBAR_TABS.NULL)
   }
@@ -22,4 +30,4 @@ const Info = ({ setActiveSidebar }: IInfoProps) => {
     </div>
   )
 }
-export default Info
+export default Home

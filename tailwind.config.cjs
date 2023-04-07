@@ -4,6 +4,9 @@ const colors = require('tailwindcss/colors')
 module.exports = {
   // NOTE: Prefix pre všetky classy, tailwind štýly tak majú väčšiu váhu ako ant štýly
   content: ['./src/**/*.tsx', './public/**/*.html'],
+  corePlugins: {
+    preflight: false,
+  },
   // https://tailwindcss.com/docs/content-configuration#safelisting-classes
   // https://github.com/tailwindlabs/tailwindcss/discussions/6347
   // NOTE: Pri developmente ignoruje compiler vsetky classy a nepouziva JiT

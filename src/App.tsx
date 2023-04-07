@@ -1,6 +1,10 @@
-import Viewer from './components/Viewer'
+import { Viewer } from './lib/components/Viewer'
 import { pdf_data } from './examples_PDF/samplePDF'
 
+/**
+ * 
+ * @returns The App component that renders the Viewer component
+ */
 export function App() {
   return (
     <div className="App">

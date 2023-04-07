@@ -1,9 +1,17 @@
-import { SIDEBAR_TABS } from '../../utils/enums'
+import { SIDEBAR_TABS } from '../../../utils/enums'
 
 interface ICitationsProps {
   setActiveSidebar: (bool: any) => void
 }
 
+/**
+ * Component for citation generation modal
+ * 
+ * @param param0 - props
+ * @param param0.setActiveSidebar - function to set active sidebar
+ * @returns - Citaitons component
+ * 
+ */
 const Citations = ({ setActiveSidebar }: ICitationsProps) => {
   const handleClick = () => {
     setActiveSidebar(SIDEBAR_TABS.NULL)

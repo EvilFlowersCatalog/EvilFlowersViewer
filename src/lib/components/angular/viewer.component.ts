@@ -7,6 +7,12 @@ import { createRoot } from 'react-dom/client'
   selector: 'app-my-component',
   template: `<div [id]="rootId"></div>`,
 })
+
+/**
+ * This is a wrapper component that will render the React component
+ * in the Angular component.
+ * 
+ */
 export class AppWrapperComponent implements OnChanges, AfterViewInit {
   public rootId = 'feeling-form-root'
   private hasViewLoaded = false

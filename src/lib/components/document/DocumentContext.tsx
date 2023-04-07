@@ -1,20 +1,34 @@
 import { PDFDocumentProxy } from 'pdfjs-dist'
 import { createContext, useContext } from 'react'
 
+/**
+ * Document context
+ */
 interface IDocumentContext {
   pdf?: PDFDocumentProxy
   activePage: number
+  downloadDocument: () => void
   nextPage: () => void
   prevPage: () => void
   setPage: (e: React.ChangeEvent<HTMLInputElement>) => void
-  scale: number,
+  searchPage: (n: number) => void
+  scale: number
   setScale: (scale: number) => void
+  resetScale: () => void
   zoomIn: () => void
   zoomOut: () => void
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)
 
+/**
+ * Returns the document context
+ * 
+ * @throws {Error} 
+ * This error is thrown if context is null
+ * 
+ * @returns {IDocumentContext} 
+ */
 export const useDocumentContext = () => {
   const context = useContext(DocumentContext)
 
