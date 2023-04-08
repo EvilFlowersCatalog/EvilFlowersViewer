@@ -1,44 +1,81 @@
-import { useState } from 'react'
-// import { FaMinus, FaPlus, FaAlignJustify } from 'react-icons/fa'
+import { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+import cx from 'classnames'
+
+// icons
+import { ReactComponent as ZoomIn } from '../../../assets/icons/zoom-in.svg'
+import { ReactComponent as ZoomOut } from '../../../assets/icons/zoom-out.svg'
+import { ReactComponent as Screen } from '../../../assets/icons/maximize.svg'
 import { useDocumentContext } from '../document/DocumentContext'
 
-/**
- * The buttons for the zoom controls
- * 
- * @param icon - the icon to be displayed
- * @param onClick - the function to be called when the button is clicked
- * 
- * @returns - the zoom buttons with the icon and the onClick function
- * 
- */
-const ZoomButton = ({
-  icon,
-  onClick,
-}: {
-  icon: string
+// components
+import Tooltip from '../helpers/Tooltip'
+
+interface IZoomButtonProps {
   onClick: () => void
-}) => (
-  <button //Maybe todo tooltips for buttons
-    className="w-9 h-9 px-2 py-2 rounded-md shadow-lg text-black bg-blue-300 hover:bg-blue-600 focus:outline-none"
-    onClick={onClick}
-  >
-    {/* {icon == 'zoomIn' && <FaPlus />}
-    {icon == 'zoomOut' && <FaMinus />}
-    {icon == 'resetScale' && <FaAlignJustify />} */}
-  </button>
-)
+  icon: ReactNode
+  tooltipText?: string
+}
+
+const ZoomButton = ({ onClick, icon, tooltipText }: IZoomButtonProps) => {
+  return (
+    <Tooltip title={tooltipText}>
+      <button
+        onClick={onClick}
+        className={
+          'bg-transparent border-none padding-4 hover:bg-gray-50 rounded cursor-pointer duration-200'
+        }
+      >
+        {icon}
+      </button>
+    </Tooltip>
+  )
+}
 
 const ZoomControls = () => {
+  const { t } = useTranslation()
   const { zoomIn, zoomOut, resetScale, scale } = useDocumentContext()
 
   return (
-    <div className="fixed right-20 bottom-72 flex items-center flex-col gap-1 z-50">
-      <ZoomButton icon="zoomIn" onClick={zoomIn} />
-      <ZoomButton icon="zoomOut" onClick={zoomOut} />
-      <ZoomButton icon="resetScale" onClick={resetScale} />
-      <div className="w-16 h-9 py-2 rounded-md shadow-lg text-center bg-white">
-        {scale * 100}%
-      </div>
+    <div
+      className={
+        'fixed left-64 bottom-1/4 bg-white flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center'
+      }
+    >
+      <ZoomButton
+        onClick={zoomIn}
+        tooltipText={t('zoomIn')}
+        icon={
+          <ZoomIn
+            className={cx('duration-200', {'stroke-gray-500 hover:stroke-gray-700': scale < 2.5, 'stroke-gray-300': scale >= 2.5})}
+          />
+        }
+      />
+      <ZoomButton
+        onClick={zoomOut}
+        tooltipText={t('zoomOut')}
+        icon={
+          <ZoomOut
+            className={cx('duration-200', {'stroke-gray-500 hover:stroke-gray-700': scale > 0.5, 'stroke-gray-300': scale <= 0.5})}
+          />
+        }
+      />
+      <ZoomButton
+        onClick={resetScale}
+        tooltipText={t('resetZoom')}
+        icon={
+          <Screen
+            className={'stroke-gray-500 hover:stroke-gray-700 duration-200'}
+          />
+        }
+      />
+      <span
+        className={
+          'text-sm font-bold p-2 rounded-2 w-12 text-gray-500 text-center'
+        }
+      >
+        {scale * 100} %
+      </span>
     </div>
   )
 }

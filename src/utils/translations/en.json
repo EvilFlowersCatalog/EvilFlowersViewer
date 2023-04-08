@@ -1,0 +1,17 @@
+{
+  "translations": {
+    "pagination": "Page {{x}} of {{y}}",
+    "prevPage": "Previous page",
+    "nextPage": "Next page",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetZoom": "Reset zoom",
+    "search": "Search",
+    "noMatchesFound": "No matches found",
+    "searchPlaceholder": "Enter search pattern...",
+    "pageNumber": "Page {{number}}",
+    "foundResults": "Found {{count}} results",
+    "hidePanel": "Hide panel",
+    "fullTextSearch": "Full text search"
+  }
+}

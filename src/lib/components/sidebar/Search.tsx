@@ -1,26 +1,25 @@
-import {
-  ReactElement,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react'
-import { debounce } from '../../../utils'
-import { SEARCH_STATES, SIDEBAR_TABS } from '../../../utils/enums'
+import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useDocumentContext } from '../document/DocumentContext'
-// import { FaAngleLeft } from 'react-icons/fa'
 
-interface ISearchProps {
-  setActiveSidebar: (bool: any) => void
-}
+// utils
+import { debounce } from '../../../utils'
+import { SEARCH_STATES } from '../../../utils/enums'
+
+// icons
+import { ReactComponent as SadIcon } from '../../../assets/icons/mood-sad.svg'
+
+interface ISearchProps {}
 
 /**
- * 
+ *
  * @param param0 - props
  * @param param0.setActiveSidebar - function to set the active sidebar
  * @returns The search sidebar component
  */
-const Search = ({ setActiveSidebar }: ISearchProps) => {
+const Search = () => {
+  const { t } = useTranslation()
+
   const [searchPattern, setSearchPattern] = useState<string>('')
   const [matches, setMatches] = useState<
     ({ page: number; text: string } | undefined)[]
@@ -29,12 +28,8 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
 
   const { pdf, searchPage } = useDocumentContext()
 
-  const handleClick = () => {
-    setActiveSidebar(SIDEBAR_TABS.NULL)
-  }
-
   /**
-   * 
+   *
    * @param e - the change event
    * @returns - the search pattern
    */
@@ -46,12 +41,12 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
   /**
    * Looks for the search pattern in the whole document
    * and returns them and their page number in sidebar component
-   * 
+   *
    * @param pattern - the search pattern
-   * @returns - the matches with their page number 
-   * 
+   * @returns - the matches with their page number
+   *
    * @todo - consider using web workers to unblock the main thread
-   * 
+   *
    * @alpha
    */
   //NOTE: This is a first version of the search function, consider refactoring it to use a web worker, to unblock the main thread
@@ -62,9 +57,9 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
 
         /**
          * Get the text content of page
-         * 
+         *
          * @param n - the page number
-         * 
+         *
          * @returns - an array of promises
          */
         const pagesContent = Array.from(Array(pdf?.numPages).keys()).map(
@@ -94,7 +89,7 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
                 text: match[0],
               }
             }
-          })
+          }).filter(Boolean)
 
           setMatches(matches)
           resolve(SEARCH_STATES.DONE)
@@ -105,55 +100,65 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
   )
 
   useEffect(() => {
+    if (searchPattern === '') return setMatches([])
+
     setSearching(SEARCH_STATES.LOADING)
     searchInDocument(searchPattern)
   }, [searchPattern])
 
   return (
-    <div className="w-30 h-screen bg-blue-200 fixed top-100 x-100 y-100 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 z-10 overflow-auto">
-      <div className="text-white mt-5">
-        <input
-          type="text"
-          value={searchPattern}
-          onChange={handleSearchChange}
-          className="w-30 bg-gray-200 text-black rounded-md mr-2 ml-2 pl-2 py-1"
-        ></input>
-        <button
-          className="px-2 py-2 text-lg text-black bg-blue-100 rounded-md hover:bg-blue-500 mr-1"
-          onClick={handleClick}
-        >
-          {/* <FaAngleLeft /> */}
-        </button>
-      </div>
+    <>
+      <input
+        type={'text'}
+        value={searchPattern}
+        onChange={handleSearchChange}
+        className={
+          'mx-4 p-2 rounded-md bg-gray-100 border border-solid outline-none focus:outline-none focus:border-gray-500 duration-300'
+        }
+        placeholder={'Enter search pattern...'}
+      ></input>
       {searching === SEARCH_STATES.LOADING && (
         <div className={'w-full flex justify-center py-4'}>
           <span className={'evilflowersviewer-loader-small'}></span>
         </div>
       )}
       {searching === SEARCH_STATES.DONE && matches.length === 0 && (
-        <span>No matches found</span>
+        <span
+          className={
+            'flex justify-center items-center gap-2 text-gray-500 text-xs mt-4'
+          }
+        >
+          <SadIcon width={20} />
+          {t('noMatchesFound')}
+        </span>
       )}
       {searching === SEARCH_STATES.DONE && matches.length > 0 && (
-        <div>
-          {matches.map((match, index) => {
+        <>
+          <span className={'text-xs mx-4 mt-4 text-gray-500'}>
+            {t('foundResults', { count: matches.length })}
+          </span>
+          {matches.map((match, i) => {
             if (!match) return <></>
             return (
-              <div key={'Match nr. ' + index}>
-                <button
-                  className="text-black text-xs bg-blue-100 rounded-md hover:bg-blue-500 w-48 break-all ml-2"
-                  onClick={() => {
-                    searchPage(match.page)
-                  }}
-                >
-                  <p className="break-all"> {match.text} </p>
-                  <p className="break-all"> {'Page number: ' + match.page} </p>
-                </button>
+              <div
+                key={i}
+                className={
+                  'mx-4 bg-gray-100 rounded-md my-1 cursor-pointer hover:bg-gray-200 p-4 duration-200'
+                }
+                onClick={() => {
+                  searchPage(match.page)
+                }}
+              >
+                <span className={'break-all text-xs'}>{match.text}</span>
+                <span className={'text-right block break-all text-sm'}>
+                  {t('pageNumber', { number: match.page })}
+                </span>
               </div>
             )
           })}
-        </div>
+        </>
       )}
-    </div>
+    </>
   )
 }
 export default Search
