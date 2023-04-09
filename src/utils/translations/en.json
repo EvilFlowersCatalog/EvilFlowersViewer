@@ -12,6 +12,12 @@
     "pageNumber": "Page {{number}}",
     "foundResults": "Found {{count}} results",
     "hidePanel": "Hide panel",
-    "fullTextSearch": "Full text search"
+    "fullTextSearch": "Full text search",
+    "info": "Document info",
+    "title": "Title",
+    "creationDate": "Creation date",
+    "author": "Author",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode"
   }
 }

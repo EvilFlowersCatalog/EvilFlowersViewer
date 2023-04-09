@@ -114,7 +114,7 @@ const Document = ({ data }: IDocumentProps) => {
    * Zoom out on document
    */
   const zoomOut = () => {
-    setScale((prevScale) => (prevScale > 0.5 ? prevScale - 0.25 : prevScale))
+    setScale((prevScale) => (prevScale > 1 ? prevScale - 0.25 : prevScale))
   }
 
   /**
@@ -149,7 +149,6 @@ const Document = ({ data }: IDocumentProps) => {
     >
       <Tools />
       <Page />
-      <BottomBar />
       <ZoomControls />
       <Pagination />
     </DocumentContext.Provider>

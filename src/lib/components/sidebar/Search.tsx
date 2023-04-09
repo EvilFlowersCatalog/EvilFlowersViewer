@@ -9,8 +9,6 @@ import { SEARCH_STATES } from '../../../utils/enums'
 // icons
 import { ReactComponent as SadIcon } from '../../../assets/icons/mood-sad.svg'
 
-interface ISearchProps {}
-
 /**
  *
  * @param param0 - props
@@ -113,7 +111,7 @@ const Search = () => {
         value={searchPattern}
         onChange={handleSearchChange}
         className={
-          'mx-4 p-2 rounded-md bg-gray-100 border border-solid outline-none focus:outline-none focus:border-gray-500 duration-300'
+          'mx-4 p-2 rounded-md bg-gray-100 dark:bg-gray-900 border border-solid dark:border-gray-500 dark:text-gray-300 outline-none focus:outline-none focus:border-gray-500 dark:focus:border-gray-300 duration-300'
         }
         placeholder={'Enter search pattern...'}
       ></input>
@@ -125,7 +123,7 @@ const Search = () => {
       {searching === SEARCH_STATES.DONE && matches.length === 0 && (
         <span
           className={
-            'flex justify-center items-center gap-2 text-gray-500 text-xs mt-4'
+            'flex justify-center items-center gap-2 text-gray-500 dark:text-gray-300 text-xs mt-4'
           }
         >
           <SadIcon width={20} />
@@ -134,7 +132,7 @@ const Search = () => {
       )}
       {searching === SEARCH_STATES.DONE && matches.length > 0 && (
         <>
-          <span className={'text-xs mx-4 mt-4 text-gray-500'}>
+          <span className={'text-xs mx-4 mt-4 text-gray-500 dark:text-gray-300'}>
             {t('foundResults', { count: matches.length })}
           </span>
           {matches.map((match, i) => {
@@ -143,7 +141,7 @@ const Search = () => {
               <div
                 key={i}
                 className={
-                  'mx-4 bg-gray-100 rounded-md my-1 cursor-pointer hover:bg-gray-200 p-4 duration-200'
+                  'mx-4 bg-gray-100 dark:bg-gray-300 rounded-md my-1 cursor-pointer hover:bg-gray-200 px-4 py-2 duration-200'
                 }
                 onClick={() => {
                   searchPage(match.page)

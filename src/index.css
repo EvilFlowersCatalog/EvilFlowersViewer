@@ -5,6 +5,7 @@
 @tailwind utilities;
 
 body {
+  margin: 0;
   background-color: theme('colors.gray.100');
 }
 
@@ -25,28 +26,6 @@ body {
 #textLayer span::selection {
   color: transparent;
   background: #8f8fe352;
-}
-
-.tooltip:after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: white transparent transparent transparent;
-}
-
-.tooltip.right:after {
-  top: 50%;
-  margin-top: -5px;
-  left: -5px;
-  transform: rotate(90deg);
-}
-
-.tooltip.left:after {
-  display: none;
 }
 
 .divider {

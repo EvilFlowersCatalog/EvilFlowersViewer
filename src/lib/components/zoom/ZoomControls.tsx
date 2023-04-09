@@ -23,7 +23,7 @@ const ZoomButton = ({ onClick, icon, tooltipText }: IZoomButtonProps) => {
       <button
         onClick={onClick}
         className={
-          'bg-transparent border-none padding-4 hover:bg-gray-50 rounded cursor-pointer duration-200'
+          'bg-transparent border-none padding-4 hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 flex items-center'
         }
       >
         {icon}
@@ -39,7 +39,7 @@ const ZoomControls = () => {
   return (
     <div
       className={
-        'fixed left-64 bottom-1/4 bg-white flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center'
+        'fixed left-64 bottom-6 bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200'
       }
     >
       <ZoomButton
@@ -47,7 +47,7 @@ const ZoomControls = () => {
         tooltipText={t('zoomIn')}
         icon={
           <ZoomIn
-            className={cx('duration-200', {'stroke-gray-500 hover:stroke-gray-700': scale < 2.5, 'stroke-gray-300': scale >= 2.5})}
+            className={cx('duration-200', {'stroke-gray-500 dark:stroke-gray-300 hover:stroke-gray-700': scale < 2.5, 'stroke-gray-300 dark:stroke-gray-500': scale >= 2.5})}
           />
         }
       />
@@ -56,7 +56,7 @@ const ZoomControls = () => {
         tooltipText={t('zoomOut')}
         icon={
           <ZoomOut
-            className={cx('duration-200', {'stroke-gray-500 hover:stroke-gray-700': scale > 0.5, 'stroke-gray-300': scale <= 0.5})}
+            className={cx('duration-200', {'stroke-gray-500 dark:stroke-gray-300 hover:stroke-gray-700': scale > 1, 'stroke-gray-300 dark:stroke-gray-500': scale <= 1})}
           />
         }
       />
@@ -65,13 +65,13 @@ const ZoomControls = () => {
         tooltipText={t('resetZoom')}
         icon={
           <Screen
-            className={'stroke-gray-500 hover:stroke-gray-700 duration-200'}
+            className={'stroke-gray-500 dark:stroke-gray-300 hover:stroke-gray-700 duration-200'}
           />
         }
       />
       <span
         className={
-          'text-sm font-bold p-2 rounded-2 w-12 text-gray-500 text-center'
+          'text-sm font-bold p-2 rounded-2 w-12 text-gray-500 dark:text-gray-300 text-center'
         }
       >
         {scale * 100} %

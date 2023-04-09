@@ -18,7 +18,7 @@ const Tooltip = ({ children, title, placement = 'top' }: ITooltipProps) => {
       {title && (
         <div
           className={cx(
-            'tooltip absolute -top-6 -translate-x-1/3 bg-gray-50 shadow-md px-2 py-1 text-xs rounded-md border border-gray-200 border-solid duration-200 pointer-events-none',
+            'tooltip absolute -top-6 -translate-x-1/3 bg-gray-50 dark:bg-gray-800 shadow-md px-2 py-1 text-xs rounded-md border border-gray-200 dark:border-gray-500 border-solid duration-200 pointer-events-none',
             {
               'opacity-100 scale-100': visible,
               'opacity-0 scale-95': !visible,
@@ -27,7 +27,7 @@ const Tooltip = ({ children, title, placement = 'top' }: ITooltipProps) => {
             }
           )}
         >
-          <span className={'text-gray-600 font-semibold w-max inline-block'}>
+          <span className={'text-gray-600 dark:text-gray-300 font-semibold w-max inline-block'}>
             {title}
           </span>
         </div>

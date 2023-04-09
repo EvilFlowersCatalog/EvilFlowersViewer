@@ -13,13 +13,25 @@ interface IViewerProps {
 
 /**
  * The Viewer component. It takes a base64 encoded string of the PDF file and renders it.
- * 
+ *
  * @param param0 - props
  * @param param0.data - The base64 encoded string of the PDF file
  * @returns - The Viewer component
  */
 export const Viewer = ({ data }: IViewerProps) => {
   const [documentData, setDocumentData] = useState<string>()
+
+  useEffect(() => {
+    if (
+      localStorage.theme === 'dark' ||
+      (!('theme' in localStorage) &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches)
+    ) {
+      document.getElementById('evilFlowersViewer')?.classList.add('dark')
+    } else {
+      document.getElementById('evilFlowersViewer')?.classList.remove('dark')
+    }
+  }, [])
 
   // On every data change, convert it to binary and set it to the documentData state
   useEffect(() => {
@@ -30,8 +42,13 @@ export const Viewer = ({ data }: IViewerProps) => {
   }, [data])
 
   return (
-    <div id="evilFlowersViewer" className="evilFlowersViewe w-screen h-screen">
-      {documentData && <Document data={documentData} />}
+    <div
+      id={'evilFlowersViewer'}
+      className={
+        'evilFlowersViewer w-full h-full'
+      }
+    >
+      <div className={'bg-gray-100 dark:bg-zinc-700 w-full h-full duration-200'}>{documentData && <Document data={documentData} />}</div>
     </div>
   )
 }

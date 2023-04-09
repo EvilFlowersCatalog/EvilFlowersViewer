@@ -22,7 +22,7 @@ const PaginationButton = ({ onClick, icon, tooltipText }: IZoomButtonProps) => {
       <button
         onClick={onClick}
         className={
-          'bg-transparent border-none padding-4 hover:bg-gray-50 rounded cursor-pointer duration-200'
+          'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 flex items-center'
         }
       >
         {icon}
@@ -38,7 +38,7 @@ const Pagination = () => {
   return (
     <div
       className={
-        'fixed right-64 bottom-1/4 bg-white flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center'
+        'fixed right-64 bottom-6 bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200'
       }
     >
       <PaginationButton
@@ -47,8 +47,8 @@ const Pagination = () => {
         icon={
           <Left
             className={cx('duration-200', {
-              'stroke-gray-500 hover:stroke-gray-700': activePage !== 1,
-              'stroke-gray-300': activePage === 1,
+              'stroke-gray-500 dark:stroke-gray-300': activePage !== 1,
+              'stroke-gray-300 dark:stroke-gray-500': activePage === 1,
             })}
           />
         }
@@ -59,8 +59,8 @@ const Pagination = () => {
         icon={
           <Right
             className={cx('duration-200', {
-              'stroke-gray-300': activePage === totalPages,
-              'stroke-gray-500 hover:stroke-gray-700':
+              'stroke-gray-300 dark:stroke-gray-500': activePage === totalPages,
+              'stroke-gray-500 dark:stroke-gray-300':
                 activePage !== totalPages,
             })}
           />
@@ -68,7 +68,7 @@ const Pagination = () => {
       />
       <span
         className={
-          'text-sm font-bold p-2 rounded-2 w-28 text-gray-500 text-center'
+          'text-sm font-bold p-2 rounded-2 w-28 text-gray-500 dark:text-gray-300 text-center'
         }
       >
         {t('pagination', { x: activePage, y: totalPages })}
