@@ -1,122 +1,47 @@
-import React from 'react'
-import { useState } from 'react'
-import { SIDEBAR_TABS } from '../../../utils/enums'
+import { ReactNode } from 'react'
+import cx from 'classnames'
+import Tooltip from '../helpers/Tooltip'
 
-import Home from './Home'
-import Search from './Search'
-import Pen from './Pen'
-import Citations from './Citations'
-import Share from './Share'
-import Info from './Info'
-import Download from './Download'
+// icons
+import { ReactComponent as ChevronsLeft } from '../../../assets/icons/chevrons-left.svg'
+import { useTranslation } from 'react-i18next'
 
-/**
- * The sidebar component
- * 
- * @returns - Sidebar component
- */
-const Sidebar: React.FunctionComponent = () => {
-  const [activeSidebar, setActiveSidebar] = useState<SIDEBAR_TABS>(
-    SIDEBAR_TABS.NULL
-  )
+interface ISidebarProps {
+  open: boolean
+  setOpen: (open: boolean) => void
+  children: ReactNode
+  title: ReactNode
+}
 
-  const SidebarData = [
-    {
-      name: 'home',
-      icon: 'src/utils/images/home.svg',
-      tooltip: 'Home',
-      onClick: () => setActiveSidebar(SIDEBAR_TABS.HOME),
-    },
-    {
-      name: 'search',
-      icon: 'src/utils/images/search.svg',
-      tooltip: 'Full text search',
-      onClick: () => setActiveSidebar(SIDEBAR_TABS.SEARCH),
-    },
-    {
-      name: 'pen',
-      icon: 'src/utils/images/pen.svg',
-      tooltip: 'Document editing',
-      onClick: () => setActiveSidebar(SIDEBAR_TABS.PEN),
-    },
-    {
-      name: 'citations',
-      icon: 'src/utils/images/citations.svg',
-      tooltip: 'Generate citations',
-      onClick: () => setActiveSidebar(SIDEBAR_TABS.CITATIONS),
-    },
-    {
-      name: 'share',
-      icon: 'src/utils/images/share.svg',
-      tooltip: 'Share document',
-      onClick: () => setActiveSidebar(SIDEBAR_TABS.SHARE),
-    },
-    {
-      name: 'info',
-      icon: 'src/utils/images/info.svg',
-      tooltip: 'Document information',
-      onClick: () => setActiveSidebar(SIDEBAR_TABS.INFO),
-    },
-    {
-      name: 'download',
-      icon: 'src/utils/images/download.svg',
-
-      tooltip: 'Download document',
-      onClick: () => setActiveSidebar(SIDEBAR_TABS.DOWNLOAD),
-    },
-  ]
+const Sidebar = ({ open, setOpen, children, title }: ISidebarProps) => {
+  const { t } = useTranslation()
 
   return (
-    <>
-      <div className="w-15 h-screen bg-blue-200 fixed top-0 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 z-10">
-        {SidebarData.map((item) => (
-          <div
-            key={item.name}
-            className={'list-none flex items-center w-full h-90 px-2 py-5 '}
-          >
-            <button
-              id={item.name}
-              onClick={item.onClick}
-              className={`px-5 py-2 text-lg text-white bg-blue-200 rounded-md hover:bg-blue-500 hover:text-white ${
-                item.name === 'home' ? 'mb-16' : 'mb-2'
-              }`}
-              title={item.tooltip}
-            >
-              <img src={item.icon} className="w-6 h-6" />
-            </button>
+    <div
+      className={cx('fixed top-0 duration-200 w-64 h-full z-10 flex', {
+        'left-0': open,
+        '-left-64': !open,
+      })}
+    >
+      <div
+        className={
+          'bg-white dark:bg-gray-800 rounded-lg m-6 w-full shadow-lg flex flex-col overflow-y-scroll duration-200'
+        }
+      >
+        <div className={'header p-4 flex justify-between'}>
+          <span className={'text-gray-700 dark:text-gray-300 font-semibold'}>{title}</span>
+          <div className={'relative'}>
+            <Tooltip title={t('hidePanel')} placement={'left'}>
+              <ChevronsLeft
+                className={'ml-auto text-gray-500 dark:text-gray-300 cursor-pointer hover:text-gray-700 dark:hover:text-gray-500 duration-200'}
+                onClick={() => setOpen(false)}
+              />
+            </Tooltip>
           </div>
-        ))}
+        </div>
+        {children}
       </div>
-      {activeSidebar === SIDEBAR_TABS.HOME && (
-        <Home setActiveSidebar={setActiveSidebar} />
-      )}
-      {activeSidebar === SIDEBAR_TABS.SEARCH && (
-        <Search setActiveSidebar={setActiveSidebar} />
-      )}
-      {activeSidebar === SIDEBAR_TABS.PEN && (
-        <Pen setActiveSidebar={setActiveSidebar} />
-      )}
-      {activeSidebar === SIDEBAR_TABS.CITATIONS && (
-        <Citations setActiveSidebar={setActiveSidebar} />
-      )}
-      {activeSidebar === SIDEBAR_TABS.SHARE && (
-        <Share
-          setActiveSidebar={setActiveSidebar}
-          text="Some text before share"
-          title="Share Title"
-        />
-      )}
-      {activeSidebar === SIDEBAR_TABS.INFO && (
-        <Info setActiveSidebar={setActiveSidebar} />
-      )}
-      {activeSidebar === SIDEBAR_TABS.DOWNLOAD && (
-        <Download
-          setActiveSidebar={setActiveSidebar}
-          text="Some text before download"
-          title="Download Title"
-        />
-      )}
-    </>
+    </div>
   )
 }
 

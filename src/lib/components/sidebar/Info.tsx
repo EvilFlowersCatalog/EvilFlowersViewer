@@ -1,19 +1,31 @@
-import { useEffect, useState } from 'react'
-import { SIDEBAR_TABS } from '../../../utils/enums'
+import { ReactNode, useEffect, useState } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
+import { useTranslation } from 'react-i18next'
 
-interface IInfoProps {
-  setActiveSidebar: (bool: any) => void
-}
+interface IInfoProps {}
 
 interface IPdfMetadataProps {
-  title: string
-  pages: number
-  creationDate: string
-  description: string
-  identificator: number
-  author: string
+  title?: string
+  pages?: number
+  creationDate?: string
+  description?: string
+  identificator?: number
+  author?: string
 }
+
+interface IInfoRowProps {
+  title: ReactNode
+  value: ReactNode
+}
+
+const InfoRow = ({ title, value }: IInfoRowProps) => (
+  <div className={'mx-4'}>
+    <div className={'flex flex-col'}>
+      <span className={'text-xs text-gray-400 dark:text-gray-500'}>{title}</span>
+      <span className={'text-sm dark:text-gray-300'}>{value}</span>
+    </div>
+  </div>
+)
 
 /**
  * Shows the document information based on metadata from the document
@@ -24,75 +36,43 @@ interface IPdfMetadataProps {
  
  * @returns - The document information sidebar component
  */
-const Info = ({ setActiveSidebar }: IInfoProps) => {
+const Info = () => {
+  const { t } = useTranslation()
   const { pdf } = useDocumentContext()
   const [metadata, setMetadata] = useState<any>([])
 
-  const handleClick = () => {
-    setActiveSidebar(SIDEBAR_TABS.NULL)
-  }
-
   const result: IPdfMetadataProps = {
-    title: metadata?.Title ?? 'No title',
-    pages: metadata?.Pages ?? 0,
-    creationDate: metadata?.CreationDate ?? 'No creation date',
-    description: metadata?.Description ?? 'No description',
-    identificator: metadata?.Identificator ?? 0,
-    author: metadata?.Author ?? 'No author',
+    title: metadata?.Title,
+    pages: metadata?.Pages,
+    // TODO parse date into readable format
+    creationDate: metadata?.CreationDate,
+    description: metadata?.Description,
+    identificator: metadata?.Identificator,
+    author: metadata?.Author,
   }
 
   useEffect(() => {
-    pdf?.getMetadata().then((meta) => {
-      setMetadata(meta.info)
-    })
-    .catch((err) => {
-      console.error(err)
-    }
-    )
+    pdf
+      ?.getMetadata()
+      .then((meta) => {
+        setMetadata(meta.info)
+      })
+      .catch((err) => {
+        console.error(err)
+      })
   }, [pdf])
 
   return (
-    <div className="w-30 h-screen bg-blue-200 fixed top-200 x-100 y-400 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 z-10 overflow-auto">
-        <button
-          className="px-30 py-2 text-lg text-black bg-blue-100 rounded-md hover:bg-blue-500 mr-1"
-          onClick={handleClick}
-        ></button>
-      <div className="bg-blue-100 rounded-lg p-4">
-        <div className="flex flex-row">
-          <div className="font-bold w-28">Title:</div>
-          <div className="font-medium">{result.title}</div>
-        </div>
-      </div>
-      <div className="bg-blue-100 rounded-lg p-4">
-        <div className="flex flex-row">
-          <div className="font-bold w-28">Pages:</div>
-          <div className="font-medium">{result.pages}</div>
-        </div>
-      </div>
-      <div className="bg-blue-100 rounded-lg p-4">
-        <div className="flex flex-row">
-          <div className="font-bold w-28">Date:</div>
-          <div className="font-medium">{result.creationDate}</div>
-        </div>
-      </div>
-      <div className="bg-blue-100 rounded-lg p-4">
-        <div className="flex flex-row">
-          <div className="font-bold w-28">Description:</div>
-          <div className="font-medium">{result.description}</div>
-        </div>
-      </div>
-      <div className="bg-blue-100 rounded-lg p-4">
-        <div className="flex flex-row">
-          <div className="font-bold w-28">Identificator:</div>
-          <div className="font-medium">{result.identificator}</div>
-        </div>
-      </div>
-      <div className="bg-blue-100 rounded-lg p-4">
-        <div className="flex flex-row">
-          <div className="font-bold w-28">Author:</div>
-          <div className="font-medium">{result.author}</div>
-        </div>
-      </div>
+    <div className={'flex flex-col'}>
+      {Object.keys(result)
+        .filter((key) => result[key as keyof IPdfMetadataProps])
+        .map((key) => (
+          <InfoRow
+            key={key}
+            title={t(key)}
+            value={result[key as keyof IPdfMetadataProps]}
+          />
+        ))}
     </div>
   )
 }

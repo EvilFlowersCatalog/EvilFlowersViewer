@@ -17,6 +17,7 @@ interface IDocumentContext {
   resetScale: () => void
   zoomIn: () => void
   zoomOut: () => void
+  totalPages: number
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)

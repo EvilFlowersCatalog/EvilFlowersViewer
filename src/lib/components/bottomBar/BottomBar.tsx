@@ -1,11 +1,6 @@
 import { useState } from 'react'
-// import {
-//   FaAngleDown,
-//   FaAngleUp,
-//   FaAngleRight,
-//   FaAngleLeft,
-// } from 'react-icons/fa'
 import { useDocumentContext } from '../document/DocumentContext'
+
 /**
  * This method renders the bottom bar component
  * used to navigate through the document
@@ -32,16 +27,6 @@ const BottomBar = () => {
         >
           {/* {isDropdownOpen ? <FaAngleDown /> : <FaAngleUp />} */}
         </button>
-        <div className="text-white">
-          <input
-            type="text"
-            value={activePage}
-            pattern="[0-9]*" //fix for only number input
-            onChange={setPage}
-            className="w-7 bg-gray-200 text-black rounded-md mr-2 pl-2"
-          ></input>
-          of {pdf?.numPages}
-        </div>
       </div>
       {isDropdownOpen && (
         <div className="flex items-center justify-center bg-blue-200 p-3 rounded-lg">
