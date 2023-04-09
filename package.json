@@ -15,6 +15,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && npm run build:css",
+    "build:staging": "vite build --mode staging && npm run build:css",
     "build:watch": "vite build --watch",
     "preview": "vite preview",
     "build:css": "tailwindcss -m -i ./src/index.css -o ./dist/styles.css"
