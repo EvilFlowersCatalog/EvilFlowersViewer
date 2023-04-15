@@ -47,7 +47,6 @@ const Page = () => {
         canvas.setAttribute('id', 'evilFlowersCanvas')
         canvas.setAttribute('class', 'duration-200 transition-all')
         canvas.width = viewport.width
-        canvas.id = ('viewer canvas')
         canvas.height = viewport.height
         canvas.style.width = viewport.width + 'px'
         canvas.style.height = viewport.height + 'px'

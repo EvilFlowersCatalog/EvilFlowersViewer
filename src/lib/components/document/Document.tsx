@@ -150,7 +150,7 @@ const Document = ({ data }: IDocumentProps) => {
         resetScale,
         rerender,
         isRendering,
-        setRendering
+        setRendering,
         totalPages
       }}
     >

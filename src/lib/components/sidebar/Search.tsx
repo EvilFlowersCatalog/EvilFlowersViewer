@@ -122,7 +122,7 @@ const Search = () => {
 
   useEffect(() => {
     if (selectedMatch != null && isRendering === RENDERING_STATES.RENDERED && matches && matches.length > selectedMatch) {
-      const canvas = document.getElementById('viewer canvas') as HTMLCanvasElement | null
+      const canvas = document.getElementById('evilFlowersCanvas') as HTMLCanvasElement | null
 
       if (canvas) {
         const x: number = matches[selectedMatch]!.transform[4]
@@ -180,7 +180,7 @@ const Search = () => {
                   'mx-4 bg-gray-100 dark:bg-gray-300 rounded-md my-1 cursor-pointer hover:bg-gray-200 px-4 py-2 duration-200'
                 }
                 onClick={() => {
-                  findMatchedText(match.page, index)
+                  findMatchedText(match.page, i)
                 }}
               >
                 <span className={'break-all text-xs'}>{match.text}</span>
