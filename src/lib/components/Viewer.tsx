@@ -23,7 +23,10 @@ export const Viewer = ({ data }: IViewerProps) => {
   }, [data])
 
   return (
-    <div id="evilFlowersViewer" className="evilFlowersViewer bg-gray-100 w-screen h-screen">
+    <div
+      id="evilFlowersViewer"
+      className="evilFlowersViewer bg-gray-100 w-screen h-screen"
+    >
       {documentData && <Document data={documentData} />}
     </div>
   )

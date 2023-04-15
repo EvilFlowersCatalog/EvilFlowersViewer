@@ -69,11 +69,7 @@ const Page = () => {
         {isRendering &&
           isRendering in
             [RENDERING_STATES.LOADING, RENDERING_STATES.RENDERING] && (
-            <div
-              className={
-                'absolute left-1/2 top-1/3 translate-x-1/2'
-              }
-            >
+            <div className={'absolute left-1/2 top-1/3 translate-x-1/2'}>
               <span className={'evilflowersviewer-loader'} />
             </div>
           )}

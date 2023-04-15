@@ -1,6 +1,12 @@
 import { PDFDocumentProxy } from 'pdfjs-dist'
 import { createContext, useContext } from 'react'
 
+interface TOCItem {
+  title: string
+  pageNumber: number
+  level: number
+  children: TOCItem[]
+}
 interface IDocumentContext {
   pdf?: PDFDocumentProxy
   activePage: number
@@ -14,6 +20,9 @@ interface IDocumentContext {
   resetScale: () => void
   zoomIn: () => void
   zoomOut: () => void
+  outline: TOCItem[] | undefined
+  setOutline: (outline: TOCItem[] | undefined) => void
+  outlineSetPage: (num: number) => void
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)
