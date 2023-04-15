@@ -1,0 +1,10 @@
+{
+  "translations": {
+    "pagination": "Strana {{x}} z {{y}}",
+    "prevPage": "Predošlá strana",
+    "nextPage": "Ďalšia strana",
+    "zoomIn": "Priblížiť",
+    "zoomOut": "Oddialiť",
+    "resetZoom": "Obnoviť priblíženie"
+  }
+}
