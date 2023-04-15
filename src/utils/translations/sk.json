@@ -8,6 +8,7 @@
     "resetZoom": "Obnoviť priblíženie",
     "searchPattern": "Napíšte vyhľadávací reťazec...",
     "noMatchesFound": "Nenašla sa žiadna zhoda",
-    "foundResults": "Našlo sa {{count}} zhôd"
+    "foundResults": "Našlo sa {{count}} zhôd",
+    "pageNumber": "Strana {{number}}"
   }
 }
