@@ -3,6 +3,9 @@ import { createContext, useContext } from 'react'
 
 import { RENDERING_STATES } from '../../../utils/enums'
 
+/**
+ * Document context
+ */
 interface IDocumentContext {
   pdf?: PDFDocumentProxy
   activePage: number
@@ -19,10 +22,19 @@ interface IDocumentContext {
   rerender: Object
   isRendering: RENDERING_STATES | null
   setRendering: (state: RENDERING_STATES) => void
+  totalPages: number
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)
 
+/**
+ * Returns the document context
+ * 
+ * @throws {Error} 
+ * This error is thrown if context is null
+ * 
+ * @returns {IDocumentContext} 
+ */
 export const useDocumentContext = () => {
   const context = useContext(DocumentContext)
 

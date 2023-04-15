@@ -1,6 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  margin: 0;
+  background-color: theme('colors.gray.100');
+}
+
+* {
+  font-family: 'Poppins', sans-serif;
+}
+
 
 /* Making text layer elements transparent and position absolute for proper positioning */
 
@@ -14,6 +26,12 @@
 #textLayer span::selection {
   color: transparent;
   background: #8f8fe352;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #eee;
+  width: 80%;
 }
 
 .evilflowersviewer-loader {
@@ -30,7 +48,7 @@
 .evilflowersviewer-loader-small {
   width: 24px;
   height: 24px;
-  border: 5px solid #999;
+  border: 2px solid theme('colors.gray.400');
   border-bottom-color: #fff;
   border-radius: 50%;
   display: inline-block;
