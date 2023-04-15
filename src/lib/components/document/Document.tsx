@@ -148,10 +148,10 @@ const Document = ({ data, config }: IDocumentProps) => {
         zoomIn,
         zoomOut,
         resetScale,
-        totalPages
+        totalPages,
       }}
     >
-      <Tools config={config}/>
+      <Tools config={config} />
       <Page />
       {zoomButtonConfig && <ZoomControls />}
       {paginationConfig && <Pagination />}

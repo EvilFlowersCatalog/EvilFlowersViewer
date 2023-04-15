@@ -81,8 +81,10 @@ const Tools = (config: IToolsProps) => {
       icon: (
         <SearchIcon
           className={cx('duration-200', {
-            'stroke-gray-800 dark:stroke-gray-200': activeSidebar === SIDEBAR_TABS.SEARCH,
-            'stroke-gray-500 dark:stroke-gray-300': activeSidebar !== SIDEBAR_TABS.SEARCH,
+            'stroke-gray-800 dark:stroke-gray-200':
+              activeSidebar === SIDEBAR_TABS.SEARCH,
+            'stroke-gray-500 dark:stroke-gray-300':
+              activeSidebar !== SIDEBAR_TABS.SEARCH,
           })}
         />
       ),
@@ -162,7 +164,7 @@ const Tools = (config: IToolsProps) => {
           { 'left-6': !sidebarOpen, 'left-64': sidebarOpen }
         )}
       >
-        {SidebarItems.map((item, i) =>  (
+        {SidebarItems.map((item, i) => (
           <div className={'relative'} key={i}>
             <Tooltip title={item.tooltipText} placement="right">
               <button
@@ -179,20 +181,28 @@ const Tools = (config: IToolsProps) => {
         ))}
         {modaButton && (
           <div className={'relative mt-8 mb-2'}>
-          <Tooltip title={mode === 'light' ? t('darkMode') : t('lightMode')} placement='right'>
-            <button
-              id={'mode'}
-              onClick={handleModeChange}
-              className={
-                'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-900 border-none cursor-pointer duration-200 rounded-md flex items-center'
-              }
+            <Tooltip
+              title={mode === 'light' ? t('darkMode') : t('lightMode')}
+              placement="right"
             >
-              {mode === 'light' ? <MoonIcon className={'stroke-gray-500 dark:stroke-gray-300'}/> : <SunIcon className={'stroke-gray-500 dark:stroke-gray-300'}/>}
-            </button>
-          </Tooltip>
-        </div> 
-        )
-        }
+              <button
+                id={'mode'}
+                onClick={handleModeChange}
+                className={
+                  'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-900 border-none cursor-pointer duration-200 rounded-md flex items-center'
+                }
+              >
+                {mode === 'light' ? (
+                  <MoonIcon
+                    className={'stroke-gray-500 dark:stroke-gray-300'}
+                  />
+                ) : (
+                  <SunIcon className={'stroke-gray-500 dark:stroke-gray-300'} />
+                )}
+              </button>
+            </Tooltip>
+          </div>
+        )}
       </div>
       {/* {activeSidebar === SIDEBAR_TABS.HOME && (
         <Home setActiveSidebar={setActiveSidebar} />

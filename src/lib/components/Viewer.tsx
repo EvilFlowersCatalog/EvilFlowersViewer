@@ -12,7 +12,7 @@ interface IViewerProps {
   config?: any
 }
 
-export const Viewer = ( {data, config} : IViewerProps ) => {
+export const Viewer = ({ data, config }: IViewerProps) => {
   const [documentData, setDocumentData] = useState<string>()
 
   useEffect(() => {
@@ -36,13 +36,12 @@ export const Viewer = ( {data, config} : IViewerProps ) => {
   }, [data])
 
   return (
-    <div
-      id={'evilFlowersViewer'}
-      className={
-        'evilFlowersViewer w-full h-full'
-      }
-    >
-      <div className={'bg-gray-100 dark:bg-zinc-700 w-full h-full duration-200'}>{documentData && <Document data={documentData} config={config}/>}</div>
+    <div id={'evilFlowersViewer'} className={'evilFlowersViewer w-full h-full'}>
+      <div
+        className={'bg-gray-100 dark:bg-zinc-700 w-full h-full duration-200'}
+      >
+        {documentData && <Document data={documentData} config={config} />}
+      </div>
     </div>
   )
 }
