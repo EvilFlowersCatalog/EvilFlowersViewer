@@ -9,9 +9,10 @@ pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
 
 interface IViewerProps {
   data?: string
+  config?: any
 }
 
-export const Viewer = ( config : IViewerProps ) => {
+export const Viewer = ( {data, config} : IViewerProps ) => {
   const [documentData, setDocumentData] = useState<string>()
 
   useEffect(() => {
@@ -28,11 +29,11 @@ export const Viewer = ( config : IViewerProps ) => {
 
   // On every data change, convert it to binary and set it to the documentData state
   useEffect(() => {
-    if (!config.data) return
-    const binary = base64ToBinary(config.data)
+    if (!data) return
+    const binary = base64ToBinary(data)
 
     setDocumentData(binary)
-  }, [config.data])
+  }, [data])
 
   return (
     <div
@@ -41,7 +42,7 @@ export const Viewer = ( config : IViewerProps ) => {
         'evilFlowersViewer w-full h-full'
       }
     >
-      <div className={'bg-gray-100 dark:bg-zinc-700 w-full h-full duration-200'}>{documentData && <Document data={documentData} />}</div>
+      <div className={'bg-gray-100 dark:bg-zinc-700 w-full h-full duration-200'}>{documentData && <Document data={documentData} config={config}/>}</div>
     </div>
   )
 }
