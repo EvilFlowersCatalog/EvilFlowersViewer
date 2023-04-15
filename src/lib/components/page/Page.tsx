@@ -5,12 +5,11 @@ import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 import { RENDERING_STATES } from '../../../utils/enums'
 
 const Page = () => {
-  const [isRendering, setRendering] = useState<RENDERING_STATES | null>(null)
-  const { pdf, activePage, scale } = useDocumentContext()
+  const { pdf, activePage, scale, rerender, isRendering, setRendering } = useDocumentContext()
 
   const renderPage = useCallback(async () => {
     setRendering(RENDERING_STATES.RENDERING)
-
+    
     return await new Promise((resolve) => {
       pdf?.getPage(activePage).then((page) => {
         const container = document.createElement('textLayer')
@@ -32,9 +31,9 @@ const Page = () => {
         })
 
         const canvas = document.createElement('canvas')
-        canvas.setAttribute('id', 'viewer canvas')
         canvas.height = viewport.height
         canvas.width = viewport.width
+        canvas.id = ('viewer canvas')
         const context = canvas.getContext('2d')
 
         const renderContext = {
@@ -55,10 +54,10 @@ const Page = () => {
   }, [activePage, pdf, scale])
 
   useEffect(() => {
-    renderPage().then(() => {
+    renderPage().then((resolve) => {
       setRendering(RENDERING_STATES.RENDERED)
     })
-  }, [activePage, pdf, scale])
+  }, [activePage, pdf, scale, rerender])
 
   return (
     <PageContext.Provider value={{}}>

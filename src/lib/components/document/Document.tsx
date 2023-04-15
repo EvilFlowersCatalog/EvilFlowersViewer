@@ -8,6 +8,8 @@ import BottomBar from '../bottomBar/BottomBar'
 import Sidebar from '../sidebar/Sidebar'
 import ZoomControls from '../zoom/ZoomControls'
 
+import { RENDERING_STATES } from '../../../utils/enums'
+
 interface IDocumentProps {
   data: string
 }
@@ -17,6 +19,8 @@ const Document = ({ data }: IDocumentProps) => {
   const [activePage, setActivePage] = useState(1)
   const [scale, setScale] = useState(1)
   const [pdf, setPdf] = useState<PDFDocumentProxy>()
+  const [rerender, setRerender] = useState<Object>({})
+  const [isRendering, setRendering] = useState<RENDERING_STATES | null>(null)
 
   const loadDocument = () => {
     pdfjs.getDocument({ data }).promise.then((doc) => {
@@ -63,6 +67,7 @@ const Document = ({ data }: IDocumentProps) => {
 
   const searchPage = (page: number) => {
     if (page < 1 || (pdf?.numPages && pdf?.numPages < page)) return
+    else if (page === activePage) setRerender({})
     else setActivePage(page)
   }
 
@@ -98,6 +103,9 @@ const Document = ({ data }: IDocumentProps) => {
         zoomIn,
         zoomOut,
         resetScale,
+        rerender,
+        isRendering,
+        setRendering
       }}
     >
       <Sidebar />

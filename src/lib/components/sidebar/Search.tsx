@@ -6,8 +6,10 @@ import {
 import { debounce } from '../../../utils'
 import { SEARCH_STATES, SIDEBAR_TABS } from '../../../utils/enums'
 import { useDocumentContext } from '../document/DocumentContext'
-import { TextContent, TextItem, TextMarkedContent, getTextContentParameters } from 'pdfjs-dist/types/src/display/api'
-// import { FaAngleLeft } from 'react-icons/fa'
+import { TextItem, getTextContentParameters } from 'pdfjs-dist/types/src/display/api'
+
+
+import { RENDERING_STATES } from '../../../utils/enums'
 
 interface ISearchProps {
   setActiveSidebar: (bool: any) => void
@@ -19,8 +21,9 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
     ({ page: number; text: string, transform: Array<number>, width: number, height: number } | undefined)[]
   >([])
   const [searching, setSearching] = useState<SEARCH_STATES>(SEARCH_STATES.DONE)
+  const [selectedMatch, setSelectedMatch] = useState<number | null>(null)
 
-  const { pdf, searchPage, scale } = useDocumentContext()
+  const { pdf, searchPage, scale, isRendering, setRendering } = useDocumentContext()
 
   const handleClick = () => {
     setActiveSidebar(SIDEBAR_TABS.NULL)
@@ -34,7 +37,9 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
   //NOTE: This is a first version of the search function, consider refactoring it to use a web worker, to unblock the main thread
   const searchInDocument = useCallback(
     debounce(async (pattern: string) => {
+
       new Promise((resolve) => {
+        setSelectedMatch(null)
         let textContent: { textItems: Array<TextItem>; page: number }[] = []
 
         const pagesContent = Array.from(Array(pdf?.numPages).keys()).map(
@@ -79,24 +84,10 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
     []
   )
 
-  const findMatchedText = (match: { page: number; text: string, transform: Array<number>, width: number, height: number}) => {
-    searchPage(match.page)
-
-    const x: number = match.transform[4]
-    const y: number = match.transform[5]
-    const width: number = match.width
-    const height: number = match.height
-
-    const canvas: HTMLCanvasElement | null = document.getElementById('viewer canvas') as HTMLCanvasElement
-    const canvas_height = canvas.getAttribute('height')
-    if (canvas) {
-      const context: CanvasRenderingContext2D | null = canvas.getContext('2d')
-      if (context) {
-        context.fillStyle = 'yellow'
-        context.globalAlpha = 0.3
-        context.fillRect(x*scale, parseInt(canvas_height!) - y * scale - height * scale, width*scale, height*scale)
-      }
-    }
+  const findMatchedText = (page: number, index: number) => {
+    setRendering(RENDERING_STATES.RENDERING)
+    searchPage(page)
+    setSelectedMatch(index)
   }
 
   useEffect(() => {
@@ -105,6 +96,26 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
       searchInDocument(searchPattern)
     }
   }, [searchPattern])
+
+  useEffect(() => {
+    if (selectedMatch != null && isRendering === RENDERING_STATES.RENDERED && matches && matches.length > selectedMatch) {
+      const canvas = document.getElementById('viewer canvas') as HTMLCanvasElement | null
+
+      if (canvas) {
+        const x: number = matches[selectedMatch]!.transform[4]
+        const y: number = matches[selectedMatch]!.transform[5]
+        const width: number = matches[selectedMatch]!.width
+        const height: number = matches[selectedMatch]!.height
+        const canvas_height = canvas.getAttribute('height')
+        const context: CanvasRenderingContext2D | null = canvas.getContext('2d')
+        if (context) {
+          context.fillStyle = 'yellow'
+          context.globalAlpha = 0.3
+          context.fillRect(x*scale, parseInt(canvas_height!) - y * scale - height * scale, width*scale, height*scale)
+        }
+      }
+    }
+  }, [selectedMatch, isRendering])
 
   return (
     <div className="w-30 h-screen bg-blue-200 fixed top-100 x-100 y-100 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 z-10 overflow-auto">
@@ -139,7 +150,7 @@ const Search = ({ setActiveSidebar }: ISearchProps) => {
                 <button
                   className="text-black text-xs bg-blue-100 rounded-md hover:bg-blue-500 w-48 break-all ml-2"
                   onClick={() => {
-                    findMatchedText(match)
+                    findMatchedText(match.page, index)
                   }}
                 >
                   <p className="break-all"> {match.text} </p>
