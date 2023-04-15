@@ -92,42 +92,42 @@ const Tools = (config: IToolsProps) => {
       onClick: () => {
         setActiveSidebar(SIDEBAR_TABS.SEARCH)
       },
-      config: config.searchButton ? config.searchButton : true,
+      config: config?.searchButton ? config.searchButton : true,
     },
     {
       name: 'pen',
       icon: <PencilIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
       tooltipText: 'Document editing',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.PEN),
-      config: config.penButton ? config.penButton : true,
+      config: config?.penButton ? config.penButton : true,
     },
     {
       name: 'citations',
       icon: <QuoteIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
       tooltipText: 'Generate citations',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.CITATIONS),
-      config: config.citationsButton ? config.citationsButton : true,
+      config: config?.citationsButton ? config.citationsButton : true,
     },
     {
       name: 'share',
       icon: <ShareIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
       tooltipText: 'Share document',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.SHARE),
-      config: config.shareButton ? config.shareButton : true,
+      config: config?.shareButton ? config.shareButton : true,
     },
     {
       name: 'info',
       icon: <InfoIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
       tooltipText: 'Document information',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.INFO),
-      config: config.infoButton ? config.infoButton : true,
+      config: config?.infoButton ? config.infoButton : true,
     },
     {
       name: 'download',
       icon: <DownloadIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
       tooltipText: 'Download document',
       onClick: () => setDownloadOpen(true),
-      config: config.downloadButton ? config.downloadButton : true,
+      config: config?.downloadButton ? config.downloadButton : true,
     },
   ]
 
