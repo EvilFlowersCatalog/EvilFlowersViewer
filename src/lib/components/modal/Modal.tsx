@@ -2,6 +2,16 @@ import { ReactNode } from 'react';
 import { useDocumentContext } from '../document/DocumentContext';
 
 
+/**
+ * ModalWrapper
+ * @param label - Label of the caller button
+ * @param isOpen - Is the modal open?
+ * @param onClose - Function to close the modal
+ * @param children - Children of the modal
+ * @constructor
+ * @returns {JSX.Element}
+ * 
+ */
 type Props = {
   label: string;
   isOpen: boolean;
@@ -9,6 +19,15 @@ type Props = {
   children: ReactNode;
 };
 
+/**
+ * 
+ * @param label - Label of the caller button
+ * @param isOpen - Is the modal open?
+ * @param onClose - Function to close the modal
+ * @param children - Children of the modal
+ *  
+ * @returns Modal window based on the label from props
+ */
 const ModalWrapper = ({ label, isOpen, onClose, children }: Props) => {
   const { downloadDocument } = useDocumentContext()
   return (

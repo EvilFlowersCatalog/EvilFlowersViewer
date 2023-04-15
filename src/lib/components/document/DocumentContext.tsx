@@ -1,6 +1,9 @@
 import { PDFDocumentProxy } from 'pdfjs-dist'
 import { createContext, useContext } from 'react'
 
+/**
+ * Document context
+ */
 interface IDocumentContext {
   pdf?: PDFDocumentProxy
   activePage: number
@@ -14,10 +17,19 @@ interface IDocumentContext {
   resetScale: () => void
   zoomIn: () => void
   zoomOut: () => void
+  totalPages: number
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)
 
+/**
+ * Returns the document context
+ * 
+ * @throws {Error} 
+ * This error is thrown if context is null
+ * 
+ * @returns {IDocumentContext} 
+ */
 export const useDocumentContext = () => {
   const context = useContext(DocumentContext)
 

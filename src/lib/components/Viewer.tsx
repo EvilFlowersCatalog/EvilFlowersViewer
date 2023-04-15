@@ -9,26 +9,22 @@ pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
 
 interface IViewerProps {
   data?: string
-  buttons?: {
-    search?: boolean
-    edit?: boolean
-    message?: boolean
-    share?: boolean
-    info?: boolean
-    download?: boolean
-  }
-  flags?: {
-    showAnnotations?: boolean
-    showComments?: boolean
-    showLeftPanel?: boolean
-    showMessage?: boolean
-    showPrint?: boolean
-    showProperties?: boolean
-  }
 }
 
 export const Viewer = ( config : IViewerProps ) => {
   const [documentData, setDocumentData] = useState<string>()
+
+  useEffect(() => {
+    if (
+      localStorage.theme === 'dark' ||
+      (!('theme' in localStorage) &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches)
+    ) {
+      document.getElementById('evilFlowersViewer')?.classList.add('dark')
+    } else {
+      document.getElementById('evilFlowersViewer')?.classList.remove('dark')
+    }
+  }, [])
 
   // On every data change, convert it to binary and set it to the documentData state
   useEffect(() => {
@@ -40,10 +36,12 @@ export const Viewer = ( config : IViewerProps ) => {
 
   return (
     <div
-      id="evilFlowersViewer"
-      className="evilFlowersViewer bg-gray-100 w-screen h-screen"
+      id={'evilFlowersViewer'}
+      className={
+        'evilFlowersViewer w-full h-full'
+      }
     >
-      {documentData && <Document data={documentData} />}
+      <div className={'bg-gray-100 dark:bg-zinc-700 w-full h-full duration-200'}>{documentData && <Document data={documentData} />}</div>
     </div>
   )
 }
