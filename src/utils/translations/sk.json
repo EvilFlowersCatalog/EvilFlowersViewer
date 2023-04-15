@@ -5,6 +5,9 @@
     "nextPage": "Ďalšia strana",
     "zoomIn": "Priblížiť",
     "zoomOut": "Oddialiť",
-    "resetZoom": "Obnoviť priblíženie"
+    "resetZoom": "Obnoviť priblíženie",
+    "searchPattern": "Napíšte vyhľadávací reťazec...",
+    "noMatchesFound": "Nenašla sa žiadna zhoda",
+    "foundResults": "Našlo sa {{count}} zhôd"
   }
 }
