@@ -16,6 +16,7 @@ import Pagination from '../pagination/Pagination'
  */
 interface IDocumentProps {
   data: string
+  config: any
 }
 
 /**
@@ -25,7 +26,7 @@ interface IDocumentProps {
  * @returns Document context through a provider to be used by other components
  *
  */
-const Document = ({ data }: IDocumentProps) => {
+const Document = ({ data, config }: IDocumentProps) => {
   const [activePage, setActivePage] = useState(1)
   const [scale, setScale] = useState(1)
   const [pdf, setPdf] = useState<PDFDocumentProxy>()
@@ -147,7 +148,7 @@ const Document = ({ data }: IDocumentProps) => {
         totalPages
       }}
     >
-      <Tools />
+      <Tools config={config}/>
       <Page />
       <ZoomControls />
       <Pagination />

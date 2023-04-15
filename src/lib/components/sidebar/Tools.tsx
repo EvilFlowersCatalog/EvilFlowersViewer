@@ -27,12 +27,17 @@ import Download from './Download'
 import Tooltip from '../helpers/Tooltip'
 import Sidebar from './Sidebar'
 
+interface IToolsProps {
+  [x: string]: any
+  config: any
+}
+
 /**
  * The sidebar component
  *
  * @returns - Sidebar component
  */
-const Tools = () => {
+const Tools = (config: IToolsProps) => {
   const { t } = useTranslation()
   const [activeSidebar, setActiveSidebar] = useState<SIDEBAR_TABS>(
     SIDEBAR_TABS.NULL
@@ -43,6 +48,8 @@ const Tools = () => {
     localStorage.theme ?? 'light'
   )
   const sidebarNames = SIDEBAR_TAB_NAMES()
+
+  const modaButton = config.modeButton ? config.modeButton : true
 
   useEffect(() => {
     if (activeSidebar === SIDEBAR_TABS.NULL) {
@@ -83,38 +90,54 @@ const Tools = () => {
       onClick: () => {
         setActiveSidebar(SIDEBAR_TABS.SEARCH)
       },
+      config: config.searchButton ? config.searchButton : true,
     },
     {
       name: 'pen',
       icon: <PencilIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
       tooltipText: 'Document editing',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.PEN),
+      config: config.penButton ? config.penButton : true,
     },
     {
       name: 'citations',
       icon: <QuoteIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
       tooltipText: 'Generate citations',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.CITATIONS),
+      config: config.citationsButton ? config.citationsButton : true,
     },
     {
       name: 'share',
       icon: <ShareIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
       tooltipText: 'Share document',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.SHARE),
+      config: config.shareButton ? config.shareButton : true,
     },
     {
       name: 'info',
       icon: <InfoIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
       tooltipText: 'Document information',
       onClick: () => setActiveSidebar(SIDEBAR_TABS.INFO),
+      config: config.infoButton ? config.infoButton : true,
     },
     {
       name: 'download',
       icon: <DownloadIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
       tooltipText: 'Download document',
       onClick: () => setDownloadOpen(true),
+      config: config.downloadButton ? config.downloadButton : true,
     },
   ]
+
+  const editSidebarItems = () => {
+    SidebarItems.forEach((item, i) => {
+      if (item.config === false) {
+        SidebarItems.splice(i, 1)
+      }
+    })
+  }
+
+  editSidebarItems()
 
   return (
     <>
@@ -139,7 +162,7 @@ const Tools = () => {
           { 'left-6': !sidebarOpen, 'left-64': sidebarOpen }
         )}
       >
-        {SidebarItems.map((item, i) => (
+        {SidebarItems.map((item, i) =>  (
           <div className={'relative'} key={i}>
             <Tooltip title={item.tooltipText} placement="right">
               <button
@@ -154,7 +177,8 @@ const Tools = () => {
             </Tooltip>
           </div>
         ))}
-        <div className={'relative mt-8 mb-2'}>
+        {modaButton && (
+          <div className={'relative mt-8 mb-2'}>
           <Tooltip title={mode === 'light' ? t('darkMode') : t('lightMode')} placement='right'>
             <button
               id={'mode'}
@@ -166,7 +190,9 @@ const Tools = () => {
               {mode === 'light' ? <MoonIcon className={'stroke-gray-500 dark:stroke-gray-300'}/> : <SunIcon className={'stroke-gray-500 dark:stroke-gray-300'}/>}
             </button>
           </Tooltip>
-        </div>
+        </div> 
+        )
+        }
       </div>
       {/* {activeSidebar === SIDEBAR_TABS.HOME && (
         <Home setActiveSidebar={setActiveSidebar} />

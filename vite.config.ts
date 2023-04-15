@@ -7,7 +7,7 @@ import { resolve } from 'path'
 import { UserConfig } from 'vite'
 
 export default defineConfig(({ mode }: UserConfig) => {
-  if (mode === 'staging') {
+  if (mode === 'staging' || mode === 'development') {
     return {
       plugins: [
         react(),
