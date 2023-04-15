@@ -32,6 +32,9 @@ const Document = ({ data, config }: IDocumentProps) => {
   const [pdf, setPdf] = useState<PDFDocumentProxy>()
   const [totalPages, setTotalPages] = useState(0)
 
+  const zoomButtonConfig = config?.zoomButton ? config?.zoomButton : true
+  const paginationConfig = config?.pagination ? config?.pagination : true
+
   /**
    * Load document on mount
    *
@@ -150,8 +153,8 @@ const Document = ({ data, config }: IDocumentProps) => {
     >
       <Tools config={config}/>
       <Page />
-      <ZoomControls />
-      <Pagination />
+      {zoomButtonConfig && <ZoomControls />}
+      {paginationConfig && <Pagination />}
     </DocumentContext.Provider>
   )
 }
