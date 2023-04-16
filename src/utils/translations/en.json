@@ -19,6 +19,7 @@
     "author": "Author",
     "lightMode": "Light mode",
     "darkMode": "Dark mode",
-    "searchPattern": "Enter search pattern..."
+    "searchPattern": "Enter search pattern...",
+    "previewToggle": "Show/hide page previews"
   }
 }
