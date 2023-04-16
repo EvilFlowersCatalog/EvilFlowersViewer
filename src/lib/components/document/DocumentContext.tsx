@@ -1,6 +1,8 @@
 import { PDFDocumentProxy } from 'pdfjs-dist'
 import { createContext, useContext } from 'react'
 
+import { RENDERING_STATES } from '../../../utils/enums'
+
 /**
  * Document context
  */
@@ -17,6 +19,9 @@ interface IDocumentContext {
   resetScale: () => void
   zoomIn: () => void
   zoomOut: () => void
+  rerender: Object
+  isRendering: RENDERING_STATES | null
+  setRendering: (state: RENDERING_STATES) => void
   totalPages: number
 }
 
