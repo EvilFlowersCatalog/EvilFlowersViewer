@@ -18,6 +18,7 @@
     "creationDate": "Creation date",
     "author": "Author",
     "lightMode": "Light mode",
-    "darkMode": "Dark mode"
+    "darkMode": "Dark mode",
+    "outline": "Table of Contents"
   }
 }

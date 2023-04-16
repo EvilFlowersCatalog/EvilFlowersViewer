@@ -67,10 +67,6 @@ const Document = ({ data }: IDocumentProps) => {
           return
         }
 
-        // for (let i = 0; i < outline.length; i++) {
-        //   console.log(outline[i].dest)
-        // }
-
         const toc = await getTableOfContents(outline, 0, doc)
         setOutline(toc)
       })

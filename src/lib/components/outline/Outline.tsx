@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
+import { useTranslation } from 'react-i18next'
 
 interface TOCItem {
   title: string
@@ -10,6 +11,7 @@ interface TOCItem {
 }
 
 const Outline = () => {
+  const { t } = useTranslation()
   const [isDropdownShown, setIsDropdownShown] = useState(false)
   const { pdf, outline, outlineSetPage } = useDocumentContext()
 
@@ -97,7 +99,7 @@ const Outline = () => {
         >
           <div className="bg-white p-2 rounded-lg shadow-md">
             <div className="flex justify-between items-center">
-              <div className="text-lg font-semibold">Table of Contents</div>
+              <div className="text-lg font-semibold">{t('outline')}</div>
               <button
                 className="bg-gray-700 text-white rounded-md py-1 px-3 focus:outline-none"
                 onClick={toggleDropdown}
