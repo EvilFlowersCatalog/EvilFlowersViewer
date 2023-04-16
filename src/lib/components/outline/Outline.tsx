@@ -46,7 +46,7 @@ const Outline = () => {
                 </button>
               )}
               <div
-                className="cursor-pointer hover:bg-blue-100 rounded-lg p-1"
+                className="cursor-pointer hover:bg-gray-100 rounded-lg p-1"
                 onClick={() => handleItemClick(item.pageNumber)}
               >
                 {item.title}
@@ -88,60 +88,64 @@ const Outline = () => {
     })
   }, [outline])
   return (
-    <div
-      className={`fixed top-4 right-4 z-50 ${
-        isDropdownShown ? 'h-96 overflow-y-scroll' : ''
-      }`}
-    >
-      <div className="bg-blue-50 p-2 rounded-lg shadow-md">
-        <div className="flex justify-between items-center">
-          <div className="text-lg font-semibold">Table of Contents</div>
-          <button
-            className="bg-black text-white rounded-md py-1 px-3 focus:outline-none"
-            onClick={toggleDropdown}
-          >
-            {isDropdownShown ? 'x' : '<'}
-          </button>
-        </div>
-        {isDropdownShown && (
-          <div className="mt-2">
-            <ul className="ml-2">
-              {outline?.map((item) => (
-                <li
-                  key={`${item.title}-${item.pageNumber}`}
-                  className={`${
-                    item.children ? 'font-bold' : 'font-normal'
-                  } py-1 text-sm`}
-                >
-                  <div className="flex items-center">
-                    {item.children && (
-                      <button
-                        className="mr-2 focus:outline-none"
-                        onClick={() => {
-                          item.isExpanded = !item.isExpanded
-                          setToc([...toc])
-                        }}
-                      >
-                        {item.isExpanded ? '-' : '+'}
-                      </button>
-                    )}
-                    <div
-                      className="cursor-pointer hover:bg-blue-100 rounded-lg p-1"
-                      onClick={() => handleItemClick(item.pageNumber)}
+    <>
+      {outline && outline.length > 0 && (
+        <div
+          className={`fixed top-4 right-4 z-50 ${
+            isDropdownShown ? 'h-96 overflow-y-scroll' : ''
+          }`}
+        >
+          <div className="bg-white p-2 rounded-lg shadow-md">
+            <div className="flex justify-between items-center">
+              <div className="text-lg font-semibold">Table of Contents</div>
+              <button
+                className="bg-gray-700 text-white rounded-md py-1 px-3 focus:outline-none"
+                onClick={toggleDropdown}
+              >
+                {isDropdownShown ? 'x' : '<'}
+              </button>
+            </div>
+            {isDropdownShown && (
+              <div className="mt-2">
+                <ul className="ml-2">
+                  {outline?.map((item) => (
+                    <li
+                      key={`${item.title}-${item.pageNumber}`}
+                      className={`${
+                        item.children ? 'font-bold' : 'font-normal'
+                      } py-1 text-sm`}
                     >
-                      {item.title}
-                    </div>
-                  </div>
-                  {item.isExpanded &&
-                    item.children &&
-                    renderTOC(item.children, item.level + 1)}
-                </li>
-              ))}
-            </ul>
+                      <div className="flex items-center">
+                        {item.children && (
+                          <button
+                            className="mr-2 focus:outline-none"
+                            onClick={() => {
+                              item.isExpanded = !item.isExpanded
+                              setToc([...toc])
+                            }}
+                          >
+                            {item.isExpanded ? '-' : '+'}
+                          </button>
+                        )}
+                        <div
+                          className="cursor-pointer hover:bg-gray-100 rounded-lg p-1"
+                          onClick={() => handleItemClick(item.pageNumber)}
+                        >
+                          {item.title}
+                        </div>
+                      </div>
+                      {item.isExpanded &&
+                        item.children &&
+                        renderTOC(item.children, item.level + 1)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   )
 }
 

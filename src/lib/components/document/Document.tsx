@@ -4,22 +4,33 @@ import { useEffect, useState } from 'react'
 
 import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
-import BottomBar from '../bottomBar/BottomBar'
-import Sidebar from '../sidebar/Sidebar'
+import Tools from '../sidebar/Tools'
 import ZoomControls from '../zoom/ZoomControls'
+import Pagination from '../pagination/Pagination'
 import Outline from '../outline/Outline'
-import { string32 } from 'pdfjs-dist/types/src/shared/util'
 import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api'
 
+/**
+ * Document component
+ * @param data - PDF data
+ *
+ */
 interface IDocumentProps {
   data: string
 }
 
-interface TOCItem {
+/**
+ *
+ * @param data - PDF data from props
+ *
+ * @returns Document context through a provider to be used by other components
+ *
+ */
+interface TOCItemDoc {
   title: string
   pageNumber: number
   level: number
-  children: TOCItem[]
+  children: TOCItemDoc[]
 }
 
 interface PDFOutlineItem {
@@ -39,62 +50,62 @@ const Document = ({ data }: IDocumentProps) => {
   const [activePage, setActivePage] = useState(1)
   const [scale, setScale] = useState(1)
   const [pdf, setPdf] = useState<PDFDocumentProxy>()
-  const [outline, setOutline] = useState<TOCItem[] | undefined>(undefined)
+  const [totalPages, setTotalPages] = useState(0)
+  const [outline, setOutline] = useState<TOCItemDoc[] | undefined>(undefined)
 
+  /**
+   * Load document on mount
+   *
+   */
   const loadDocument = () => {
     pdfjs.getDocument({ data }).promise.then((doc) => {
       // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
       // https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFDocumentProxy.html#getDestination
 
-      doc.getOutline().then((outline) => {
-        console.log(outline)
-        console.log([outline[0].dest])
-
-        //console.log(outline[0].dest ? [0])
-        if (outline[0].dest && Array.isArray(outline[0].dest)) {
-          console.log(outline[0].dest[0])
+      doc.getOutline().then(async (outline) => {
+        if (outline == null || !outline) {
+          return
         }
 
-        for (let i = 0; i < outline.length; i++) {
-          console.log(outline[i].dest)
-        }
+        // for (let i = 0; i < outline.length; i++) {
+        //   console.log(outline[i].dest)
+        // }
 
-        getTableOfContents(outline, 0)
+        const toc = await getTableOfContents(outline, 0, doc)
+        setOutline(toc)
       })
 
       setPdf(doc)
+      setTotalPages(doc.numPages)
     })
   }
 
   const getTableOfContents = async (
-    outline: PDFOutlineItem[] | undefined,
-    level: number
-  ): Promise<TOCItem[]> => {
-    const toc: TOCItem[] = []
-    //const pageNumber = 2
-
-    if (!outline) {
-      return toc
-    }
+    outline: PDFOutlineItem[],
+    level: number,
+    doc: PDFDocumentProxy
+  ): Promise<TOCItemDoc[]> => {
+    const toc: TOCItemDoc[] = []
 
     for (let i = 0; i < outline.length; i++) {
       const item = outline[i]
       const title = item.title ?? 'Untitled'
 
       const children = item.items
-        ? await getTableOfContents(item.items, level + 1)
+        ? await getTableOfContents(item.items, level + 1, doc)
         : []
 
-      pdf?.getPageIndex(outline[i].dest[0]).then((index) => {
-        console.log(index)
-        const updatedPageNumber = index + 1
-        toc.push({ title, pageNumber: updatedPageNumber, level, children })
-      })
+      const index = await doc.getPageIndex(item.dest[0])
+      const updatedPageNumber = index + 1
+      toc.push({ title, pageNumber: updatedPageNumber, level, children })
     }
-    setOutline(toc)
+
     return toc
   }
 
+  /**
+   * Download document
+   */
   const downloadDocument = () => {
     const link = document.createElement('a')
     pdf?.getMetadata().then((meta) => {
@@ -110,16 +121,28 @@ const Document = ({ data }: IDocumentProps) => {
     })
   }
 
+  /**
+   * Go to next page
+   */
   const nextPage = () => {
     setActivePage((prevPage) =>
       pdf && pdf?.numPages > prevPage ? prevPage + 1 : prevPage
     )
   }
 
+  /**
+   * Go to previous page
+   */
   const prevPage = () => {
     setActivePage((prevPage) => (prevPage > 1 ? prevPage - 1 : prevPage))
   }
 
+  /**
+   * Go to selected page
+   *
+   * @param e - Input event
+   *
+   */
   const setPage = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.validity.valid) {
       // Fix for valid number input
@@ -135,19 +158,33 @@ const Document = ({ data }: IDocumentProps) => {
     setActivePage(numPage)
   }
 
+  /**
+   * Go to selected page
+   *
+   * @param page - Page number
+   */
   const searchPage = (page: number) => {
     if (page < 1 || (pdf?.numPages && pdf?.numPages < page)) return
     else setActivePage(page)
   }
 
+  /**
+   * Zoom in on document
+   */
   const zoomIn = () => {
     setScale((prevScale) => (prevScale < 2.5 ? prevScale + 0.25 : prevScale))
   }
 
+  /**
+   * Zoom out on document
+   */
   const zoomOut = () => {
-    setScale((prevScale) => (prevScale > 0.5 ? prevScale - 0.25 : prevScale))
+    setScale((prevScale) => (prevScale > 1 ? prevScale - 0.25 : prevScale))
   }
 
+  /**
+   * Reset zoom on document
+   */
   const resetScale = () => {
     setScale(1)
   }
@@ -173,14 +210,15 @@ const Document = ({ data }: IDocumentProps) => {
         zoomIn,
         zoomOut,
         resetScale,
+        totalPages,
         setOutline,
         outline,
       }}
     >
-      <Sidebar />
+      <Tools />
       <Page />
-      <BottomBar />
       <ZoomControls />
+      <Pagination />
       <Outline />
     </DocumentContext.Provider>
   )
