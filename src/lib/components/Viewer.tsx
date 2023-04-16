@@ -42,13 +42,12 @@ export const Viewer = ({ data }: IViewerProps) => {
   }, [data])
 
   return (
-    <div
-      id={'evilFlowersViewer'}
-      className={
-        'evilFlowersViewer w-full h-full'
-      }
-    >
-      <div className={'bg-gray-100 dark:bg-zinc-700 w-full h-full duration-200'}>{documentData && <Document data={documentData} />}</div>
+    <div id={'evilFlowersViewer'} className={'evilFlowersViewer w-full h-full'}>
+      <div
+        className={'bg-gray-100 dark:bg-zinc-700 w-full h-full duration-200'}
+      >
+        {documentData && <Document data={documentData} />}
+      </div>
     </div>
   )
 }

@@ -19,6 +19,7 @@
     "author": "Author",
     "lightMode": "Light mode",
     "darkMode": "Dark mode",
+    "outline": "Table of Contents",
     "searchPattern": "Enter search pattern...",
     "previewToggle": "Show/hide page previews"
   }
