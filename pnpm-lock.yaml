@@ -350,7 +350,7 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
     dependencies:
-      '@babel/types': 7.19.4
+      '@babel/types': 7.21.4
     dev: true
 
   /@babel/plugin-syntax-jsx/7.18.6_@babel+core@7.19.3:
