@@ -38,7 +38,7 @@ const Pagination = () => {
   return (
     <div
       className={
-        'fixed right-64 bottom-6 bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200'
+        'fixed right-6 lg:right-64 bottom-6 bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200'
       }
     >
       <PaginationButton
