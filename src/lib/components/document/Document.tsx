@@ -30,16 +30,53 @@ const Document = ({ data }: IDocumentProps) => {
   const [scale, setScale] = useState(1)
   const [pdf, setPdf] = useState<PDFDocumentProxy>()
   const [totalPages, setTotalPages] = useState(0)
-
+  const [errorMessage, setErrorMessage] = useState('')
   /**
    * Load document on mount
    *
    */
+  // const loadDocument = () => {
+  //   pdfjs.getDocument({ data }).promise.then((doc) => {
+  //     setPdf(doc)
+  //     setTotalPages(doc.numPages)
+  //   })
+  // }
+
   const loadDocument = () => {
-    pdfjs.getDocument({ data }).promise.then((doc) => {
-      setPdf(doc)
-      setTotalPages(doc.numPages)
-    })
+    // Check if base64 string is valid
+    console.log(errorMessage)
+    const validBase64 = /^[A-Za-z0-9+/=]+$/.test(data)
+    if (!validBase64) {
+      setErrorMessage('Sorry, your PDF cannot be viewed.')
+      return
+    }
+
+    // Decode base64 string
+    let byteCharacters
+    try {
+      byteCharacters = atob(data)
+    } catch (error) {
+      setErrorMessage('Sorry, your PDF cannot be viewed.')
+      return
+    }
+
+    // Convert byte characters to byte numbers and create Uint8Array
+    const byteNumbers = new Array(byteCharacters.length)
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i)
+    }
+    const byteArray = new Uint8Array(byteNumbers)
+
+    // Load PDF document
+    pdfjs
+      .getDocument(byteArray)
+      .promise.then((doc) => {
+        setPdf(doc)
+        setTotalPages(doc.numPages)
+      })
+      .catch((error) => {
+        setErrorMessage('Sorry, your PDF cannot be viewed.')
+      })
   }
 
   /**
@@ -129,6 +166,12 @@ const Document = ({ data }: IDocumentProps) => {
     loadDocument()
   }, [data])
 
+  //{errorMessage && <div>{errorMessage}</div>}
+
+  if (errorMessage) {
+    return <div>{errorMessage}</div>
+  }
+
   return (
     <DocumentContext.Provider
       value={{
@@ -144,7 +187,7 @@ const Document = ({ data }: IDocumentProps) => {
         zoomIn,
         zoomOut,
         resetScale,
-        totalPages
+        totalPages,
       }}
     >
       <Tools />
