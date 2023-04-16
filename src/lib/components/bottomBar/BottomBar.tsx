@@ -1,53 +1,84 @@
 import { useState } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
+import { useTranslation } from 'react-i18next'
+import cx from 'classnames'
+
+// icons
+import { ReactComponent as Right } from '../../../assets/icons/chevron-right.svg'
+import { ReactComponent as Left } from '../../../assets/icons/chevron-left.svg'
+import Preview from './Preview'
+
+interface IBottomBarProps {
+  pagePreviews: number
+}
 
 /**
  * This method renders the bottom bar component
  * used to navigate through the document
- * 
+ *
+ * @param pagePreviews - number of previews to be rendered
+ *
  * @returns The bottom bar component
  */
-const BottomBar = () => {
+const BottomBar = ({ pagePreviews }: IBottomBarProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(true)
-  const { pdf, activePage, prevPage, nextPage, setPage } = useDocumentContext()
+  const { activePage, prevPage, nextPage, setPage, totalPages } =
+    useDocumentContext()
+  const { t } = useTranslation()
+
   const toggleDropdown = () => {
     setIsDropdownOpen((prevState) => !prevState)
   }
 
-  let pagePreviews = 7 //temp static value just for now.
-
   return (
-    <div className="flex flex-col items-center justify-center bg-blue-300 py-5 fixed bottom-0 left-0 w-full">
-      <div className="flex justify-between items-center w-full mb-4 px-10">
-        <div></div>
-
-        <button
-          className={`px-5 py-2 text-lg text-black bg-blue-200 rounded-md hover:bg-blue-500`}
-          onClick={toggleDropdown}
-        >
-          {/* {isDropdownOpen ? <FaAngleDown /> : <FaAngleUp />} */}
-        </button>
-      </div>
+    <div className="sticky bottom-0 left-0 w-fill bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200">
+      <button
+        className="bg-transparent hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 flex items-center"
+        onClick={toggleDropdown}
+        title={t('previewToggle')}
+      >
+        Previews
+      </button>
       {isDropdownOpen && (
-        <div className="flex items-center justify-center bg-blue-200 p-3 rounded-lg">
+        <div className="flex items-center justify-center bg-white dark:bg-gray-800 p-3 rounded-lg gap-10">
           <button
+            title={t('prevPage')}
             className={
-              'px-5 py-2 text-lg text-black bg-blue-200 rounded-md hover:bg-blue-500'
+              'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 flex items-center'
             }
             onClick={prevPage}
           >
-            {/* <FaAngleLeft /> */}
+            <Left
+              className={cx('duration-200', {
+                'stroke-gray-500 dark:stroke-gray-300': activePage !== 1,
+                'stroke-gray-300 dark:stroke-gray-500': activePage === 1,
+              })}
+            />
           </button>
           {Array.from({ length: pagePreviews }).map((_, index) => (
-            <div key={index} className="h-20 w-12 bg-white mr-3 ml-3"></div>
+            <Preview
+              pageNumber={
+                activePage - Math.floor((pagePreviews + 1) / 2) + index + 1
+              }
+              previewNumber={index + 1}
+              key={index}
+            />
           ))}
           <button
+            title={t('nextPage')}
             className={
-              'px-5 py-2 text-lg text-black bg-blue-200 rounded-md hover:bg-blue-500'
+              'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 flex items-center'
             }
             onClick={nextPage}
           >
-            {/* <FaAngleRight /> */}
+            <Right
+              className={cx('duration-200', {
+                'stroke-gray-300 dark:stroke-gray-500':
+                  activePage === totalPages,
+                'stroke-gray-500 dark:stroke-gray-300':
+                  activePage !== totalPages,
+              })}
+            />
           </button>
         </div>
       )}

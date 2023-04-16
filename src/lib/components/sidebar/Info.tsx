@@ -5,12 +5,16 @@ import { useTranslation } from 'react-i18next'
 interface IInfoProps {}
 
 interface IPdfMetadataProps {
+  author?: string
   title?: string
   pages?: number
   creationDate?: string
   description?: string
   identificator?: number
-  author?: string
+  //TODO: first letter should be lowercase, this has been changed to uppercase just to make it work for the preview
+  Creator?: string
+  Keywords?: string
+  Producer?: string
 }
 
 interface IInfoRowProps {
@@ -21,7 +25,9 @@ interface IInfoRowProps {
 const InfoRow = ({ title, value }: IInfoRowProps) => (
   <div className={'mx-4'}>
     <div className={'flex flex-col'}>
-      <span className={'text-xs text-gray-400 dark:text-gray-500'}>{title}</span>
+      <span className={'text-xs text-gray-400 dark:text-gray-500'}>
+        {title}
+      </span>
       <span className={'text-sm dark:text-gray-300'}>{value}</span>
     </div>
   </div>
@@ -42,13 +48,16 @@ const Info = () => {
   const [metadata, setMetadata] = useState<any>([])
 
   const result: IPdfMetadataProps = {
+    author: metadata?.Author,
     title: metadata?.Title,
     pages: metadata?.Pages,
     // TODO parse date into readable format
     creationDate: metadata?.CreationDate,
     description: metadata?.Description,
     identificator: metadata?.Identificator,
-    author: metadata?.Author,
+    Creator: metadata?.Creator,
+    Keywords: metadata?.Keywords,
+    Producer: metadata?.Producer,
   }
 
   useEffect(() => {
@@ -56,6 +65,7 @@ const Info = () => {
       ?.getMetadata()
       .then((meta) => {
         setMetadata(meta.info)
+        console.log(meta.info)
       })
       .catch((err) => {
         console.error(err)

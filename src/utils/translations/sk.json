@@ -6,6 +6,11 @@
     "zoomIn": "Priblížiť",
     "zoomOut": "Oddialiť",
     "resetZoom": "Obnoviť priblíženie",
-    "outline": "Obsah"
+    "outline": "Obsah",
+    "searchPattern": "Napíšte vyhľadávací reťazec...",
+    "noMatchesFound": "Nenašla sa žiadna zhoda",
+    "foundResults": "Našlo sa {{count}} zhôd",
+    "pageNumber": "Strana {{number}}",
+    "previewToggle": "Zobraziť/skryť náhľady strán"
   }
 }

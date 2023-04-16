@@ -39,7 +39,7 @@ const ZoomControls = () => {
   return (
     <div
       className={
-        'fixed left-64 bottom-6 bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200'
+        'fixed left-6 md:left-64 bottom-6 bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200 flex-col md:flex-row w-8 md:w-auto'
       }
     >
       <ZoomButton

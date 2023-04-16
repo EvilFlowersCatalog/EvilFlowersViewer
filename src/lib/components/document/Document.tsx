@@ -7,7 +7,9 @@ import Page from '../page/Page'
 import Tools from '../sidebar/Tools'
 import ZoomControls from '../zoom/ZoomControls'
 import Pagination from '../pagination/Pagination'
+import { RENDERING_STATES } from '../../../utils/enums'
 import Outline from '../outline/Outline'
+import BottomBar from '../bottomBar/BottomBar'
 import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api'
 
 /**
@@ -50,6 +52,8 @@ const Document = ({ data }: IDocumentProps) => {
   const [activePage, setActivePage] = useState(1)
   const [scale, setScale] = useState(1)
   const [pdf, setPdf] = useState<PDFDocumentProxy>()
+  const [rerender, setRerender] = useState<Object>({})
+  const [isRendering, setRendering] = useState<RENDERING_STATES | null>(null)
   const [totalPages, setTotalPages] = useState(0)
   const [outline, setOutline] = useState<TOCItemDoc[] | undefined>(undefined)
 
@@ -161,6 +165,7 @@ const Document = ({ data }: IDocumentProps) => {
    */
   const searchPage = (page: number) => {
     if (page < 1 || (pdf?.numPages && pdf?.numPages < page)) return
+    else if (page === activePage) setRerender({})
     else setActivePage(page)
   }
 
@@ -206,6 +211,9 @@ const Document = ({ data }: IDocumentProps) => {
         zoomIn,
         zoomOut,
         resetScale,
+        rerender,
+        isRendering,
+        setRendering,
         totalPages,
         setOutline,
         outline,
@@ -214,6 +222,7 @@ const Document = ({ data }: IDocumentProps) => {
       <Tools />
       <Page />
       <ZoomControls />
+      <BottomBar pagePreviews={7} />
       <Pagination />
       <Outline />
     </DocumentContext.Provider>
