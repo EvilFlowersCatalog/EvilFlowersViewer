@@ -3,11 +3,10 @@ import react from '@vitejs/plugin-react'
 import dts from 'vite-plugin-dts'
 import tailwindcss from 'tailwindcss'
 import svgr from 'vite-plugin-svgr'
-import { resolve } from 'path'
 import { UserConfig } from 'vite'
 
 export default defineConfig(({ mode }: UserConfig) => {
-  if (mode === 'staging') {
+  if (mode === 'staging' || mode === 'development') {
     return {
       plugins: [
         react(),

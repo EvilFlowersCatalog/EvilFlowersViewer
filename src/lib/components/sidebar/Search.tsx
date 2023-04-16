@@ -7,7 +7,7 @@ import { debounce } from '../../../utils'
 import { SEARCH_STATES } from '../../../utils/enums'
 
 // icons
-import { ReactComponent as SadIcon } from '../../../assets/icons/mood-sad.svg'
+import { ReactComponent as SadIcon } from '../../../assets/icons/sad.svg'
 
 /**
  *
