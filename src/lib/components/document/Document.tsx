@@ -8,6 +8,7 @@ import BottomBar from '../bottomBar/BottomBar'
 import Tools from '../sidebar/Tools'
 import ZoomControls from '../zoom/ZoomControls'
 import Pagination from '../pagination/Pagination'
+import { RENDERING_STATES } from '../../../utils/enums'
 
 /**
  * Document component
@@ -29,6 +30,8 @@ const Document = ({ data }: IDocumentProps) => {
   const [activePage, setActivePage] = useState(1)
   const [scale, setScale] = useState(1)
   const [pdf, setPdf] = useState<PDFDocumentProxy>()
+  const [rerender, setRerender] = useState<Object>({})
+  const [isRendering, setRendering] = useState<RENDERING_STATES | null>(null)
   const [totalPages, setTotalPages] = useState(0)
 
   /**
@@ -100,6 +103,7 @@ const Document = ({ data }: IDocumentProps) => {
    */
   const searchPage = (page: number) => {
     if (page < 1 || (pdf?.numPages && pdf?.numPages < page)) return
+    else if (page === activePage) setRerender({})
     else setActivePage(page)
   }
 
@@ -144,6 +148,9 @@ const Document = ({ data }: IDocumentProps) => {
         zoomIn,
         zoomOut,
         resetScale,
+        rerender,
+        isRendering,
+        setRendering,
         totalPages
       }}
     >

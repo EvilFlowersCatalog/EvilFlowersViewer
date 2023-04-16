@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDocumentContext } from '../document/DocumentContext'
+import { TextItem, getTextContentParameters } from 'pdfjs-dist/types/src/display/api'
 
 // utils
 import { debounce } from '../../../utils'
 import { SEARCH_STATES } from '../../../utils/enums'
+import { RENDERING_STATES } from '../../../utils/enums'
 
 // icons
 import { ReactComponent as SadIcon } from '../../../assets/icons/sad.svg'
@@ -20,11 +22,12 @@ const Search = () => {
 
   const [searchPattern, setSearchPattern] = useState<string>('')
   const [matches, setMatches] = useState<
-    ({ page: number; text: string } | undefined)[]
+    ({ page: number; text: string, transform: Array<number>, width: number, height: number } | undefined)[]
   >([])
   const [searching, setSearching] = useState<SEARCH_STATES>(SEARCH_STATES.DONE)
+  const [selectedMatch, setSelectedMatch] = useState<number | null>(null)
 
-  const { pdf, searchPage } = useDocumentContext()
+  const { pdf, searchPage, scale, isRendering, setRendering } = useDocumentContext()
 
   /**
    *
@@ -50,8 +53,10 @@ const Search = () => {
   //NOTE: This is a first version of the search function, consider refactoring it to use a web worker, to unblock the main thread
   const searchInDocument = useCallback(
     debounce(async (pattern: string) => {
+
       new Promise((resolve) => {
-        let textContent: { text: string; page: number }[] = []
+        setSelectedMatch(null)
+        let textContent: { textItems: Array<TextItem>; page: number }[] = []
 
         /**
          * Get the text content of page
@@ -64,10 +69,13 @@ const Search = () => {
           (n) => {
             return pdf
               ?.getPage(n + 1)
-              .then((page) => page.getTextContent())
-              .then((content) => {
-                const text = content.items.map((i: any) => i.str).join('')
-                textContent = [...textContent, { text, page: n + 1 }]
+              .then((page) => {
+                // ensure text content includes only textItems
+                let e:getTextContentParameters = {disableCombineTextItems: false, includeMarkedContent: false}
+                return page.getTextContent(e)
+              })
+              .then((content: any) => {
+                textContent = [...textContent, { textItems: content.items, page: n + 1 }]
               })
           }
         )
@@ -78,15 +86,17 @@ const Search = () => {
             if (a.page < b.page) return -1
             return 1
           })
-
-          const matches = textContent.map((content) => {
-            const match = content.text.match(reg)
-            if (match) {
-              return {
-                page: content.page,
-                text: match[0],
+          // keep matched string, page number, and information for highlighting: transformation matrix, width and height of text
+          let matches: { text: string; page: number, transform: Array<number>, width: number, height: number }[] = []
+          textContent.map((content) => {
+            content.textItems.map((textItem: any) => {
+              const match: RegExpMatchArray | null = textItem.str.match(reg)
+              if (match) {
+                match.map((text, index) => {
+                  matches = [...matches, { page: content.page, text: text, transform: textItem.transform, width: textItem.width, height: textItem.height}]
+                }) 
               }
-            }
+            })
           }).filter(Boolean)
 
           setMatches(matches)
@@ -97,12 +107,38 @@ const Search = () => {
     []
   )
 
+  const findMatchedText = (page: number, index: number) => {
+    setRendering(RENDERING_STATES.RENDERING)
+    searchPage(page)
+    setSelectedMatch(index)
+  }
+
   useEffect(() => {
     if (searchPattern === '') return setMatches([])
 
     setSearching(SEARCH_STATES.LOADING)
     searchInDocument(searchPattern)
   }, [searchPattern])
+
+  useEffect(() => {
+    if (selectedMatch != null && isRendering === RENDERING_STATES.RENDERED && matches && matches.length > selectedMatch) {
+      const canvas = document.getElementById('evilFlowersCanvas') as HTMLCanvasElement | null
+
+      if (canvas) {
+        const x: number = matches[selectedMatch]!.transform[4]
+        const y: number = matches[selectedMatch]!.transform[5]
+        const width: number = matches[selectedMatch]!.width
+        const height: number = matches[selectedMatch]!.height
+        const canvas_height = canvas.getAttribute('height')
+        const context: CanvasRenderingContext2D | null = canvas.getContext('2d')
+        if (context) {
+          context.fillStyle = 'yellow'
+          context.globalAlpha = 0.3
+          context.fillRect(x*scale, parseInt(canvas_height!) - y * scale - height * scale, width*scale, height*scale)
+        }
+      }
+    }
+  }, [selectedMatch, isRendering])
 
   return (
     <>
@@ -113,7 +149,7 @@ const Search = () => {
         className={
           'mx-4 p-2 rounded-md bg-gray-100 dark:bg-gray-900 border border-solid dark:border-gray-500 dark:text-gray-300 outline-none focus:outline-none focus:border-gray-500 dark:focus:border-gray-300 duration-300'
         }
-        placeholder={'Enter search pattern...'}
+        placeholder={t('searchPattern')}
       ></input>
       {searching === SEARCH_STATES.LOADING && (
         <div className={'w-full flex justify-center py-4'}>
@@ -144,7 +180,7 @@ const Search = () => {
                   'mx-4 bg-gray-100 dark:bg-gray-300 rounded-md my-1 cursor-pointer hover:bg-gray-200 px-4 py-2 duration-200'
                 }
                 onClick={() => {
-                  searchPage(match.page)
+                  findMatchedText(match.page, i)
                 }}
               >
                 <span className={'break-all text-xs'}>{match.text}</span>
