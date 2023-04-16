@@ -211,12 +211,12 @@ const Document = ({ data }: IDocumentProps) => {
         zoomIn,
         zoomOut,
         resetScale,
+        setOutline,
+        outline,
         rerender,
         isRendering,
         setRendering,
         totalPages,
-        setOutline,
-        outline,
       }}
     >
       <Tools />
