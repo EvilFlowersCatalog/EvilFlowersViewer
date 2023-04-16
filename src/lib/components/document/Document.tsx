@@ -157,6 +157,7 @@ const Document = ({ data }: IDocumentProps) => {
       <Tools />
       <Page />
       <ZoomControls />
+      <BottomBar pagePreviews={7}/>
       <Pagination />
     </DocumentContext.Provider>
   )
