@@ -71,6 +71,10 @@ const Document = ({ data }: IDocumentProps) => {
           return
         }
 
+        if (typeof outline[0].dest === 'string') {
+          return
+        }
+
         const toc = await getTableOfContents(outline, 0, doc)
         setOutline(toc)
       })
