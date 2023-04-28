@@ -1,14 +1,16 @@
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
-import { PDFDocumentProxy } from 'pdfjs-dist/legacy/build/pdf'
+
 import { useEffect, useState } from 'react'
 
 import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
-import BottomBar from '../bottomBar/BottomBar'
 import Tools from '../sidebar/Tools'
 import ZoomControls from '../zoom/ZoomControls'
 import Pagination from '../pagination/Pagination'
 import { RENDERING_STATES } from '../../../utils/enums'
+import Outline from '../outline/Outline'
+import BottomBar from '../bottomBar/BottomBar'
+import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api'
 
 /**
  * Document component
@@ -26,6 +28,26 @@ interface IDocumentProps {
  * @returns Document context through a provider to be used by other components
  *
  */
+interface TOCItemDoc {
+  title: string
+  pageNumber: number
+  level: number
+  children: TOCItemDoc[]
+}
+
+interface PDFOutlineItem {
+  title: string
+  bold: boolean
+  italic: boolean
+  color: Uint8ClampedArray
+  dest: string | any[] | null
+  url: string | null
+  unsafeUrl: string | undefined
+  newWindow: boolean | undefined
+  count: number | undefined
+  items: PDFOutlineItem[] | undefined
+}
+
 const Document = ({ data }: IDocumentProps) => {
   const [activePage, setActivePage] = useState(1)
   const [scale, setScale] = useState(1)
@@ -33,6 +55,7 @@ const Document = ({ data }: IDocumentProps) => {
   const [rerender, setRerender] = useState<Object>({})
   const [isRendering, setRendering] = useState<RENDERING_STATES | null>(null)
   const [totalPages, setTotalPages] = useState(0)
+  const [outline, setOutline] = useState<TOCItemDoc[] | undefined>(undefined)
 
   /**
    * Load document on mount
@@ -40,9 +63,48 @@ const Document = ({ data }: IDocumentProps) => {
    */
   const loadDocument = () => {
     pdfjs.getDocument({ data }).promise.then((doc) => {
+      // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
+      // https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFDocumentProxy.html#getDestination
+
+      doc.getOutline().then(async (outline) => {
+        if (outline == null || !outline) {
+          return
+        }
+
+        if (typeof outline[0].dest === 'string') {
+          return
+        }
+
+        const toc = await getTableOfContents(outline, 0, doc)
+        setOutline(toc)
+      })
+
       setPdf(doc)
       setTotalPages(doc.numPages)
     })
+  }
+
+  const getTableOfContents = async (
+    outline: PDFOutlineItem[],
+    level: number,
+    doc: PDFDocumentProxy
+  ): Promise<TOCItemDoc[]> => {
+    const toc: TOCItemDoc[] = []
+
+    for (let i = 0; i < outline.length; i++) {
+      const item = outline[i]
+      const title = item.title ?? 'Untitled'
+
+      const children = item.items
+        ? await getTableOfContents(item.items, level + 1, doc)
+        : []
+
+      const index = await doc.getPageIndex(item.dest[0])
+      const updatedPageNumber = index + 1
+      toc.push({ title, pageNumber: updatedPageNumber, level, children })
+    }
+
+    return toc
   }
 
   /**
@@ -96,6 +158,10 @@ const Document = ({ data }: IDocumentProps) => {
     }
   }
 
+  const outlineSetPage = (numPage: number) => {
+    setActivePage(numPage)
+  }
+
   /**
    * Go to selected page
    *
@@ -142,23 +208,27 @@ const Document = ({ data }: IDocumentProps) => {
         nextPage,
         prevPage,
         setPage,
+        outlineSetPage,
         searchPage,
         scale,
         setScale,
         zoomIn,
         zoomOut,
         resetScale,
+        setOutline,
+        outline,
         rerender,
         isRendering,
         setRendering,
-        totalPages
+        totalPages,
       }}
     >
       <Tools />
       <Page />
       <ZoomControls />
-      <BottomBar pagePreviews={7}/>
+      <BottomBar pagePreviews={7} />
       <Pagination />
+      <Outline />
     </DocumentContext.Provider>
   )
 }

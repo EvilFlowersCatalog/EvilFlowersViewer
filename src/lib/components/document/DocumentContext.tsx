@@ -6,6 +6,13 @@ import { RENDERING_STATES } from '../../../utils/enums'
 /**
  * Document context
  */
+interface TOCItemDoc {
+  isExpanded: any
+  title: string
+  pageNumber: number
+  level: number
+  children: TOCItemDoc[]
+}
 interface IDocumentContext {
   pdf?: PDFDocumentProxy
   activePage: number
@@ -23,17 +30,20 @@ interface IDocumentContext {
   isRendering: RENDERING_STATES | null
   setRendering: (state: RENDERING_STATES) => void
   totalPages: number
+  outline: TOCItemDoc[] | undefined
+  setOutline: (outline: TOCItemDoc[] | undefined) => void
+  outlineSetPage: (num: number) => void
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)
 
 /**
  * Returns the document context
- * 
- * @throws {Error} 
+ *
+ * @throws {Error}
  * This error is thrown if context is null
- * 
- * @returns {IDocumentContext} 
+ *
+ * @returns {IDocumentContext}
  */
 export const useDocumentContext = () => {
   const context = useContext(DocumentContext)
