@@ -18,6 +18,10 @@
     "creationDate": "Creation date",
     "author": "Author",
     "lightMode": "Light mode",
-    "darkMode": "Dark mode"
+    "darkMode": "Dark mode",
+    "outline": "Table of Contents",
+    "searchPattern": "Enter search pattern...",
+    "previewToggle": "Show/hide page previews",
+    "loadPDFerror": "Sorry, your PDF file cannot be viewed"
   }
 }
