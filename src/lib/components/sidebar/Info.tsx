@@ -47,7 +47,7 @@ const Info = () => {
   const { pdf } = useDocumentContext()
   const [metadata, setMetadata] = useState<any>([])
 
-  const result: IPdfMetadataProps = {
+  let result: IPdfMetadataProps = {
     author: metadata?.Author,
     title: metadata?.Title,
     pages: metadata?.Pages,
@@ -63,7 +63,28 @@ const Info = () => {
   useEffect(() => {
     pdf
       ?.getMetadata()
-      .then((meta) => {
+      .then((meta: any) => {
+        //formatting of date
+        if (meta.info.CreationDate.substr(0, 2) == 'D:') {
+          const dateString = meta.info.CreationDate
+          const year = Number(dateString.substr(2, 4))
+          const month = Number(dateString.substr(6, 2)) - 1
+          const day = Number(dateString.substr(8, 2))
+          const hour = Number(dateString.substr(10, 2))
+          const minute = Number(dateString.substr(12, 2))
+          const second = Number(dateString.substr(14, 2))
+          const date = new Date(year, month, day, hour, minute, second)
+          meta.info.CreationDate = date.toLocaleString([], {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric',
+            timeZoneName: 'short',
+          })
+        }
         setMetadata(meta.info)
         console.log(meta.info)
       })
