@@ -30,26 +30,35 @@ const Outline = () => {
 
   const renderTOC = (items: TOCItem[] | undefined, level = 1) => {
     return (
-      <ul className="ml-2">
-        {items?.map((item) => (
-          <li
-            key={`${item.title}-${item.pageNumber}`}
+      <div className="ml-2">
+        {items?.map((item, i) => (
+          <div
+            key={`${item.title}-${i}`}
             className={`${
               level === 1 ? 'font-bold' : 'font-normal'
             } py-1 text-sm`}
           >
             <div className="flex items-center">
               {item.children.length > 0 && (
-                <button
-                  className="mr-2 focus:outline-none"
+                <span
+                  className="mr-2 font-bold text-gray-800 cursor-pointer"
                   onClick={() => handleToggleExpand(item)}
                 >
                   {item.isExpanded ? '-' : '+'}
-                </button>
+                </span>
               )}
               <div
-                className="cursor-pointer hover:bg-gray-100 rounded-lg p-1"
-                onClick={() => handleItemClick(item.pageNumber)}
+                className={`cursor-pointer ${
+                  item.pageNumber !== -1 ? 'hover:bg-gray-100' : 'text-gray-400'
+                } rounded-lg p-1`}
+                style={{
+                  cursor: item.pageNumber === -1 ? 'default' : 'pointer',
+                }}
+                onClick={() => {
+                  if (item.pageNumber !== -1) {
+                    handleItemClick(item.pageNumber)
+                  }
+                }}
               >
                 {item.title}
               </div>
@@ -57,9 +66,9 @@ const Outline = () => {
             {item.isExpanded &&
               item.children &&
               renderTOC(item.children, level + 1)}
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     )
   }
 
@@ -110,9 +119,9 @@ const Outline = () => {
             {isDropdownShown && (
               <div className="mt-2">
                 <ul className="ml-2">
-                  {outline?.map((item) => (
+                  {outline?.map((item, i) => (
                     <li
-                      key={`${item.title}-${item.pageNumber}`}
+                      key={`${item.title}-${i}`}
                       className={`${
                         item.children ? 'font-bold' : 'font-normal'
                       } py-1 text-sm`}
@@ -130,8 +139,20 @@ const Outline = () => {
                           </button>
                         )}
                         <div
-                          className="cursor-pointer hover:bg-gray-100 rounded-lg p-1"
-                          onClick={() => handleItemClick(item.pageNumber)}
+                          className={`cursor-pointer ${
+                            item.pageNumber !== -1
+                              ? 'hover:bg-gray-100'
+                              : 'text-gray-400'
+                          } rounded-lg p-1`}
+                          style={{
+                            cursor:
+                              item.pageNumber === -1 ? 'default' : 'pointer',
+                          }}
+                          onClick={() => {
+                            if (item.pageNumber !== -1) {
+                              handleItemClick(item.pageNumber)
+                            }
+                          }}
                         >
                           {item.title}
                         </div>

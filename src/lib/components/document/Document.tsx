@@ -66,15 +66,13 @@ const Document = ({ data }: IDocumentProps) => {
       // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
       // https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFDocumentProxy.html#getDestination
 
+      // Case where we do not have outlines
       doc.getOutline().then(async (outline) => {
         if (outline == null || !outline) {
           return
         }
 
-        if (typeof outline[0].dest === 'string') {
-          return
-        }
-
+        // Case where we have outlines
         const toc = await getTableOfContents(outline, 0, doc)
         setOutline(toc)
       })
@@ -99,9 +97,16 @@ const Document = ({ data }: IDocumentProps) => {
         ? await getTableOfContents(item.items, level + 1, doc)
         : []
 
-      const index = await doc.getPageIndex(item.dest[0])
-      const updatedPageNumber = index + 1
-      toc.push({ title, pageNumber: updatedPageNumber, level, children })
+      // Default state where we dont have page index
+      let pageNumber = -1
+
+      // Case where we can get page index
+      if (typeof item.dest !== 'string') {
+        const index = await doc.getPageIndex(item.dest[0])
+        pageNumber = index + 1
+      }
+
+      toc.push({ title, pageNumber, level, children })
     }
 
     return toc
