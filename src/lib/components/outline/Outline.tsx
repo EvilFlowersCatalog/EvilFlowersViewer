@@ -106,9 +106,11 @@ const Outline = () => {
             isDropdownShown ? 'h-96 overflow-y-scroll' : ''
           }`}
         >
-          <div className="bg-white p-2 rounded-lg shadow-md">
+          <div className="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-md">
             <div className="flex justify-between items-center">
-              <div className="text-lg font-semibold">{t('outline')}</div>
+              <div className="text-lg font-semibold dark:text-gray-300">
+                {t('outline')}
+              </div>
               <button
                 className="bg-gray-700 text-white rounded-md py-1 px-3 focus:outline-none"
                 onClick={toggleDropdown}
