@@ -33,7 +33,7 @@ const BottomBar = ({ pagePreviews }: IBottomBarProps) => {
   }
 
   return (
-    <div className="sticky bottom-0 left-0 w-full bg-white dark:bg-gray-800 gap-2 p-1 rounded-xl shadow-lg justify-center items-center grid grid-cols-1 duration-200">
+    <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 gap-2 py-1 rounded-xl shadow-lg justify-center items-center grid grid-cols-1 duration-200 z-10">
       <button
         className="bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 items-center justify-self-center h-4 w-8"
         onClick={toggleDropdown}
