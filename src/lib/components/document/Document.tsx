@@ -67,30 +67,6 @@ const Document = ({ data }: IDocumentProps) => {
     })
   }
 
-  // const loadDocument = () => {
-  //   // Load PDF document
-  //   pdfjs.getDocument(data).promise.then((doc) => {
-  //     // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
-  //     // https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFDocumentProxy.html#getDestination
-
-  //     doc.getOutline().then(async (outline) => {
-  //       if (outline == null || !outline) {
-  //         return
-  //       }
-
-  //       if (typeof outline[0].dest === 'string') {
-  //         return
-  //       }
-
-  //       const toc = await getTableOfContents(outline, 0, doc)
-  //       setOutline(toc)
-  //     })
-
-  //     setPdf(doc)
-  //     setTotalPages(doc.numPages)
-  //   })
-  // }
-
   const getTableOfContents = async (
     outline: PDFOutlineItem[],
     level: number,
