@@ -10,27 +10,6 @@ import { ReactComponent as Up } from '../../../assets/icons/chevron-up.svg'
 import { ReactComponent as Down } from '../../../assets/icons/chevron-down.svg'
 import Preview from './Preview'
 
-interface IPreviewButtonProps {
-  onClick: () => void
-  icon: ReactNode
-  tooltipText: string
-}
-
-const PreviewButton = ({ onClick, icon, tooltipText }: IPreviewButtonProps) => {
-  return (
-    <Tooltip title={tooltipText}>
-      <button
-        onClick={onClick}
-        className={
-          'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 flex items-center'
-        }
-      >
-        {icon}
-      </button>
-    </Tooltip>
-  )
-}
-
 interface IBottomBarProps {
   pagePreviews: number
 }
