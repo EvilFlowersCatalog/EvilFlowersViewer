@@ -5,17 +5,18 @@
 EvilFlowersViewer is a PDF viewer based on pdf.js library that allows users to view and interact with PDF documents directly in the browser. This project is being developed by a university team, and aims to provide a reliable and efficient PDF viewer that is easy to use and customize.
 
 ## Features
-  - PDF document rendering directly in the browser
-  - Zoom in and out of documents
-  - Page navigation through a page thumbnail view
-  - Text search within documents
-  
+
+- PDF document rendering directly in the browser
+- Zoom in and out of documents
+- Page navigation through a page thumbnail view
+- Text search within documents
 
 ### Features Under Development
-  - Citation export
-  - Customizable user interface with themes
-  - Annotation tools for highlighting and commenting on text
-  - and more...
+
+- Citation export
+- Customizable user interface with themes
+- Annotation tools for highlighting and commenting on text
+- and more...
 
 ## Getting started
 
@@ -36,12 +37,9 @@ import '@evilflowers/evilflowersviewer/dist/style.css'
 
 3. Use Viewer component in your JSX:
 
-
 ```tsx
 const MyPdfWrapper = (props) => {
-  return (
-    <Viewer data={base64Data} />
-  )
+  return <Viewer data={base64Data} />
 }
 ```
 
