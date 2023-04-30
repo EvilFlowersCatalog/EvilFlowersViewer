@@ -30,7 +30,7 @@ const Preview = ({ pageNumber, previewNumber }: IPreviewProps) => {
         const button = document.createElement('button')
         button.setAttribute(
           'class',
-          'bg-transparent border-solid border-amber-200 dark:border-white cursor-pointer duration-200 flex w-128 items-center p-0'
+          'bg-transparent border-none shadow-lg cursor-pointer duration-200 flex w-128 items-center p-0'
         )
         button.onclick = () => {
           searchPage(pageNumber)

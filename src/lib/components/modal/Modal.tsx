@@ -33,11 +33,11 @@ const ModalWrapper = ({ label, isOpen, onClose, children }: Props) => {
   return (
     <>
       {isOpen && (
-        <div className="fixed z-10 inset-0 overflow-y-auto">
+        <div className="fixed z-20 inset-0 overflow-none">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
-            <div className="fixed inset-0 transition-opacity">
+            <div className="fixed inset-0 transition-opacity bg-black dark:bg-grey opacity-80">
             </div>
-            <div className="relative inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white dark:bg-gray-800 shadow-lg rounded-lg border-solid border-black dark:border-white">
+            <div className="relative z-30 opacity-100 inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white dark:bg-gray-800 shadow-lg rounded-lg">
               <div className="absolute top-0 right-0 pt-4 pr-4">
               </div>
               <div className="mt-2">{children}</div>

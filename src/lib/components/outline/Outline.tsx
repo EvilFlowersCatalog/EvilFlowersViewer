@@ -34,7 +34,7 @@ const Outline = () => {
 
   const renderTOC = (items: TOCItem[] | undefined, level = 1) => {
     return (
-      <ul className="ml-2">
+      <ul className="ml-2 p-0">
         {items?.map((item) => (
           <li
             key={`${item.title}-${item.pageNumber}`}
@@ -102,7 +102,7 @@ const Outline = () => {
     <>
       {outline && outline.length > 0 && (
         <div
-          className={`fixed top-4 right-4 z-50 bg-transparent p-1 rounded-xl ${
+          className={`fixed top-4 right-4 z-10 bg-transparent p-1 rounded-xl ${
             isDropdownShown ? 'h-96 overflow-auto' : ''
           }`}
         >
@@ -122,7 +122,7 @@ const Outline = () => {
             </div>
             {isDropdownShown && (
               <div className="mt-2">
-                <ul className="ml-2">
+                <ul className="ml-2 p-0">
                   {outline?.map((item) => (
                     <li
                       key={`${item.title}-${item.pageNumber}`}
