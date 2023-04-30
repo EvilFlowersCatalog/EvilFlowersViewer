@@ -34,8 +34,8 @@ const Share = ({ setActiveSidebar, title, text }: IShareProps) => {
         isOpen={isOpen}
         onClose={() => handleClick()}
       >
-        <h2 className="text-lg font-medium leading-6 text-gray-900">{title}</h2>
-        <div className="mt-3 text-sm text-gray-500">
+        <h2 className="text-lg font-medium leading-6 text-gray-500 dark:text-gray-300">{title}</h2>
+        <div className="mt-3 text-sm text-gray-500 dark:text-gray-300">
           <p>{text}</p>
         </div>
       </ModalWrapper>
