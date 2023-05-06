@@ -10,7 +10,7 @@ import { t } from 'i18next'
 pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
 
 interface IViewerProps {
-  data?: string
+  data: string | null
 }
 
 /**
@@ -20,7 +20,7 @@ interface IViewerProps {
  * @param param0.data - The base64 encoded string of the PDF file
  * @returns - The Viewer component
  */
-export const Viewer = ({ data }: IViewerProps) => {
+export const Viewer = ({ data = null }: IViewerProps) => {
   const [documentData, setDocumentData] = useState<string | null>()
 
   useEffect(() => {
@@ -57,13 +57,7 @@ export const Viewer = ({ data }: IViewerProps) => {
       <div
         className={'bg-gray-100 dark:bg-zinc-700 w-full h-full duration-200'}
       >
-        {!documentData && (
-          <div className="flex flex-col items-center justify-center h-full">
-            <SadIcon style={{ height: '10rem', width: '10rem' }} />
-            <p className="text-3xl mt-4 text-center">{t('loadPDFerror')}</p>
-          </div>
-        )}
-        {documentData && <Document data={documentData} />}
+        <Document data={documentData} />
       </div>
     </div>
   )

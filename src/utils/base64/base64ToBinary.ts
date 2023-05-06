@@ -8,7 +8,6 @@ export const base64ToBinary = (base64: string) => {
   try {
     raw = atob(data)
   } catch (error) {
-    //console.error("Error decoding base64 data:", error)
     return null
   }
 
@@ -17,7 +16,6 @@ export const base64ToBinary = (base64: string) => {
       binaryArray[i] = raw.charCodeAt(i)
     }
   } catch (error) {
-    //console.log("je to dojebane")
     return null
   }
 

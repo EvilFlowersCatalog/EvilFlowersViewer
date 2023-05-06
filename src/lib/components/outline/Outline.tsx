@@ -44,7 +44,7 @@ const Outline = () => {
           >
             <div className="flex items-center">
               <div
-                className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg p-2 rounded-lg p-1"
+                className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg p-2"
                 onClick={() => handleItemClick(item.pageNumber)}
               >
                 {item.title}
@@ -54,11 +54,11 @@ const Outline = () => {
                   className="mr-2 focus:outline-none bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200"
                   onClick={() => handleToggleExpand(item)}
                 >
-                  {item.isExpanded ? 
-                    <Down className='duration-200 stroke-gray-500 dark:stroke-gray-300'></Down>
-                    :
-                    <Left className='duration-200 stroke-gray-500 dark:stroke-gray-300'></Left>
-                  }
+                  {item.isExpanded ? (
+                    <Down className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Down>
+                  ) : (
+                    <Left className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Left>
+                  )}
                 </button>
               )}
             </div>
@@ -108,16 +108,18 @@ const Outline = () => {
         >
           <div className="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-lg">
             <div className="flex justify-between items-center gap-2">
-              <div className="text-sm font-bold p-2 rounded-2 text-gray-500 dark:text-gray-300 text-center">{t('outline')}</div>
+              <div className="text-sm font-bold p-2 rounded-2 text-gray-500 dark:text-gray-300 text-center">
+                {t('outline')}
+              </div>
               <button
                 className="focus:outline-none bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200"
                 onClick={toggleDropdown}
               >
-                {isDropdownShown ? 
-                  <Down className='duration-200 stroke-gray-500 dark:stroke-gray-300'></Down>
-                  :
-                  <Left className='duration-200 stroke-gray-500 dark:stroke-gray-300'></Left>
-                }
+                {isDropdownShown ? (
+                  <Down className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Down>
+                ) : (
+                  <Left className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Left>
+                )}
               </button>
             </div>
             {isDropdownShown && (
@@ -145,11 +147,11 @@ const Outline = () => {
                               setToc([...toc])
                             }}
                           >
-                            {item.isExpanded ? 
-                              <Down className='duration-200 stroke-gray-500 dark:stroke-gray-300'></Down>
-                              :
-                              <Left className='duration-200 stroke-gray-500 dark:stroke-gray-300'></Left>
-                            }
+                            {item.isExpanded ? (
+                              <Down className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Down>
+                            ) : (
+                              <Left className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Left>
+                            )}
                           </button>
                         )}
                       </div>

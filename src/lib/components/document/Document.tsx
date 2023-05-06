@@ -11,6 +11,7 @@ import { RENDERING_STATES } from '../../../utils/enums'
 import Outline from '../outline/Outline'
 import BottomBar from '../bottomBar/BottomBar'
 import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api'
+import { t } from 'i18next'
 
 /**
  * Document component
@@ -18,7 +19,7 @@ import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api'
  *
  */
 interface IDocumentProps {
-  data: string
+  data: string | null
 }
 
 /**
@@ -179,6 +180,7 @@ const Document = ({ data }: IDocumentProps) => {
 
   // Loads the document every time the data changes
   useEffect(() => {
+    if (data == null) return
     loadDocument()
   }, [data])
 
@@ -207,7 +209,16 @@ const Document = ({ data }: IDocumentProps) => {
       }}
     >
       <Tools />
-      <Page />
+      {!data && (
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-4 text-gray-500 dark:text-gray-300">
+              {t('loadPDFerror')}
+            </h1>
+          </div>
+        </div>
+      )}
+      {data && <Page />}
       <ZoomControls />
       <BottomBar pagePreviews={7} />
       <Pagination />
