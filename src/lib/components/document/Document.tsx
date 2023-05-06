@@ -97,13 +97,12 @@ const Document = ({ data }: IDocumentProps) => {
         ? await getTableOfContents(item.items, level + 1, doc)
         : []
 
-      // Default state where we dont have page index
-      let pageNumber = -1
-
-      // Case where we can get page index
-      if (typeof item.dest !== 'string') {
+      let pageNumber
+      try {
         const index = await doc.getPageIndex(item.dest[0])
         pageNumber = index + 1
+      } catch (error) {
+        pageNumber = -1
       }
 
       toc.push({ title, pageNumber, level, children })

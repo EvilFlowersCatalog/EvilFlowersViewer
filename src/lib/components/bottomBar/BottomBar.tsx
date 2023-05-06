@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { ReactComponentElement, useEffect, useState } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import { useTranslation } from 'react-i18next'
 import cx from 'classnames'
@@ -6,6 +6,8 @@ import cx from 'classnames'
 // icons
 import { ReactComponent as Right } from '../../../assets/icons/chevron-right.svg'
 import { ReactComponent as Left } from '../../../assets/icons/chevron-left.svg'
+import { ReactComponent as Up } from '../../../assets/icons/chevron-up.svg'
+import { ReactComponent as Down } from '../../../assets/icons/chevron-down.svg'
 import Preview from './Preview'
 
 interface IBottomBarProps {
@@ -21,9 +23,8 @@ interface IBottomBarProps {
  * @returns The bottom bar component
  */
 const BottomBar = ({ pagePreviews }: IBottomBarProps) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(true)
-  const { activePage, prevPage, nextPage, setPage, totalPages } =
-    useDocumentContext()
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const { activePage, prevPage, nextPage, totalPages } = useDocumentContext()
   const { t } = useTranslation()
 
   const toggleDropdown = () => {
@@ -31,13 +32,17 @@ const BottomBar = ({ pagePreviews }: IBottomBarProps) => {
   }
 
   return (
-    <div className="sticky bottom-0 left-0 w-fill bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200">
+    <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 gap-2 py-1 rounded-xl shadow-lg justify-center items-center grid grid-cols-1 duration-200 z-10">
       <button
-        className="bg-transparent hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 flex items-center"
+        className="bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 items-center justify-self-center h-6 w-8"
         onClick={toggleDropdown}
         title={t('previewToggle')}
       >
-        Previews
+        {isDropdownOpen ? (
+          <Down className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Down>
+        ) : (
+          <Up className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Up>
+        )}
       </button>
       {isDropdownOpen && (
         <div className="flex items-center justify-center bg-white dark:bg-gray-800 p-3 rounded-lg gap-10">

@@ -29,8 +29,8 @@ const Preview = ({ pageNumber, previewNumber }: IPreviewProps) => {
       pdf?.getPage(pageNumber).then((page) => {
         const button = document.createElement('button')
         button.setAttribute(
-          'className',
-          'bg-transparent border-none cursor-pointer duration-200 flex items-center'
+          'class',
+          'bg-transparent border-none shadow-lg cursor-pointer duration-200 flex w-128 items-center p-0'
         )
         button.onclick = () => {
           searchPage(pageNumber)
