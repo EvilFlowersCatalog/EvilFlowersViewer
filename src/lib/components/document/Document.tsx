@@ -1,6 +1,6 @@
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 
-import { useEffect, useState } from 'react'
+import { KeyboardEvent, useEffect, useState } from 'react'
 
 import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
@@ -199,6 +199,28 @@ const Document = ({ data }: IDocumentProps) => {
     loadDocument()
   }, [data])
 
+  const keyDownHandler = (event: KeyboardEvent<HTMLDivElement>) => {
+    console.log(event.key)
+    switch (event.key) {
+      case "ArrowLeft":
+        event.preventDefault()
+        prevPage()
+        break
+      case "ArrowRight":
+        event.preventDefault()
+        nextPage()
+        break
+      case "+":
+        event.preventDefault()
+        zoomIn()
+        break
+      case "-":
+        event.preventDefault()
+        zoomOut()
+        break
+    }
+  }
+
   return (
     <DocumentContext.Provider
       value={{
@@ -223,12 +245,14 @@ const Document = ({ data }: IDocumentProps) => {
         totalPages,
       }}
     >
-      <Tools />
-      <Page />
-      <ZoomControls />
-      <BottomBar pagePreviews={7} />
-      <Pagination />
-      <Outline />
+      <div onKeyDown={keyDownHandler}>
+        <Tools />
+        <Page />
+        <ZoomControls />
+        <BottomBar pagePreviews={7} />
+        <Pagination />
+        <Outline />
+      </div>
     </DocumentContext.Provider>
   )
 }

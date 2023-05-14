@@ -150,6 +150,7 @@ const Search = () => {
           'mx-4 p-2 rounded-md bg-gray-100 dark:bg-gray-900 border border-solid dark:border-gray-500 dark:text-gray-300 outline-none focus:outline-none focus:border-gray-500 dark:focus:border-gray-300 duration-300'
         }
         placeholder={t('searchPattern')}
+        onKeyDown={(e) => {e.stopPropagation()}}
       ></input>
       {searching === SEARCH_STATES.LOADING && (
         <div className={'w-full flex justify-center py-4'}>
