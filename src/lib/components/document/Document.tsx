@@ -200,7 +200,6 @@ const Document = ({ data }: IDocumentProps) => {
   }, [data])
 
   const keyDownHandler = (event: KeyboardEvent<HTMLDivElement>) => {
-    console.log(event.key)
     switch (event.key) {
       case "ArrowLeft":
         event.preventDefault()
@@ -245,7 +244,7 @@ const Document = ({ data }: IDocumentProps) => {
         totalPages,
       }}
     >
-      <div onKeyDown={keyDownHandler}>
+      <div onKeyDown={keyDownHandler} tabIndex={-1}>
         <Tools />
         <Page />
         <ZoomControls />
