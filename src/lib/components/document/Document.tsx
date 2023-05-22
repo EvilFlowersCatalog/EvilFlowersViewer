@@ -219,9 +219,9 @@ const Document = ({ data }: IDocumentProps) => {
         </div>
       )}
       {data && <Page />}
-      <ZoomControls />
-      <BottomBar pagePreviews={7} />
-      <Pagination />
+      {data && <ZoomControls />}
+      {data && <BottomBar pagePreviews={7} />}
+      {data && <Pagination />}
       <Outline />
     </DocumentContext.Provider>
   )
