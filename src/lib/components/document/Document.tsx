@@ -244,7 +244,7 @@ const Document = ({ data }: IDocumentProps) => {
         totalPages,
       }}
     >
-      <div onKeyDown={keyDownHandler} tabIndex={-1}>
+      <div onKeyDown={keyDownHandler} tabIndex={-1} className={'outline-0'}>
         <Tools />
         <Page />
         <ZoomControls />
