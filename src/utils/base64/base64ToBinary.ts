@@ -3,10 +3,20 @@ export const base64ToBinary = (base64: string) => {
   if(!data) data = headers
 
   let binaryArray = new Uint8Array(data.length)
-  const raw = atob(data)
+  let raw
 
-  for(let i = 0; i < raw.length; i++) {
-    binaryArray[i] = raw.charCodeAt(i)
+  try {
+    raw = atob(data)
+  } catch (error) {
+    return null
+  }
+
+  try {
+    for(let i = 0; i < raw.length; i++) {
+      binaryArray[i] = raw.charCodeAt(i)
+    }
+  } catch (error) {
+    return null
   }
 
   return raw

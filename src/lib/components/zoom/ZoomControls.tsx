@@ -47,7 +47,11 @@ const ZoomControls = () => {
         tooltipText={t('zoomIn')}
         icon={
           <ZoomIn
-            className={cx('duration-200', {'stroke-gray-500 dark:stroke-gray-300 hover:stroke-gray-700': scale < 2.5, 'stroke-gray-300 dark:stroke-gray-500': scale >= 2.5})}
+            className={cx('duration-200', {
+              'stroke-gray-500 dark:stroke-gray-300 hover:stroke-gray-700':
+                scale < 2.5,
+              'stroke-gray-300 dark:stroke-gray-500': scale >= 2.5,
+            })}
           />
         }
       />
@@ -56,7 +60,11 @@ const ZoomControls = () => {
         tooltipText={t('zoomOut')}
         icon={
           <ZoomOut
-            className={cx('duration-200', {'stroke-gray-500 dark:stroke-gray-300 hover:stroke-gray-700': scale > 1, 'stroke-gray-300 dark:stroke-gray-500': scale <= 1})}
+            className={cx('duration-200', {
+              'stroke-gray-500 dark:stroke-gray-300 hover:stroke-gray-700':
+                scale > 1,
+              'stroke-gray-300 dark:stroke-gray-500': scale <= 1,
+            })}
           />
         }
       />
@@ -65,7 +73,9 @@ const ZoomControls = () => {
         tooltipText={t('resetZoom')}
         icon={
           <Screen
-            className={'stroke-gray-500 dark:stroke-gray-300 hover:stroke-gray-700 duration-200'}
+            className={
+              'stroke-gray-500 dark:stroke-gray-300 hover:stroke-gray-700 duration-200'
+            }
           />
         }
       />

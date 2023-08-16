@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from 'react'
 import { useState } from 'react'
 import cx from 'classnames'
 import { useTranslation } from 'react-i18next'
+import { useDocumentContext } from '../document/DocumentContext';
 
 //utils
 import { SIDEBAR_TABS, SIDEBAR_TAB_NAMES } from '../../../utils/enums'
@@ -43,6 +44,8 @@ const Tools = () => {
     localStorage.theme ?? 'light'
   )
   const sidebarNames = SIDEBAR_TAB_NAMES()
+
+  const { downloadDocument } = useDocumentContext()
 
   useEffect(() => {
     if (activeSidebar === SIDEBAR_TABS.NULL) {
@@ -112,7 +115,7 @@ const Tools = () => {
       name: 'download',
       icon: <DownloadIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
       tooltipText: 'Download document',
-      onClick: () => setDownloadOpen(true),
+      onClick: () => downloadDocument(),
     },
   ]
 
@@ -183,12 +186,6 @@ const Tools = () => {
       {activeSidebar === SIDEBAR_TABS.INFO && (
         <Info setActiveSidebar={setActiveSidebar} />
       )} */}
-      <Download
-        setOpen={setDownloadOpen}
-        open={downloadOpen}
-        text="Some text before download"
-        title="Download Title"
-      />
     </>
   )
 }
