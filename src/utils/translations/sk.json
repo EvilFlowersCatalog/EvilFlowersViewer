@@ -11,6 +11,7 @@
     "noMatchesFound": "Nenašla sa žiadna zhoda",
     "foundResults": "Našlo sa {{count}} zhôd",
     "pageNumber": "Strana {{number}}",
-    "previewToggle": "Zobraziť/skryť náhľady strán"
+    "previewToggle": "Zobraziť/skryť náhľady strán",
+    "loadPDFerror": "Prepáčte, váš PDF súbor sa nedá zobraziť"
   }
 }
