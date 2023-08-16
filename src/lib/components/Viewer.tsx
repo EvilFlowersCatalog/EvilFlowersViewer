@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { createElement, useEffect, useState } from 'react'
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 // @ts-ignore
 import * as PDFJSWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry'
@@ -6,6 +6,7 @@ import { base64ToBinary } from '../../utils'
 import { ReactComponent as SadIcon } from '../../assets/icons/bx-sad.svg'
 import Document from './document/Document'
 import { t } from 'i18next'
+import { createRoot } from 'react-dom/client'
 
 pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
 
@@ -61,4 +62,9 @@ export const Viewer = ({ data = null }: IViewerProps) => {
       </div>
     </div>
   )
+}
+
+export const renderViewer = (rootID: string, data: string) => {
+  const root = createRoot(document.getElementById(rootID)!)
+  root.render(createElement(() => <Viewer data={data}/>))
 }
