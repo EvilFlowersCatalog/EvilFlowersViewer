@@ -35,9 +35,9 @@ const Outline = () => {
   const renderTOC = (items: TOCItem[] | undefined, level = 1) => {
     return (
       <ul className="ml-2 p-0">
-        {items?.map((item) => (
+        {items?.map((item, i) => (
           <li
-            key={`${item.title}-${item.pageNumber}`}
+            key={`${item.title}-${i}`}
             className={`${
               level === 1 ? 'font-bold' : 'font-normal'
             } text-sm p-2 rounded-2 text-gray-500 dark:text-gray-300 text-center list-none`}
@@ -45,7 +45,14 @@ const Outline = () => {
             <div className="flex items-center">
               <div
                 className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg p-2"
-                onClick={() => handleItemClick(item.pageNumber)}
+                style={{
+                  cursor: item.pageNumber === -1 ? 'default' : 'pointer',
+                }}
+                onClick={
+                  item.pageNumber === -1
+                    ? undefined
+                    : () => handleItemClick(item.pageNumber)
+                }
               >
                 {item.title}
               </div>
@@ -125,9 +132,9 @@ const Outline = () => {
             {isDropdownShown && (
               <div className="mt-2">
                 <ul className="ml-2 p-0">
-                  {outline?.map((item) => (
+                  {outline?.map((item, i) => (
                     <li
-                      key={`${item.title}-${item.pageNumber}`}
+                      key={`${item.title}-${i}`}
                       className={`${
                         item.children ? 'font-bold' : 'font-normal'
                       } text-sm p-2 rounded-2 text-gray-500 dark:text-gray-300 text-center list-none`}
@@ -135,7 +142,15 @@ const Outline = () => {
                       <div className="flex items-center">
                         <div
                           className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg p-2"
-                          onClick={() => handleItemClick(item.pageNumber)}
+                          style={{
+                            cursor:
+                              item.pageNumber === -1 ? 'default' : 'pointer',
+                          }}
+                          onClick={
+                            item.pageNumber === -1
+                              ? undefined
+                              : () => handleItemClick(item.pageNumber)
+                          }
                         >
                           {item.title}
                         </div>
