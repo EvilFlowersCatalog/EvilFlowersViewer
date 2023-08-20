@@ -5,16 +5,18 @@ import { useTranslation } from 'react-i18next'
 interface IInfoProps {}
 
 interface IPdfMetadataProps {
-  author?: string
-  title?: string
-  pages?: number
-  creationDate?: string
-  description?: string
-  identificator?: number
-  //TODO: first letter should be lowercase, this has been changed to uppercase just to make it work for the preview
+  Author?: string
+  Title?: string
+  Pages?: number
+  CreationDate?: string
+  ModificationDate?: string
+  Description?: string
+  Identificator?: number
   Creator?: string
   Keywords?: string
   Producer?: string
+  Subject?: string
+  PDFFormatVersion?: string
 }
 
 interface IInfoRowProps {
@@ -25,10 +27,10 @@ interface IInfoRowProps {
 const InfoRow = ({ title, value }: IInfoRowProps) => (
   <div className={'mx-4'}>
     <div className={'flex flex-col'}>
-      <span className={'text-xs text-gray-400 dark:text-gray-500'}>
-        {title}
+      <span className={'text-xs text-black-400 dark:text-black-500'}>
+        <strong>{title}</strong>
       </span>
-      <span className={'text-sm dark:text-gray-300'}>{value}</span>
+      <span className="text-xs dark:text-gray-300 text-sm">{value}</span>
     </div>
   </div>
 )
@@ -48,45 +50,56 @@ const Info = () => {
   const [metadata, setMetadata] = useState<any>([])
 
   let result: IPdfMetadataProps = {
-    author: metadata?.Author,
-    title: metadata?.Title,
-    pages: metadata?.Pages,
-    // TODO parse date into readable format
-    creationDate: metadata?.CreationDate,
-    description: metadata?.Description,
-    identificator: metadata?.Identificator,
+    Author: metadata?.Author,
+    Title: metadata?.Title,
+    Pages: metadata?.Pages,
+    CreationDate: metadata?.CreationDate,
+    ModificationDate: metadata?.ModDate,
+    Description: metadata?.Description,
+    Identificator: metadata?.Identificator,
     Creator: metadata?.Creator,
     Keywords: metadata?.Keywords,
     Producer: metadata?.Producer,
+    Subject: metadata?.Subject,
+    PDFFormatVersion: metadata?.PDFFormatVersion,
+  }
+
+  const formatDate = (dateString: string): string => {
+    const year = Number(dateString.substring(2, 4))
+    const month = Number(dateString.substring(6, 2)) - 1
+    const day = Number(dateString.substring(8, 2))
+    const hour = Number(dateString.substring(10, 2))
+    const minute = Number(dateString.substring(12, 2))
+    const second = Number(dateString.substring(14, 2))
+    const newDate = new Date(year, month, day, hour, minute, second)
+    return newDate.toLocaleString([], {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      timeZoneName: 'short',
+    })
   }
 
   useEffect(() => {
     pdf
       ?.getMetadata()
       .then((meta: any) => {
-        //formatting of date
         if (meta.info.CreationDate.substr(0, 2) == 'D:') {
-          const dateString = meta.info.CreationDate
-          const year = Number(dateString.substr(2, 4))
-          const month = Number(dateString.substr(6, 2)) - 1
-          const day = Number(dateString.substr(8, 2))
-          const hour = Number(dateString.substr(10, 2))
-          const minute = Number(dateString.substr(12, 2))
-          const second = Number(dateString.substr(14, 2))
-          const date = new Date(year, month, day, hour, minute, second)
-          meta.info.CreationDate = date.toLocaleString([], {
-            weekday: 'short',
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: 'numeric',
-            second: 'numeric',
-            timeZoneName: 'short',
-          })
+          const creationDateString = meta.info.CreationDate
+          const formattedCreationDate = formatDate(creationDateString)
+          meta.info.CreationDate = formattedCreationDate
+        }
+        if (meta.info.ModDate.substr(0, 2) == 'D:') {
+          const modDateString = meta.info.ModDate
+          const formattedCreationDate = formatDate(modDateString)
+          meta.info.ModDate = formattedCreationDate
         }
         setMetadata(meta.info)
-        console.log(meta.info)
+        console.log(meta)
       })
       .catch((err) => {
         console.error(err)

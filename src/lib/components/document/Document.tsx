@@ -11,6 +11,7 @@ import { RENDERING_STATES } from '../../../utils/enums'
 import Outline from '../outline/Outline'
 import BottomBar from '../bottomBar/BottomBar'
 import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api'
+import { t } from 'i18next'
 
 /**
  * Document component
@@ -18,7 +19,7 @@ import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api'
  *
  */
 interface IDocumentProps {
-  data: string
+  data: string | null
 }
 
 /**
@@ -56,7 +57,6 @@ const Document = ({ data }: IDocumentProps) => {
   const [isRendering, setRendering] = useState<RENDERING_STATES | null>(null)
   const [totalPages, setTotalPages] = useState(0)
   const [outline, setOutline] = useState<TOCItemDoc[] | undefined>(undefined)
-
   /**
    * Load document on mount
    *
@@ -66,15 +66,13 @@ const Document = ({ data }: IDocumentProps) => {
       // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
       // https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFDocumentProxy.html#getDestination
 
+      // Case where we do not have outlines
       doc.getOutline().then(async (outline) => {
         if (outline == null || !outline) {
           return
         }
 
-        if (typeof outline[0].dest === 'string') {
-          return
-        }
-
+        // Case where we have outlines
         const toc = await getTableOfContents(outline, 0, doc)
         setOutline(toc)
       })
@@ -99,9 +97,15 @@ const Document = ({ data }: IDocumentProps) => {
         ? await getTableOfContents(item.items, level + 1, doc)
         : []
 
-      const index = await doc.getPageIndex(item.dest[0])
-      const updatedPageNumber = index + 1
-      toc.push({ title, pageNumber: updatedPageNumber, level, children })
+      let pageNumber
+      try {
+        const index = await doc.getPageIndex(item.dest[0])
+        pageNumber = index + 1
+      } catch (error) {
+        pageNumber = -1
+      }
+
+      toc.push({ title, pageNumber, level, children })
     }
 
     return toc
@@ -196,6 +200,7 @@ const Document = ({ data }: IDocumentProps) => {
 
   // Loads the document every time the data changes
   useEffect(() => {
+    if (data == null) return
     loadDocument()
   }, [data])
 
@@ -244,14 +249,23 @@ const Document = ({ data }: IDocumentProps) => {
         totalPages,
       }}
     >
-      <div onKeyDown={keyDownHandler} tabIndex={-1} className={'outline-0'}>
+        <div onKeyDown={keyDownHandler} tabIndex={-1} className={'outline-0'}>
         <Tools />
-        <Page />
-        <ZoomControls />
-        <BottomBar pagePreviews={7} />
-        <Pagination />
-        <Outline />
-      </div>
+          {!data && (
+            <div className="flex items-center justify-center h-screen">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold mb-4 text-gray-500 dark:text-gray-300">
+                  {t('loadPDFerror')}
+                </h1>
+              </div>
+            </div>
+          )}
+          {data && <Page />}
+          {data && <ZoomControls />}
+          {data && <BottomBar pagePreviews={7} />}
+          {data && <Pagination />}
+          <Outline />
+        </div>
     </DocumentContext.Provider>
   )
 }
