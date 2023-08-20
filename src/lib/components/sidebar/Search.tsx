@@ -211,7 +211,9 @@ const Search = () => {
           S
         </button>
         }
-      </div>
+        placeholder={t('searchPattern')}
+        onKeyDown={(e) => {e.stopPropagation()}}
+      ></input>
       {searching === SEARCH_STATES.LOADING && (
         <div className={'w-full flex justify-center py-4'}>
           <span className={'evilflowersviewer-loader-small'}></span>

@@ -1,6 +1,6 @@
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 
-import { useEffect, useState } from 'react'
+import { KeyboardEvent, useEffect, useState } from 'react'
 
 import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
@@ -204,6 +204,27 @@ const Document = ({ data }: IDocumentProps) => {
     loadDocument()
   }, [data])
 
+  const keyDownHandler = (event: KeyboardEvent<HTMLDivElement>) => {
+    switch (event.key) {
+      case "ArrowLeft":
+        event.preventDefault()
+        prevPage()
+        break
+      case "ArrowRight":
+        event.preventDefault()
+        nextPage()
+        break
+      case "+":
+        event.preventDefault()
+        zoomIn()
+        break
+      case "-":
+        event.preventDefault()
+        zoomOut()
+        break
+    }
+  }
+
   return (
     <DocumentContext.Provider
       value={{
@@ -228,21 +249,23 @@ const Document = ({ data }: IDocumentProps) => {
         totalPages,
       }}
     >
-      <Tools />
-      {!data && (
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold mb-4 text-gray-500 dark:text-gray-300">
-              {t('loadPDFerror')}
-            </h1>
-          </div>
+        <div onKeyDown={keyDownHandler} tabIndex={-1} className={'outline-0'}>
+        <Tools />
+          {!data && (
+            <div className="flex items-center justify-center h-screen">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold mb-4 text-gray-500 dark:text-gray-300">
+                  {t('loadPDFerror')}
+                </h1>
+              </div>
+            </div>
+          )}
+          {data && <Page />}
+          {data && <ZoomControls />}
+          {data && <BottomBar pagePreviews={7} />}
+          {data && <Pagination />}
+          <Outline />
         </div>
-      )}
-      {data && <Page />}
-      {data && <ZoomControls />}
-      {data && <BottomBar pagePreviews={7} />}
-      {data && <Pagination />}
-      <Outline />
     </DocumentContext.Provider>
   )
 }
