@@ -1,0 +1,27 @@
+{
+  "translations": {
+    "pagination": "Page {{x}} of {{y}}",
+    "prevPage": "Previous page",
+    "nextPage": "Next page",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetZoom": "Reset zoom",
+    "search": "Search",
+    "noMatchesFound": "No matches found",
+    "searchPlaceholder": "Enter search pattern...",
+    "pageNumber": "Page {{number}}",
+    "foundResults": "Found {{count}} results",
+    "hidePanel": "Hide panel",
+    "fullTextSearch": "Full text search",
+    "info": "Document info",
+    "title": "Title",
+    "creationDate": "Creation date",
+    "author": "Author",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "outline": "Table of Contents",
+    "searchPattern": "Enter search pattern...",
+    "previewToggle": "Show/hide page previews",
+    "loadPDFerror": "Sorry, your PDF file cannot be viewed"
+  }
+}

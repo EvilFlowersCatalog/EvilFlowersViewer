@@ -1,0 +1,17 @@
+{
+  "translations": {
+    "pagination": "Strana {{x}} z {{y}}",
+    "prevPage": "Predošlá strana",
+    "nextPage": "Ďalšia strana",
+    "zoomIn": "Priblížiť",
+    "zoomOut": "Oddialiť",
+    "resetZoom": "Obnoviť priblíženie",
+    "outline": "Obsah",
+    "searchPattern": "Napíšte vyhľadávací reťazec...",
+    "noMatchesFound": "Nenašla sa žiadna zhoda",
+    "foundResults": "Našlo sa {{count}} zhôd",
+    "pageNumber": "Strana {{number}}",
+    "previewToggle": "Zobraziť/skryť náhľady strán",
+    "loadPDFerror": "Prepáčte, váš PDF súbor sa nedá zobraziť"
+  }
+}

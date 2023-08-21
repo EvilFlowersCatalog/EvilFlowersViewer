@@ -1,14 +1,60 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import dts from 'vite-plugin-dts'
+import tailwindcss from 'tailwindcss'
+import svgr from 'vite-plugin-svgr'
+import { UserConfig } from 'vite'
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  build: {
-    lib: {
-      entry: './src/main.tsx',
-      name: 'evilFlowersViewer',
-      fileName: 'evilFlowersViewer'
+export default defineConfig(({ mode }: UserConfig) => {
+  if (mode === 'staging' || mode === 'development') {
+    return {
+      plugins: [
+        react(),
+        dts({
+          insertTypesEntry: true,
+        }),
+        svgr(),
+      ],
+      css: {
+        postcss: {
+          plugins: [tailwindcss],
+        },
+      },
     }
-  },
-  plugins: [react()],
+  }
+  if (mode === 'production') {
+    return {
+      plugins: [
+        react(),
+        dts({
+          insertTypesEntry: true,
+        }),
+        svgr(),
+      ],
+      css: {
+        postcss: {
+          plugins: [tailwindcss],
+        },
+      },
+      build: {
+        lib: {
+          entry: './src/lib/index.ts',
+          name: 'evilFlowersViewer',
+          formats: ['es', 'umd'],
+          fileName: (format) => `evilFlowersViewer.${format}.js`,
+        },
+        rollupOptions: {
+          external: ['react', 'react-dom'],
+          output: {
+            globals: {
+              react: 'React',
+              'react-dom': 'ReactDOM',
+            },
+          },
+        },
+      },
+    }
+  }
+
+  return {}
 })
