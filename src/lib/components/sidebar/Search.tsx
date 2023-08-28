@@ -48,7 +48,7 @@ const Search = () => {
    *
    * @param e - the change event
    * @returns - the search pattern
-   * 
+   *
    */
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     return setSearchPattern(e.target.value)
@@ -60,7 +60,7 @@ const Search = () => {
    *
    * @param pattern - the search pattern
    * @returns - the matches with their page number
-   * 
+   *
    */
   const searchInDocument = useCallback(
     debounce(async (pattern: string) => {
@@ -97,7 +97,9 @@ const Search = () => {
           )
 
           Promise.allSettled(pagesContent).then(() => {
-            searchWorker = new Worker(new URL('SearchWorker.ts', import.meta.url))
+            searchWorker = new Worker(
+              new URL('SearchWorker.ts', import.meta.url)
+            )
             setSelectedMatch(null)
             searchWorker!.postMessage([pattern, textContent])
             searchWorker!.onmessage = (e) => {
@@ -112,7 +114,7 @@ const Search = () => {
     }),
     []
   )
-  
+
   /**
    * query server for search results in case of secured document.
    */
@@ -126,11 +128,19 @@ const Search = () => {
     // page - page number,
     // text - matched text preview
     // for disabled highlighting:
-    // transform - undefined, 
+    // transform - undefined,
     // width,height - 0
 
     // temp example for disabled highlighting - no transform matrix
-    setMatches([{page: 5, text: 'ukazka: '+searchPattern, transform: undefined, width: 0, height: 0}])
+    setMatches([
+      {
+        page: 5,
+        text: 'ukazka: ' + searchPattern,
+        transform: undefined,
+        width: 0,
+        height: 0,
+      },
+    ])
     setSearching(SEARCH_STATES.DONE)
   }
 
@@ -150,7 +160,7 @@ const Search = () => {
    */
   useEffect(() => {
     //TODO: update condition
-    if (!tmpSecuredView) {     
+    if (!tmpSecuredView) {
       if (searchPattern === '') return setMatches([])
       setSearching(SEARCH_STATES.LOADING)
       searchInDocument(searchPattern)
@@ -201,19 +211,23 @@ const Search = () => {
           value={searchPattern}
           onChange={handleSearchChange}
           className={`ml-4 mr-4 py-2 rounded-md bg-gray-100 dark:bg-gray-900 border border-solid dark:border-gray-500 dark:text-gray-300 outline-none focus:outline-none focus:border-gray-500 dark:focus:border-gray-300 duration-300 
-            ${tmpSecuredView ? 'w-32' : ''}`
-          }
+            ${tmpSecuredView ? 'w-32' : ''}`}
           placeholder={t('searchPattern')}
-        ></input>
-        {tmpSecuredView && <button 
-          className={'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 h-6 w-4'}
-          onClick={(e) => searchQuery()}>
-          S
-        </button>
-        }
-        placeholder={t('searchPattern')}
-        onKeyDown={(e) => {e.stopPropagation()}}
-      ></input>
+          onKeyDown={(e) => {
+            e.stopPropagation()
+          }}
+        />
+        {tmpSecuredView && (
+          <button
+            className={
+              'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 h-6 w-4'
+            }
+            onClick={(e) => searchQuery()}
+          >
+            S
+          </button>
+        )}
+      </div>
       {searching === SEARCH_STATES.LOADING && (
         <div className={'w-full flex justify-center py-4'}>
           <span className={'evilflowersviewer-loader-small'}></span>
