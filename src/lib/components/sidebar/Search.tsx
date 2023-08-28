@@ -216,18 +216,17 @@ const Search = () => {
           onKeyDown={(e) => {
             e.stopPropagation()
           }}
-        >
-          {tmpSecuredView && (
-            <button
-              className={
-                'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 h-6 w-4'
-              }
-              onClick={(e) => searchQuery()}
-            >
-              S
-            </button>
-          )}
-        </input>
+        />
+        {tmpSecuredView && (
+          <button
+            className={
+              'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 h-6 w-4'
+            }
+            onClick={(e) => searchQuery()}
+          >
+            S
+          </button>
+        )}
       </div>
       {searching === SEARCH_STATES.LOADING && (
         <div className={'w-full flex justify-center py-4'}>
