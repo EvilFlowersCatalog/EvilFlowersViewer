@@ -12,12 +12,14 @@ EvilFlowersViewer is a PDF viewer based on pdf.js library that allows users to v
 - Zoom in and out of documents
 - Page navigation through a page thumbnail view
 - Text search within documents
+- Share the entire document or with selected pages
+- Citate export in BibTeX, BibLaTeX, RIS and bibliography 
+- Changing themes
 
 ## Features Under Development
 
-- Citation export
-- Customizable user interface with themes
 - Annotation tools for highlighting and commenting on text
+- Editing with pen
 - and more...
 
 # Getting started
@@ -30,24 +32,31 @@ To get started with EvilFlowersViewer, follow these steps:
 npm install @evilflowers/evilflowersviewer
 ```
 
-2. Import the Viewer component into your project:
+2. Import the renderViewer function into your project:
 
 ```ts
-import { Viewer } from '@evilflowers/evilflowersviewer'
-import '@evilflowers/evilflowersviewer/dist/style.css'
+import { renderViewer } from '@evilflowers/evilflowersviewer'
 ```
 
-3. Use Viewer component in your JSX:
+3. Use renderViewer function:
+
+# Inputs
+
+- rootId - html id of your root component
+- base64 - string that contains base64 formatt of pdf
+- options - not required object consisting of theme, lang, citationBib, shareFunction
+- options.theme - 'dark' | 'light'
+- options.lang - 'sk' | 'en' for now
+- options.citationBib - string containing bib citation of given document examaple: '@article{name,\n ....}'
+- options.shareFunction - type (pages: string | null, expaireDate: string) => Promise<string>
+- shareFunction.pages - string containing selected pages (1,3-6,10) or null (means it's empty)
+- shareFunction.expaireDate - string containing lifespan of shared document, the end. ISO
 
 ```tsx
-const MyPdfWrapper = (props) => {
-  return <Viewer data={base64Data} />
-}
+renderViewer(rootId, base64, options)
 ```
 
-## Demo
 
-Check out our [demo](https://tp2022-t16.evilflowers.org/demo) for an interactive demo of EvilFlowersViewer. On the demo page, you can see how the project was developed through different sprints, with detailed documentation and descriptions of each sprint goal and task. You can also explore the different features of EvilFlowersViewer.
 
 # Contributing
 
