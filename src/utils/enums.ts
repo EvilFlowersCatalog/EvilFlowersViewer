@@ -3,10 +3,8 @@ import i18next from 'i18next'
 export enum SIDEBAR_TABS {
   SEARCH = 'SEARCH',
   PEN = 'PEN',
-  CITATIONS = 'CITATIONS',
   SHARE = 'SHARE',
   INFO = 'INFO',
-  DOWNLOAD = 'DOWNLOAD',
   NULL = 'NULL',
 }
 

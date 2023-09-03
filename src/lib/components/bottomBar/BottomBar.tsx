@@ -4,10 +4,8 @@ import { useTranslation } from 'react-i18next'
 import cx from 'classnames'
 
 // icons
-import { ReactComponent as Right } from '../../../assets/icons/chevron-right.svg'
-import { ReactComponent as Left } from '../../../assets/icons/chevron-left.svg'
-import { ReactComponent as Up } from '../../../assets/icons/chevron-up.svg'
-import { ReactComponent as Down } from '../../../assets/icons/chevron-down.svg'
+import { AiOutlineLeft, AiOutlineDown, AiOutlineUp, AiOutlineRight } from 'react-icons/ai'
+
 import Preview from './Preview'
 
 interface IBottomBarProps {
@@ -32,31 +30,31 @@ const BottomBar = ({ pagePreviews }: IBottomBarProps) => {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 gap-2 py-1 rounded-xl shadow-lg justify-center items-center grid grid-cols-1 duration-200 z-10">
+    <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 gap-2 py-1 shadow-lg justify-center items-center grid grid-cols-1 duration-200 z-10">
       <button
-        className="bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 items-center justify-self-center h-6 w-8"
+        className="bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer duration-200 items-center justify-self-center h-6 w-8 rounded-md pl-1"
         onClick={toggleDropdown}
         title={t('previewToggle')}
       >
         {isDropdownOpen ? (
-          <Down className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Down>
+          <AiOutlineDown className="duration-200 w-[24px] h-[24px] text-gray-500 dark:text-gray-300" />
         ) : (
-          <Up className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Up>
+          <AiOutlineUp className="duration-200 w-[24px] h-[24px] text-gray-500 dark:text-gray-300" />
         )}
       </button>
       {isDropdownOpen && (
-        <div className="flex items-center justify-center bg-white dark:bg-gray-800 p-3 rounded-lg gap-10">
+        <div className="flex items-center justify-center bg-white dark:bg-gray-800 p-3 gap-10">
           <button
             title={t('prevPage')}
             className={
-              'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 flex items-center'
+              'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer duration-200 flex items-center rounded-md'
             }
             onClick={prevPage}
           >
-            <Left
+            <AiOutlineLeft
               className={cx('duration-200', {
-                'stroke-gray-500 dark:stroke-gray-300': activePage !== 1,
-                'stroke-gray-300 dark:stroke-gray-500': activePage === 1,
+                'w-[24px] h-[24px] text-gray-500 dark:text-gray-300': activePage !== 1,
+                'w-[24px] h-[24px] text-gray-300 dark:text-gray-500': activePage === 1,
               })}
             />
           </button>
@@ -72,15 +70,15 @@ const BottomBar = ({ pagePreviews }: IBottomBarProps) => {
           <button
             title={t('nextPage')}
             className={
-              'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 flex items-center'
+              'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer duration-200 flex items-center rounded-md'
             }
             onClick={nextPage}
           >
-            <Right
+            <AiOutlineRight
               className={cx('duration-200', {
-                'stroke-gray-300 dark:stroke-gray-500':
+                'w-[24px] h-[24px] text-gray-300 dark:text-gray-500':
                   activePage === totalPages,
-                'stroke-gray-500 dark:stroke-gray-300':
+                'w-[24px] h-[24px] text-gray-500 dark:text-gray-300':
                   activePage !== totalPages,
               })}
             />

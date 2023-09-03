@@ -3,7 +3,8 @@ import cx from 'classnames'
 import Tooltip from '../helpers/Tooltip'
 
 // icons
-import { ReactComponent as ChevronsLeft } from '../../../assets/icons/chevrons-left.svg'
+import { MdKeyboardDoubleArrowLeft } from 'react-icons/md'
+
 import { useTranslation } from 'react-i18next'
 
 interface ISidebarProps {
@@ -18,22 +19,18 @@ const Sidebar = ({ open, setOpen, children, title }: ISidebarProps) => {
 
   return (
     <div
-      className={cx('fixed top-0 duration-200 w-64 h-full z-10 flex', {
+      className={cx('fixed duration-200 w-64 h-[80vh] z-10 flex', {
         'left-0': open,
         '-left-64': !open,
       })}
     >
-      <div
-        className={
-          'bg-white dark:bg-gray-800 rounded-lg m-6 w-full shadow-lg flex flex-col overflow-y-scroll duration-200'
-        }
-      >
+      <div className={'bg-white dark:bg-gray-800 rounded-lg m-6 w-full shadow-lg flex flex-col overflow-auto duration-200'}>
         <div className={'header p-4 flex justify-between'}>
           <span className={'text-gray-700 dark:text-gray-300 font-semibold'}>{title}</span>
           <div className={'relative'}>
             <Tooltip title={t('hidePanel')} placement={'left'}>
-              <ChevronsLeft
-                className={'ml-auto text-gray-500 dark:text-gray-300 cursor-pointer hover:text-gray-700 dark:hover:text-gray-500 duration-200'}
+              <MdKeyboardDoubleArrowLeft
+                className={'ml-auto text-gray-500 w-[20px] h-[20px] dark:text-gray-300 cursor-pointer hover:text-gray-700 dark:hover:text-gray-500 duration-200'}
                 onClick={() => setOpen(false)}
               />
             </Tooltip>

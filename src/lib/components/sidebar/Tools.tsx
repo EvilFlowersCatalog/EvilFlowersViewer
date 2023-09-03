@@ -1,5 +1,4 @@
-import React, { useContext, useEffect } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import cx from 'classnames'
 import { useTranslation } from 'react-i18next'
 import { useDocumentContext } from '../document/DocumentContext';
@@ -8,25 +7,18 @@ import { useDocumentContext } from '../document/DocumentContext';
 import { SIDEBAR_TABS, SIDEBAR_TAB_NAMES } from '../../../utils/enums'
 
 // icons
-import { ReactComponent as SearchIcon } from '../../../assets/icons/search.svg'
-import { ReactComponent as DownloadIcon } from '../../../assets/icons/download.svg'
-import { ReactComponent as InfoIcon } from '../../../assets/icons/info-circle.svg'
-import { ReactComponent as QuoteIcon } from '../../../assets/icons/quote.svg'
-import { ReactComponent as ShareIcon } from '../../../assets/icons/share-2.svg'
-import { ReactComponent as PencilIcon } from '../../../assets/icons/pencil.svg'
-import { ReactComponent as SunIcon } from '../../../assets/icons/sun.svg'
-import { ReactComponent as MoonIcon } from '../../../assets/icons/moon.svg'
+import { BiDownload, BiInfoCircle, BiMoon, BiPencil, BiSearch, BiSun } from 'react-icons/bi';
+import { RxQuote, RxShare2 } from 'react-icons/rx';
 
 // components
-import Home from './Home'
 import Search from './Search'
-import Pen from './Pen'
-import Citations from './Citations'
 import Share from './Share'
 import Info from './Info'
-import Download from './Download'
 import Tooltip from '../helpers/Tooltip'
 import Sidebar from './Sidebar'
+import Citations from './Citations';
+import { useViewerContext } from '../ViewerContext';
+import ShareQRCode from './ShareQRCode';
 
 /**
  * The sidebar component
@@ -34,18 +26,16 @@ import Sidebar from './Sidebar'
  * @returns - Sidebar component
  */
 const Tools = () => {
-  const { t } = useTranslation()
-  const [activeSidebar, setActiveSidebar] = useState<SIDEBAR_TABS>(
-    SIDEBAR_TABS.NULL
-  )
+  const [activeSidebar, setActiveSidebar] = useState<SIDEBAR_TABS>(SIDEBAR_TABS.NULL)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [downloadOpen, setDownloadOpen] = useState(false)
-  const [mode, setMode] = useState<'light' | 'dark'>(
-    localStorage.theme ?? 'light'
-  )
+  const [citationVisibile, setCitationVisible] = useState<boolean>(false);
+  const [shareQRVisibility, setShareQRVisibility] = useState<boolean>(false);
+  const [link, setLink] = useState<string>('');
   const sidebarNames = SIDEBAR_TAB_NAMES()
 
-  const { downloadDocument } = useDocumentContext()
+  const { t } = useTranslation()
+  const { downloadDocument, pdfCitation } = useDocumentContext()
+  const { theme, setTheme, shareFunction } = useViewerContext();
 
   useEffect(() => {
     if (activeSidebar === SIDEBAR_TABS.NULL) {
@@ -60,61 +50,59 @@ const Tools = () => {
   }, [sidebarOpen])
 
   const handleModeChange = () => {
-    if (mode === 'light') {
-      localStorage.theme = 'dark'
-      setMode('dark')
+    if (theme === 'light') {
+      setTheme('dark')
       document.getElementById('evilFlowersViewer')?.classList.add('dark')
     } else {
-      localStorage.theme = 'light'
-      setMode('light')
+      setTheme('light')
       document.getElementById('evilFlowersViewer')?.classList.remove('dark')
     }
   }
 
   const SidebarItems = [
     {
-      name: 'search',
+      name: t('search'),
       icon: (
-        <SearchIcon
+        <BiSearch
           className={cx('duration-200', {
-            'stroke-gray-800 dark:stroke-gray-200': activeSidebar === SIDEBAR_TABS.SEARCH,
-            'stroke-gray-500 dark:stroke-gray-300': activeSidebar !== SIDEBAR_TABS.SEARCH,
+            'w-[24px] h-[24px] text-gray-800 dark:text-gray-200': activeSidebar === SIDEBAR_TABS.SEARCH,
+            'w-[24px] h-[24px] text-gray-500 dark:text-gray-300': activeSidebar !== SIDEBAR_TABS.SEARCH,
           })}
         />
       ),
       tooltipText: t('fullTextSearch'),
       onClick: () => {
-        setActiveSidebar(SIDEBAR_TABS.SEARCH)
+        setActiveSidebar(activeSidebar === SIDEBAR_TABS.SEARCH ? SIDEBAR_TABS.NULL : SIDEBAR_TABS.SEARCH)
       },
     },
     {
-      name: 'pen',
-      icon: <PencilIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
-      tooltipText: 'Document editing',
-      onClick: () => setActiveSidebar(SIDEBAR_TABS.PEN),
+      name: t('pen'),
+      icon: <BiPencil className={'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'} />,
+      tooltipText: t('penToolTip'),
+      onClick: () => setActiveSidebar(activeSidebar === SIDEBAR_TABS.PEN ? SIDEBAR_TABS.NULL : SIDEBAR_TABS.PEN),
     },
     {
-      name: 'citations',
-      icon: <QuoteIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
-      tooltipText: 'Generate citations',
-      onClick: () => setActiveSidebar(SIDEBAR_TABS.CITATIONS),
+      name: t('citations'),
+      icon: <RxQuote className={pdfCitation ? 'w-[24px] h-[24px] text-gray-500 dark:text-gray-300' : 'w-[24px] h-[24px] text-gray-300 dark:text-gray-500'} />,
+      tooltipText: pdfCitation ? t('citationsToolTip') : t('citationNoneToolTip'),
+      onClick: () => pdfCitation ? setCitationVisible(true) : null,
     },
     {
-      name: 'share',
-      icon: <ShareIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
-      tooltipText: 'Share document',
-      onClick: () => setActiveSidebar(SIDEBAR_TABS.SHARE),
+      name: t('share'),
+      icon: <RxShare2 className={shareFunction ? 'w-[24px] h-[24px] text-gray-500 dark:text-gray-300' : 'w-[24px] h-[24px] text-gray-300 dark:text-gray-500'} />,
+      tooltipText: shareFunction ? t('shareToolTip') : t('notShareToolTip'),
+      onClick: () => shareFunction ? setActiveSidebar(activeSidebar === SIDEBAR_TABS.SHARE ? SIDEBAR_TABS.NULL : SIDEBAR_TABS.SHARE) : null,
     },
     {
-      name: 'info',
-      icon: <InfoIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
-      tooltipText: 'Document information',
-      onClick: () => setActiveSidebar(SIDEBAR_TABS.INFO),
+      name: t('info'),
+      icon: <BiInfoCircle className={'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'} />,
+      tooltipText: t('infoToolTip'),
+      onClick: () => setActiveSidebar(activeSidebar === SIDEBAR_TABS.INFO ? SIDEBAR_TABS.NULL : SIDEBAR_TABS.INFO),
     },
     {
-      name: 'download',
-      icon: <DownloadIcon className={'stroke-gray-500 dark:stroke-gray-300'} />,
-      tooltipText: 'Download document',
+      name: t('download'),
+      icon: <BiDownload className={'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'} />,
+      tooltipText: t('downloadToolTip'),
       onClick: () => downloadDocument(),
     },
   ]
@@ -127,18 +115,12 @@ const Tools = () => {
         title={sidebarNames[activeSidebar]}
       >
         {activeSidebar === SIDEBAR_TABS.SEARCH && <Search />}
-        {activeSidebar === SIDEBAR_TABS.SHARE && (
-          <Share
-            setActiveSidebar={setActiveSidebar}
-            text="Some text before share"
-            title="Share Title"
-          />
-        )}
         {activeSidebar === SIDEBAR_TABS.INFO && <Info />}
+        {activeSidebar === SIDEBAR_TABS.SHARE && <Share setLink={setLink} setShareQRVisibility={setShareQRVisibility} />}
       </Sidebar>
       <div
         className={cx(
-          'fixed top-6 left-6 bg-white dark:bg-gray-800 z-10 rounded-lg shadow-lg flex flex-col gap-2 p-2 duration-200',
+          'fixed top-6 left-6 bg-white dark:bg-gray-800 z-10 rounded-lg shadow-lg flex flex-col gap-4 px-2 py-4 duration-200',
           { 'left-6': !sidebarOpen, 'left-64': sidebarOpen }
         )}
       >
@@ -157,8 +139,8 @@ const Tools = () => {
             </Tooltip>
           </div>
         ))}
-        <div className={'relative mt-8 mb-2'}>
-          <Tooltip title={mode === 'light' ? t('darkMode') : t('lightMode')} placement='right'>
+        <div className={'relative mt-5'}>
+          <Tooltip title={theme === 'light' ? t('lightMode') : t('darkMode')} placement='right'>
             <button
               id={'mode'}
               onClick={handleModeChange}
@@ -166,26 +148,13 @@ const Tools = () => {
                 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-900 border-none cursor-pointer duration-200 rounded-md flex items-center'
               }
             >
-              {mode === 'light' ? <MoonIcon className={'stroke-gray-500 dark:stroke-gray-300'}/> : <SunIcon className={'stroke-gray-500 dark:stroke-gray-300'}/>}
+              {theme === 'light' ? <BiSun className={'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'} /> : <BiMoon className={'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'} />}
             </button>
           </Tooltip>
         </div>
       </div>
-      {/* {activeSidebar === SIDEBAR_TABS.HOME && (
-        <Home setActiveSidebar={setActiveSidebar} />
-      )}
-      {activeSidebar === SIDEBAR_TABS.SEARCH && (
-        <Search setActiveSidebar={setActiveSidebar} />
-      )}
-      {activeSidebar === SIDEBAR_TABS.PEN && (
-        <Pen setActiveSidebar={setActiveSidebar} />
-      )}
-      {activeSidebar === SIDEBAR_TABS.CITATIONS && (
-        <Citations setActiveSidebar={setActiveSidebar} />
-      )}
-      {activeSidebar === SIDEBAR_TABS.INFO && (
-        <Info setActiveSidebar={setActiveSidebar} />
-      )} */}
+      {citationVisibile && <Citations setCitationVisible={setCitationVisible} />}
+      {shareQRVisibility && <ShareQRCode setShareQRVisibility={setShareQRVisibility} link={link} />}
     </>
   )
 }

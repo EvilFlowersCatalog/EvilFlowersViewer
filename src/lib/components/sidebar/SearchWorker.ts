@@ -25,7 +25,7 @@ self.onmessage = (e) => {
         const match: RegExpMatchArray | null = textItem.str.match(reg)
         if (match) {
           match.map((text, index) => {
-            
+
             matches = [
               ...matches,
               {
@@ -41,6 +41,6 @@ self.onmessage = (e) => {
       })
     })
     .filter(Boolean)
-      
+
   postMessage(matches)
 }

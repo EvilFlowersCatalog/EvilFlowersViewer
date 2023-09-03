@@ -18,18 +18,19 @@ const Tooltip = ({ children, title, placement = 'top' }: ITooltipProps) => {
       {title && (
         <div
           className={cx(
-            'tooltip absolute -top-6 -translate-x-1/3 bg-gray-50 dark:bg-gray-800 shadow-md px-2 py-1 text-xs rounded-md border border-gray-200 dark:border-gray-500 border-solid duration-200 pointer-events-none',
+            'tooltip absolute bg-gray-50 dark:bg-gray-800 shadow-md px-2 text-xs rounded-md border border-gray-200 dark:border-gray-500 border-solid duration-200 pointer-events-none',
             {
               'opacity-100 scale-100': visible,
               'opacity-0 scale-95': !visible,
-              'right left-24 top-0': placement === 'right',
-              'left right-0 top-0': placement === 'left',
+              'right left-14 top-0': placement === 'right',
+              'left right-5 top-0': placement === 'left',
+              'bottom-12': placement === 'top',
             }
           )}
         >
-          <span className={'text-gray-600 dark:text-gray-300 font-semibold w-max inline-block'}>
+          <pre className={'text-gray-600 dark:text-gray-300 font-semibold w-max max-w-[150px] inline-block'} style={{ whiteSpace: 'pre-wrap' }}>
             {title}
-          </span>
+          </pre>
         </div>
       )}
       {children}

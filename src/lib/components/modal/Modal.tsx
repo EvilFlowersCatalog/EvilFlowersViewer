@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { useDocumentContext } from '../document/DocumentContext';
+import { useTranslation } from 'react-i18next';
 
 
 /**
@@ -13,9 +14,11 @@ import { useDocumentContext } from '../document/DocumentContext';
  * 
  */
 type Props = {
-  label: string;
+  label?: string | null;
   isOpen: boolean;
   onClose: () => void;
+  onClick?: () => void;
+  icon?: React.ReactElement<any, any> | null;
   children: ReactNode;
 };
 
@@ -28,8 +31,8 @@ type Props = {
  *  
  * @returns Modal window based on the label from props
  */
-const ModalWrapper = ({ label, isOpen, onClose, children }: Props) => {
-  const { downloadDocument } = useDocumentContext()
+const ModalWrapper = ({ label = null, isOpen, onClose, onClick, children, icon = null }: Props) => {
+  const { t } = useTranslation();
   return (
     <>
       {isOpen && (
@@ -42,19 +45,22 @@ const ModalWrapper = ({ label, isOpen, onClose, children }: Props) => {
               </div>
               <div className="mt-2">{children}</div>
               <div className="mt-4 flex justify-end">
+                {label &&
+                  (
+                    <button
+                      className="inline-flex justify-center py-2 px-4 border-none shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
+                      style={{ cursor: 'pointer' }}
+                      onClick={onClick}
+                    >
+                      {label} {icon}
+                    </button>
+                  )}
                 <button
-                  className="inline-flex justify-center py-2 px-4 border-none shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
-                  {... (label === 'Download' && {onClick: () => {downloadDocument()}})}
-                  //console.log(label + ' clicked')
-                  // TODO: Add functionality
-                >
-                  {label}
-                </button>
-                <button
-                  className="inline-flex justify-center py-2 px-4 bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded text-gray-500 dark:text-gray-300 text-center duration-200"
+                  className="inline-flex justify-center py-2 px-4 bg-transparent border-none hover:bg-gray-300 dark:hover:bg-gray-900 rounded text-gray-900 dark:text-gray-200 text-center duration-200"
+                  style={{ cursor: 'pointer' }}
                   onClick={onClose}
                 >
-                  Close
+                  {t('close')}
                 </button>
               </div>
             </div>

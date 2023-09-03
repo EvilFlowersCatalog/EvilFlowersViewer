@@ -12,7 +12,7 @@ import { SEARCH_STATES } from '../../../utils/enums'
 import { RENDERING_STATES } from '../../../utils/enums'
 
 // icons
-import { ReactComponent as SadIcon } from '../../../assets/icons/sad.svg'
+import { BiSad } from 'react-icons/bi'
 
 /**
  *
@@ -27,12 +27,12 @@ const Search = () => {
   const [matches, setMatches] = useState<
     (
       | {
-          page: number
-          text: string
-          transform: Array<number> | undefined
-          width: number
-          height: number
-        }
+        page: number
+        text: string
+        transform: Array<number> | undefined
+        width: number
+        height: number
+      }
       | undefined
     )[]
   >([])
@@ -210,7 +210,7 @@ const Search = () => {
           type={'text'}
           value={searchPattern}
           onChange={handleSearchChange}
-          className={`ml-4 mr-4 py-2 rounded-md bg-gray-100 dark:bg-gray-900 border border-solid dark:border-gray-500 dark:text-gray-300 outline-none focus:outline-none focus:border-gray-500 dark:focus:border-gray-300 duration-300 
+          className={`ml-4 mr-4 py-1 px-2 rounded-md bg-gray-100 dark:bg-gray-900 border border-solid dark:border-gray-500 dark:text-gray-300 outline-none focus:outline-none focus:border-gray-500 dark:focus:border-gray-300 duration-300 
             ${tmpSecuredView ? 'w-32' : ''}`}
           placeholder={t('searchPattern')}
           onKeyDown={(e) => {
@@ -236,11 +236,11 @@ const Search = () => {
       {searching === SEARCH_STATES.DONE && matches.length === 0 && (
         <span
           className={
-            'flex justify-center items-center gap-2 text-gray-500 dark:text-gray-300 text-xs mt-4'
+            'flex flex-col justify-center items-center gap-2 text-gray-500 dark:text-gray-300 text-xs mt-4'
           }
         >
-          <SadIcon width={20} />
           {t('noMatchesFound')}
+          <BiSad className='w-[30px] h-[30px] text-gray-500 dark:text-gray-300' />
         </span>
       )}
       {searching === SEARCH_STATES.DONE && matches.length > 0 && (

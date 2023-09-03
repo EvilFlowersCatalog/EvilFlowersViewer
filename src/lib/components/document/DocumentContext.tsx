@@ -16,7 +16,11 @@ interface TOCItemDoc {
 interface IDocumentContext {
   pdf?: PDFDocumentProxy
   activePage: number
+  pdfCitation: string | null
   downloadDocument: () => void
+  downloadCitation: () => void
+  copyCitation: () => void
+  changeCitationFormat: (format: string) => void
   nextPage: () => void
   prevPage: () => void
   setPage: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -45,7 +49,7 @@ export const DocumentContext = createContext<IDocumentContext | null>(null)
  *
  * @returns {IDocumentContext}
  */
-export const useDocumentContext = () => {
+export const useDocumentContext = (): IDocumentContext => {
   const context = useContext(DocumentContext)
 
   if (context === null) throw Error('DocumentContext is null.')
