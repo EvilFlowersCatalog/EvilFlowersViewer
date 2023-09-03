@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import { useTranslation } from 'react-i18next'
 
-interface IInfoProps {}
+interface IInfoProps { }
 
 interface IPdfMetadataProps {
   Author?: string
@@ -27,10 +27,10 @@ interface IInfoRowProps {
 const InfoRow = ({ title, value }: IInfoRowProps) => (
   <div className={'mx-4'}>
     <div className={'flex flex-col'}>
-      <span className={'text-xs text-black-400 dark:text-black-500'}>
+      <span className={'text-m text-gray-900 dark:text-gray-100'}>
         <strong>{title}</strong>
       </span>
-      <span className="text-xs dark:text-gray-300 text-sm">{value}</span>
+      <span className="text-sm dark:text-gray-300">{value}</span>
     </div>
   </div>
 )
@@ -99,7 +99,6 @@ const Info = () => {
           meta.info.ModDate = formattedCreationDate
         }
         setMetadata(meta.info)
-        console.log(meta)
       })
       .catch((err) => {
         console.error(err)

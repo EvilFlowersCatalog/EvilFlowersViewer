@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import { useTranslation } from 'react-i18next'
 
-import { ReactComponent as Left } from '../../../assets/icons/chevron-left.svg'
-import { ReactComponent as Right } from '../../../assets/icons/chevron-right.svg'
-import { ReactComponent as Down } from '../../../assets/icons/chevron-down.svg'
+import { AiOutlineLeft, AiOutlineDown } from 'react-icons/ai'
 
 interface TOCItem {
   title: string
@@ -38,9 +36,8 @@ const Outline = () => {
         {items?.map((item, i) => (
           <li
             key={`${item.title}-${i}`}
-            className={`${
-              level === 1 ? 'font-bold' : 'font-normal'
-            } text-sm p-2 rounded-2 text-gray-500 dark:text-gray-300 text-center list-none`}
+            className={`${level === 1 ? 'font-bold' : 'font-normal'
+              } text-sm p-2 rounded-2 text-gray-500 dark:text-gray-300 text-center list-none`}
           >
             <div className="flex items-center">
               <div
@@ -62,9 +59,9 @@ const Outline = () => {
                   onClick={() => handleToggleExpand(item)}
                 >
                   {item.isExpanded ? (
-                    <Down className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Down>
+                    <AiOutlineDown className='w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300' />
                   ) : (
-                    <Left className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Left>
+                    <AiOutlineLeft className='w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300' />
                   )}
                 </button>
               )}
@@ -109,9 +106,7 @@ const Outline = () => {
     <>
       {outline && outline.length > 0 && (
         <div
-          className={`fixed top-4 right-4 z-10 bg-transparent p-1 rounded-xl ${
-            isDropdownShown ? 'h-96 overflow-auto' : ''
-          }`}
+          className={`fixed top-6 right-6 z-10 bg-transparent rounded-xl ${isDropdownShown ? 'max-h-[80vh] overflow-auto' : ''}`}
         >
           <div className="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-lg">
             <div className="flex justify-between items-center gap-2">
@@ -123,9 +118,9 @@ const Outline = () => {
                 onClick={toggleDropdown}
               >
                 {isDropdownShown ? (
-                  <Down className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Down>
+                  <AiOutlineDown className='w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300' />
                 ) : (
-                  <Left className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Left>
+                  <AiOutlineLeft className='w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300' />
                 )}
               </button>
             </div>
@@ -135,9 +130,8 @@ const Outline = () => {
                   {outline?.map((item, i) => (
                     <li
                       key={`${item.title}-${i}`}
-                      className={`${
-                        item.children ? 'font-bold' : 'font-normal'
-                      } text-sm p-2 rounded-2 text-gray-500 dark:text-gray-300 text-center list-none`}
+                      className={`${item.children ? 'font-bold' : 'font-normal'
+                        } text-sm p-2 rounded-2 text-gray-500 dark:text-gray-300 text-center list-none`}
                     >
                       <div className="flex items-center">
                         <div
@@ -163,9 +157,9 @@ const Outline = () => {
                             }}
                           >
                             {item.isExpanded ? (
-                              <Down className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Down>
+                              <AiOutlineDown className='w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300' />
                             ) : (
-                              <Left className="duration-200 stroke-gray-500 dark:stroke-gray-300"></Left>
+                              <AiOutlineLeft className='w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300' />
                             )}
                           </button>
                         )}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import PageContext from './PageContext'
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
@@ -20,7 +20,7 @@ const Page = () => {
    */
   const renderPage = useCallback(async () => {
     setRendering(RENDERING_STATES.RENDERING)
-    
+
     return await new Promise((resolve) => {
       pdf?.getPage(activePage).then((page) => {
         const container = document.createElement('textLayer')
@@ -70,8 +70,8 @@ const Page = () => {
               .getElementById('evilFlowersContent')
               ?.replaceChild(container, prevTextLayerNode)
           else document
-          .getElementById('evilFlowersContent')
-          ?.replaceChildren(container)
+            .getElementById('evilFlowersContent')
+            ?.replaceChildren(container)
           if (!prevCanvas)
             document.getElementById('evilFlowersContent')?.appendChild(canvas)
 
@@ -89,14 +89,14 @@ const Page = () => {
 
   return (
     <PageContext.Provider value={{}}>
-      <div className={'py-10'}>
+      <div className={'pb-12 pt-7'}>
         <div
           id={'evilFlowersContent'}
           className={'w-fit mx-auto shadow relative'}
         ></div>
         {isRendering &&
           isRendering in
-            [RENDERING_STATES.LOADING, RENDERING_STATES.RENDERING] && (
+          [RENDERING_STATES.LOADING, RENDERING_STATES.RENDERING] && (
             <div className={'absolute left-1/2 top-1/3 translate-x-1/2'}>
               <span className={'evilflowersviewer-loader'} />
             </div>

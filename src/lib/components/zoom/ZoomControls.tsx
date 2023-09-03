@@ -3,9 +3,8 @@ import { useTranslation } from 'react-i18next'
 import cx from 'classnames'
 
 // icons
-import { ReactComponent as ZoomIn } from '../../../assets/icons/zoom-in.svg'
-import { ReactComponent as ZoomOut } from '../../../assets/icons/zoom-out.svg'
-import { ReactComponent as Screen } from '../../../assets/icons/maximize.svg'
+import { CgZoomIn, CgZoomOut } from 'react-icons/cg'
+import { TbZoomReplace } from 'react-icons/tb'
 import { useDocumentContext } from '../document/DocumentContext'
 
 // components
@@ -39,18 +38,18 @@ const ZoomControls = () => {
   return (
     <div
       className={
-        'fixed left-6 md:left-64 bottom-10 bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200 flex-col md:flex-row w-8 md:w-auto'
+        'fixed left-6 bottom-10 bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200 flex-col md:flex-row w-8 md:w-auto'
       }
     >
       <ZoomButton
         onClick={zoomIn}
         tooltipText={t('zoomIn')}
         icon={
-          <ZoomIn
+          <CgZoomIn
             className={cx('duration-200', {
-              'stroke-gray-500 dark:stroke-gray-300 hover:stroke-gray-700':
+              'w-[24px] h-[24px] text-gray-500 dark:text-gray-300 hover:text-gray-700':
                 scale < 2.5,
-              'stroke-gray-300 dark:stroke-gray-500': scale >= 2.5,
+              'w-[24px] h-[24px] text-gray-300 dark:text-gray-500': scale >= 2.5,
             })}
           />
         }
@@ -59,11 +58,11 @@ const ZoomControls = () => {
         onClick={zoomOut}
         tooltipText={t('zoomOut')}
         icon={
-          <ZoomOut
+          <CgZoomOut
             className={cx('duration-200', {
-              'stroke-gray-500 dark:stroke-gray-300 hover:stroke-gray-700':
+              'w-[24px] h-[24px] text-gray-500 dark:text-gray-300 hover:text-gray-700':
                 scale > 1,
-              'stroke-gray-300 dark:stroke-gray-500': scale <= 1,
+              'w-[24px] h-[24px] text-gray-300 dark:text-gray-500': scale <= 1,
             })}
           />
         }
@@ -72,9 +71,9 @@ const ZoomControls = () => {
         onClick={resetScale}
         tooltipText={t('resetZoom')}
         icon={
-          <Screen
+          <TbZoomReplace
             className={
-              'stroke-gray-500 dark:stroke-gray-300 hover:stroke-gray-700 duration-200'
+              'w-[24px] h-[24px] text-gray-500 dark:text-gray-300 hover:text-gray-700 duration-200'
             }
           />
         }

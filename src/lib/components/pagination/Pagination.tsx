@@ -6,8 +6,8 @@ import cx from 'classnames'
 import { useDocumentContext } from '../document/DocumentContext'
 
 // icons
-import { ReactComponent as Right } from '../../../assets/icons/chevron-right.svg'
-import { ReactComponent as Left } from '../../../assets/icons/chevron-left.svg'
+import { AiOutlineLeft, AiOutlineRight } from 'react-icons/ai'
+
 import Tooltip from '../helpers/Tooltip'
 
 interface IZoomButtonProps {
@@ -38,17 +38,17 @@ const Pagination = () => {
   return (
     <div
       className={
-        'fixed right-6 lg:right-64 bottom-10 bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200'
+        'fixed right-6 bottom-10 bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200'
       }
     >
       <PaginationButton
         tooltipText={t('prevPage')}
         onClick={prevPage}
         icon={
-          <Left
+          <AiOutlineLeft
             className={cx('duration-200', {
-              'stroke-gray-500 dark:stroke-gray-300': activePage !== 1,
-              'stroke-gray-300 dark:stroke-gray-500': activePage === 1,
+              'w-[24px] h-[24px] text-gray-500 dark:text-gray-300': activePage !== 1,
+              'w-[24px] h-[24px] text-gray-300 dark:text-gray-500': activePage === 1,
             })}
           />
         }
@@ -57,10 +57,10 @@ const Pagination = () => {
         tooltipText={t('nextPage')}
         onClick={nextPage}
         icon={
-          <Right
+          <AiOutlineRight
             className={cx('duration-200', {
-              'stroke-gray-300 dark:stroke-gray-500': activePage === totalPages,
-              'stroke-gray-500 dark:stroke-gray-300': activePage !== totalPages,
+              'w-[24px] h-[24px] text-gray-300 dark:text-gray-500': activePage === totalPages,
+              'w-[24px] h-[24px] text-gray-500 dark:text-gray-300': activePage !== totalPages,
             })}
           />
         }
