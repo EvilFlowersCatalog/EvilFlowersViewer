@@ -8,13 +8,18 @@ EvilFlowersViewer is a PDF viewer based on pdf.js library that allows users to v
 
 # Features
 
-- PDF document rendering directly in the browser
-- Zoom in and out of documents
-- Page navigation through a page thumbnail view
-- Text search within documents
-- Share the entire document or with selected pages
-- Citate export in BibTeX, BibLaTeX, RIS and bibliography 
-- Changing themes
+1. PDF document rendering directly in the browser
+2. Zoom in and out of documents
+3. Page navigation through a page thumbnail view
+4. Text search within documents
+5. Share the entire document or with selected pages
+    - Select wanted pages (1, 3-5, 10) or none (means whole document)
+    - Choose lifespan expectancy (1 day, 7 days, 30 days)
+    - Click on share where your function will take care of given inputs
+    - Your function returns link for your shared document
+    - Our viewer will generate QR Code of given link
+6. Citate export in BibTeX, BibLaTeX, RIS and bibliography 
+7. Changing themes
 
 ## Features Under Development
 
@@ -40,21 +45,22 @@ import { renderViewer } from '@evilflowers/evilflowersviewer'
 
 3. Use renderViewer function:
 
-# Inputs
-
-- rootId - html id of your root component
-- base64 - string that contains base64 formatt of pdf
-- options - not required object consisting of theme, lang, citationBib, shareFunction
-- options.theme - 'dark' | 'light'
-- options.lang - 'sk' | 'en' for now
-- options.citationBib - string containing bib citation of given document examaple: '@article{name,\n ....}'
-- options.shareFunction - type (pages: string | null, expaireDate: string) => Promise<string>
-- shareFunction.pages - string containing selected pages (1,3-6,10) or null (means it's empty)
-- shareFunction.expaireDate - string containing lifespan of shared document, the end. ISO
-
 ```tsx
 renderViewer(rootId, base64, options)
 ```
+
+| Input | Description |
+| ------ | ------ |
+| rootId | html id of your root component |
+| base64 | string that contains base64 formatt of pdf |
+| options | not required object consisting of theme, lang, citationBib, shareFunction |
+| options.theme | 'dark' or 'light' |
+| options.lang | 'sk' or 'en' |
+| options.citationBib | string containing bib citation of given document examaple: '@article{name,\n ....}' |
+| options.shareFunction | type: (pages: string / null, expaireDate: string) => Promise<string> |
+| shareFunction.pages | string containing selected pages (1,3-6,10) or null (means it's empty) |
+| shareFunction.expaireDate | string containing lifespan of shared document, the end. ISO |
+| shareFunction => return | link for your shared document as string |
 
 
 
