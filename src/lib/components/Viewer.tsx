@@ -5,7 +5,6 @@ import * as PDFJSWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry'
 import { base64ToBinary } from '../../utils'
 import Document from './document/Document'
 import { createRoot } from 'react-dom/client'
-import { useTranslation } from 'react-i18next'
 import { ViewerContext } from './ViewerContext'
 
 pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
@@ -20,7 +19,7 @@ interface IViewerOptions {
 
 interface IViewerProps {
   data: string | null;
-  options: IViewerOptions;
+  options: IViewerOptions | null;
 }
 
 /**
@@ -30,14 +29,21 @@ interface IViewerProps {
  * @returns - The Viewer component
  */
 export const Viewer = (viewerProps: IViewerProps) => {
-  const [theme, setTheme] = useState<'dark' | 'light' | undefined>(viewerProps.options.theme);
-
-  const [documentData, setDocumentData] = useState<string | null>(null)
-  const { i18n } = useTranslation()
-
-  const changeLanguage = (lang: string) => {
-    i18n.changeLanguage(lang);
+  // Based options, cuz options are not required
+  let basedOptions: IViewerOptions = {
+    theme: 'dark',
+    lang: 'en',
+    citationBib: null,
+    shareFunction: null,
   }
+
+  // Update basedOptions with values from inputed options
+  basedOptions = {
+    ...basedOptions, // Spread the current values of basedOptions
+    ...viewerProps.options,   // Spread the values from inputed options, which will overwrite existing properties if they exist in both objects
+  }
+  const [theme, setTheme] = useState<'dark' | 'light' | undefined>(basedOptions.theme);
+  const [documentData, setDocumentData] = useState<string | null>(null)
 
   useEffect(() => {
     // set given theme
@@ -47,15 +53,6 @@ export const Viewer = (viewerProps: IViewerProps) => {
     } else {
       setTheme('light');
       document.getElementById('evilFlowersViewer')?.classList.remove('dark')
-    }
-
-    // Set langauge
-    if (viewerProps.options.lang === 'en') {
-      changeLanguage('en');
-    } else if (viewerProps.options.lang === 'sk') {
-      changeLanguage('sk');
-    } else { // anything else 'en' // for now
-      changeLanguage('en');
     }
   }, [])
 
@@ -76,7 +73,7 @@ export const Viewer = (viewerProps: IViewerProps) => {
       value={{
         theme,
         setTheme,
-        shareFunction: viewerProps.options.shareFunction
+        shareFunction: basedOptions.shareFunction
       }}
     >
       <div
@@ -88,7 +85,7 @@ export const Viewer = (viewerProps: IViewerProps) => {
         <div
           className={'bg-gray-100 dark:bg-zinc-700 w-full h-full duration-200'}
         >
-          <Document data={documentData} citationBibTeX={viewerProps.options.citationBib} />
+          <Document data={documentData} citationBibTeX={basedOptions.citationBib} />
         </div>
       </div>
     </ViewerContext.Provider>
@@ -96,19 +93,6 @@ export const Viewer = (viewerProps: IViewerProps) => {
 }
 
 export const renderViewer = (rootId: string, data: string, options: IViewerOptions | null = null) => {
-  // Based options, cuz options are not required
-  let basedOptions: IViewerOptions = {
-    theme: 'dark',
-    lang: 'en',
-    citationBib: null,
-    shareFunction: null,
-  }
-
-  // Update basedOptions with values from inputed options
-  basedOptions = {
-    ...basedOptions, // Spread the current values of basedOptions
-    ...options,   // Spread the values from inputed options, which will overwrite existing properties if they exist in both objects
-  }
   const root = createRoot(document.getElementById(rootId)!)
-  root.render(createElement(() => <Viewer data={data} options={basedOptions} />))
+  root.render(createElement(() => <Viewer data={data} options={options} />))
 }
