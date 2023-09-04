@@ -8,18 +8,18 @@ EvilFlowersViewer is a PDF viewer based on pdf.js library that allows users to v
 
 # Features
 
-1. PDF document rendering directly in the browser
-2. Zoom in and out of documents
-3. Page navigation through a page thumbnail view
-4. Text search within documents
-5. Share the entire document or with selected pages
+- PDF document rendering directly in the browser
+- Zoom in and out of documents
+- Page navigation through a page thumbnail view
+- Text search within documents
+- Share the entire document or with selected pages
     - Select wanted pages (1, 3-5, 10) or none (means whole document)
     - Choose lifespan expectancy (1 day, 7 days, 30 days)
     - Click on share where your function will take care of given inputs
     - Your function returns link for your shared document
     - Our viewer will generate QR Code of given link
-6. Citate export in BibTeX, BibLaTeX, RIS and bibliography 
-7. Changing themes
+- Citate export in BibTeX, BibLaTeX, RIS and bibliography 
+- Changing themes
 
 ## Features Under Development
 
@@ -61,7 +61,6 @@ renderViewer(rootId, base64, options)
 | shareFunction.pages | string containing selected pages (1,3-6,10) or null (means it's empty) |
 | shareFunction.expaireDate | string containing lifespan of shared document, the end. ISO |
 | shareFunction => return | link for your shared document as string |
-
 
 
 # Contributing
