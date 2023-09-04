@@ -2,11 +2,13 @@
 
 PDF Viewer based on pdf.js
 
-# Introduction
+## Introduction
 
-EvilFlowersViewer is a PDF viewer based on pdf.js library that allows users to view and interact with PDF documents directly in the browser. This project is being developed by a university team, and aims to provide a reliable and efficient PDF viewer that is easy to use and customize.
+EvilFlowersViewer is a PDF viewer based on pdf.js library that allows users to view and interact with PDF documents 
+directly in the browser. This project is being developed by a university team, and aims to provide a reliable and 
+efficient PDF viewer that is easy to use and customize.
 
-# Features
+## Features
 
 - PDF document rendering directly in the browser
 - Zoom in and out of documents
@@ -18,7 +20,7 @@ EvilFlowersViewer is a PDF viewer based on pdf.js library that allows users to v
     - Click on share where your function will take care of given inputs
     - Your function returns link for your shared document
     - Our viewer will generate QR Code of given link
-- Citate export in BibTeX, BibLaTeX, RIS and bibliography 
+- Citation export in BibTeX, BibLaTeX, RIS and bibliography 
 - Changing themes
 
 ## Features Under Development
@@ -27,7 +29,7 @@ EvilFlowersViewer is a PDF viewer based on pdf.js library that allows users to v
 - Editing with pen
 - and more...
 
-# Getting started
+## Getting started
 
 To get started with EvilFlowersViewer, follow these steps:
 
@@ -49,23 +51,24 @@ import { renderViewer } from '@evilflowers/evilflowersviewer'
 renderViewer(rootId, base64, options)
 ```
 
-| Input | Description |
-| ------ | ------ |
-| rootId | html id of your root component |
-| base64 | string that contains base64 formatt of pdf |
-| options | not required object consisting of theme, lang, citationBib, shareFunction |
-| options.theme | 'dark' or 'light' |
-| options.lang | 'sk' or 'en' |
-| options.citationBib | string containing bib citation of given document examaple: '@article{name,\n ....}' |
-| options.shareFunction | type: (pages: string / null, expaireDate: string) => Promise<string> |
-| shareFunction.pages | string containing selected pages (1,3-6,10) or null (means it's empty) |
-| shareFunction.expaireDate | string containing lifespan of shared document, the end. ISO |
-| shareFunction => return | link for your shared document as string |
+| Input                     | Description                                                                         |
+|---------------------------|-------------------------------------------------------------------------------------|
+| rootId                    | html id of your root component                                                      |
+| base64                    | string that contains base64 formatt of pdf                                          |
+| options                   | not required object consisting of theme, lang, citationBib, shareFunction           |
+| options.theme             | 'dark' or 'light'                                                                   |
+| options.lang              | 'sk' or 'en'                                                                        |
+| options.citationBib       | string containing bib citation of given document examaple: '@article{name,\n ....}' |
+| options.shareFunction     | type: (pages: string / null, expaireDate: string) => Promise<string>                |
+| shareFunction.pages       | string containing selected pages (1,3-6,10) or null (means it's empty)              |
+| shareFunction.expaireDate | string containing lifespan of shared document, the end. ISO                         |
+| shareFunction => return   | link for your shared document as string                                             |
 
 
-# Contributing
+## Contributing
 
-We welcome contributions from the community to help make EvilFlowersViewer even better. To contribute, please follow these steps:
+We welcome contributions from the community to help make EvilFlowersViewer even better. To contribute, please follow 
+these steps:
 
 1. Fork the EvilFlowersViewer repository
 2. Create a new branch for your changes
