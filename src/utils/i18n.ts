@@ -8,7 +8,6 @@ i18n.use(initReactI18next).init({
   fallbackLng: 'en',
   resources: {
     en: { ...enJSON },
-    sk: { ...skJSON },
   },
   interpolation: {
     escapeValue: false,

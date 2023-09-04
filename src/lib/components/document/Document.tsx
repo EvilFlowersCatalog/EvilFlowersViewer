@@ -31,6 +31,7 @@ interface IDocumentProps {
  *
  */
 interface TOCItemDoc {
+  isExpanded: any,
   title: string
   pageNumber: number
   level: number
@@ -118,7 +119,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         pageNumber = -1
       }
 
-      toc.push({ title, pageNumber, level, children })
+      toc.push({ title, pageNumber, level, children, isExpanded: false })
     }
 
     return toc

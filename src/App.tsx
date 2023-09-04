@@ -22,20 +22,9 @@ const inputOptions: IExample = {
  * @returns The App component that renders the Viewer component
  */
 export function App() {
-  let exampleOptions: IExample = {
-    theme: 'dark',
-    lang: 'en',
-    citationBib: null,
-    shareFunction: null,
-  }
-
-  exampleOptions = {
-    ...exampleOptions,
-    ...inputOptions,
-  }
   return (
     <div className="App">
-      <Viewer data={pdf_data} options={exampleOptions} />
+      <Viewer data={pdf_data} options={inputOptions} />
     </div>
   )
 }
