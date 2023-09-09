@@ -27,12 +27,12 @@ const Search = () => {
   const [matches, setMatches] = useState<
     (
       | {
-        page: number
-        text: string
-        transform: Array<number> | undefined
-        width: number
-        height: number
-      }
+          page: number
+          text: string
+          transform: Array<number> | undefined
+          width: number
+          height: number
+        }
       | undefined
     )[]
   >([])
@@ -79,7 +79,7 @@ const Search = () => {
             (n) => {
               return pdf
                 ?.getPage(n + 1)
-                .then((page) => {
+                .then((page: any) => {
                   // ensure text content includes only textItems
                   let e: getTextContentParameters = {
                     disableCombineTextItems: false,
@@ -240,7 +240,7 @@ const Search = () => {
           }
         >
           {t('noMatchesFound')}
-          <BiSad className='w-[30px] h-[30px] text-gray-500 dark:text-gray-300' />
+          <BiSad className="w-[30px] h-[30px] text-gray-500 dark:text-gray-300" />
         </span>
       )}
       {searching === SEARCH_STATES.DONE && matches.length > 0 && (

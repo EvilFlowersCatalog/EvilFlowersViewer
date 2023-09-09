@@ -1,7 +1,7 @@
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 
 import { KeyboardEvent, useEffect, useState } from 'react'
-import Cite from 'citation-js';
+import Cite from 'citation-js'
 import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
 import Tools from '../sidebar/Tools'
@@ -31,7 +31,7 @@ interface IDocumentProps {
  *
  */
 interface TOCItemDoc {
-  isExpanded: any,
+  isExpanded: any
   title: string
   pageNumber: number
   level: number
@@ -59,15 +59,16 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [isRendering, setRendering] = useState<RENDERING_STATES | null>(null)
   const [totalPages, setTotalPages] = useState(0)
   const [outline, setOutline] = useState<TOCItemDoc[] | undefined>()
-  const [basedPdfCitation] = useState<string | null | undefined>(citationBibTeX);
-  const [pdfCitation, setPdfCitation] = useState<string | null>(null);
+  const [basedPdfCitation] = useState<string | null | undefined>(citationBibTeX)
+  const [pdfCitation, setPdfCitation] = useState<string | null>(null)
 
   // Set citation on start
   useEffect(() => {
     const bibRegex = /^@.+\{.+,[\s\S]+\}$/ // little bibtex checker form @'something'{'something', anything}
     if (basedPdfCitation) {
-      if (bibRegex.test(basedPdfCitation)) { // only if pass
-        changeCitationFormat('bibtex');
+      if (bibRegex.test(basedPdfCitation)) {
+        // only if pass
+        changeCitationFormat('bibtex')
       }
     }
   }, [])
@@ -76,12 +77,12 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    *
    */
   const loadDocument = () => {
-    pdfjs.getDocument({ data }).promise.then((doc) => {
+    pdfjs.getDocument({ data }).promise.then((doc: any) => {
       // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
       // https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFDocumentProxy.html#getDestination
 
       // Case where we do not have outlines
-      doc.getOutline().then(async (outline) => {
+      doc.getOutline().then(async (outline: any) => {
         if (outline == null || !outline) {
           return
         }
@@ -130,11 +131,11 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    */
   const downloadDocument = () => {
     const link = document.createElement('a')
-    pdf?.getMetadata().then((meta) => {
+    pdf?.getMetadata().then((meta: any) => {
       // @ts-ignore
       var fileName = meta.info?.Title || 'document.pdf'
 
-      pdf?.getData().then((data) => {
+      pdf?.getData().then((data: any) => {
         const blob = new Blob([data], { type: 'application/pdf' })
         link.href = URL.createObjectURL(blob)
         link.download = fileName
@@ -151,7 +152,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
     if (pdfCitation) {
       const blob = new Blob([pdfCitation], { type: 'text/plain' })
       link.href = URL.createObjectURL(blob)
-      link.download = file_name;
+      link.download = file_name
       link.click()
     }
   }
@@ -162,16 +163,16 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const copyCitation = () => {
     if (pdfCitation) {
       // Create a temporary textarea element
-      const textarea = document.createElement('textarea');
-      textarea.value = pdfCitation;
-      document.body.appendChild(textarea);
+      const textarea = document.createElement('textarea')
+      textarea.value = pdfCitation
+      document.body.appendChild(textarea)
 
       // select and copy the text
-      textarea.select();
-      document.execCommand('copy');
+      textarea.select()
+      document.execCommand('copy')
 
       // remove the temporary textarea
-      document.body.removeChild(textarea);
+      document.body.removeChild(textarea)
     }
   }
 
@@ -182,36 +183,31 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const changeCitationFormat = (format: string) => {
     try {
       // set new Cite by based pdf citation
-      const citation = new Cite(basedPdfCitation);
-
+      const citation = new Cite(basedPdfCitation)
       // convert our citation to wanted one
       let formattedCitation = citation.format(format, {
         template: 'apa',
-      });
-
+      })
       // fixed utf-8 (just for now)
-      formattedCitation = formattedCitation.replace(/{\\' a}/g, 'á');
-      formattedCitation = formattedCitation.replace(/{\\" a}/g, 'ä');
-      formattedCitation = formattedCitation.replace(/{\\' e}/g, 'é');
-      formattedCitation = formattedCitation.replace(/{\\' i}/g, 'í');
-      formattedCitation = formattedCitation.replace(/{\\' y}/g, 'ý');
-      formattedCitation = formattedCitation.replace(/{\\' o}/g, 'ó');
-      formattedCitation = formattedCitation.replace(/{\\' u}/g, 'ú');
-      formattedCitation = formattedCitation.replace(/{\\v c}/g, 'č');
-      formattedCitation = formattedCitation.replace(/{\\v s}/g, 'š');
-      formattedCitation = formattedCitation.replace(/{\\v l}/g, 'ľ');
-      formattedCitation = formattedCitation.replace(/{\\v z}/g, 'ž');
-      formattedCitation = formattedCitation.replace(/{\\v t}/g, 'ť');
-      formattedCitation = formattedCitation.replace(/{\\v d}/g, 'ď');
-      formattedCitation = formattedCitation.replace(/{\\\^ o}/g, 'ô');
-
-      setPdfCitation(formattedCitation);
+      formattedCitation = formattedCitation.replace(/{\\' a}/g, 'á')
+      formattedCitation = formattedCitation.replace(/{\\" a}/g, 'ä')
+      formattedCitation = formattedCitation.replace(/{\\' e}/g, 'é')
+      formattedCitation = formattedCitation.replace(/{\\' i}/g, 'í')
+      formattedCitation = formattedCitation.replace(/{\\' y}/g, 'ý')
+      formattedCitation = formattedCitation.replace(/{\\' o}/g, 'ó')
+      formattedCitation = formattedCitation.replace(/{\\' u}/g, 'ú')
+      formattedCitation = formattedCitation.replace(/{\\v c}/g, 'č')
+      formattedCitation = formattedCitation.replace(/{\\v s}/g, 'š')
+      formattedCitation = formattedCitation.replace(/{\\v l}/g, 'ľ')
+      formattedCitation = formattedCitation.replace(/{\\v z}/g, 'ž')
+      formattedCitation = formattedCitation.replace(/{\\v t}/g, 'ť')
+      formattedCitation = formattedCitation.replace(/{\\v d}/g, 'ď')
+      formattedCitation = formattedCitation.replace(/{\\\^ o}/g, 'ô')
+      setPdfCitation(formattedCitation)
     } catch (err) {
-      console.log(err);
+      console.log(err)
     }
   }
-
-
 
   /**
    * Go to next page
@@ -290,19 +286,19 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
 
   const keyDownHandler = (event: KeyboardEvent<HTMLDivElement>) => {
     switch (event.key) {
-      case "ArrowLeft":
+      case 'ArrowLeft':
         event.preventDefault()
         prevPage()
         break
-      case "ArrowRight":
+      case 'ArrowRight':
         event.preventDefault()
         nextPage()
         break
-      case "+":
+      case '+':
         event.preventDefault()
         zoomIn()
         break
-      case "-":
+      case '-':
         event.preventDefault()
         zoomOut()
         break

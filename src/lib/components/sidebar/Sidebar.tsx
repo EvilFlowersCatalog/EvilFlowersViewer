@@ -24,13 +24,21 @@ const Sidebar = ({ open, setOpen, children, title }: ISidebarProps) => {
         '-left-64': !open,
       })}
     >
-      <div className={'bg-gray-50 dark:bg-gray-800 rounded-lg m-6 w-full shadow-lg flex flex-col overflow-auto duration-200'}>
+      <div
+        className={
+          'bg-gray-50 dark:bg-gray-800 rounded-lg m-6 w-full shadow-lg flex flex-col overflow-auto duration-200'
+        }
+      >
         <div className={'header p-4 flex justify-between'}>
-          <span className={'text-gray-700 dark:text-gray-300 font-semibold'}>{title}</span>
+          <span className={'text-gray-700 dark:text-gray-300 font-semibold'}>
+            {title}
+          </span>
           <div className={'relative'}>
             <Tooltip title={t('hidePanel')} placement={'left'}>
               <MdKeyboardDoubleArrowLeft
-                className={'ml-auto text-gray-500 w-[20px] h-[20px] dark:text-gray-300 cursor-pointer hover:text-gray-700 dark:hover:text-gray-500 duration-200'}
+                className={
+                  'ml-auto text-gray-500 w-[20px] h-[20px] dark:text-gray-300 cursor-pointer hover:text-gray-700 dark:hover:text-gray-500 duration-200'
+                }
                 onClick={() => setOpen(false)}
               />
             </Tooltip>

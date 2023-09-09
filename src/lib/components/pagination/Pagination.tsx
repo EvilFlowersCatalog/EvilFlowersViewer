@@ -47,8 +47,10 @@ const Pagination = () => {
         icon={
           <AiOutlineLeft
             className={cx('duration-200', {
-              'w-[24px] h-[24px] text-gray-500 dark:text-gray-300': activePage !== 1,
-              'w-[24px] h-[24px] text-gray-300 dark:text-gray-500': activePage === 1,
+              'w-[24px] h-[24px] text-gray-500 dark:text-gray-300':
+                activePage !== 1,
+              'w-[24px] h-[24px] text-gray-300 dark:text-gray-500':
+                activePage === 1,
             })}
           />
         }
@@ -59,8 +61,10 @@ const Pagination = () => {
         icon={
           <AiOutlineRight
             className={cx('duration-200', {
-              'w-[24px] h-[24px] text-gray-300 dark:text-gray-500': activePage === totalPages,
-              'w-[24px] h-[24px] text-gray-500 dark:text-gray-300': activePage !== totalPages,
+              'w-[24px] h-[24px] text-gray-300 dark:text-gray-500':
+                activePage === totalPages,
+              'w-[24px] h-[24px] text-gray-500 dark:text-gray-300':
+                activePage !== totalPages,
             })}
           />
         }
