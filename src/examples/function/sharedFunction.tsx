@@ -15,5 +15,6 @@ export const exampleShareFunction = async (pages: string | null, expaireDate: st
   await delay(2000);
 
   // returned url for entry
+  return '';
   return "https://evilflowers.jakubdubec.me/data/v1/acquisitions/d9445797-42d0-499a-a158-82c08b4dc511";
 }

@@ -52,9 +52,9 @@ const ShareQRCode = (props: IShareQRProps) => {
 
   return (
     <ModalWrapper
-      label={props.link ? t('downloadQR') : null}
+      label={props.link && props.link !== 'error' ? t('downloadQR') : null}
       isOpen={isOpen}
-      icon={props.link ? <BiDownload className='ml-3 h-[20px] w-[20px] text-white' /> : null}
+      icon={props.link && props.link !== 'error' ? <BiDownload className='ml-3 h-[20px] w-[20px] text-gray-100' /> : null}
       onClick={() => handleOnClickClick()}
       onClose={() => handleOnCloseClick()}
     >
@@ -63,7 +63,13 @@ const ShareQRCode = (props: IShareQRProps) => {
       </div>
       <div className={'w-full h-[300px] flex justify-center items-center'}>
         {props.link ? (
-          <QRCode id='QRCode' size={300} value={props.link} />
+          props.link !== 'error' ? (
+            <QRCode id='QRCode' size={300} value={props.link} />
+          ) : (
+            <pre className='text-gray-800 dark:text-gray-200'>
+              {t('shareQrCodeFail')}
+            </pre>
+          )
         ) : (
           <div className={'w-full h-full spinner'}></div>
         )}

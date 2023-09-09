@@ -24,7 +24,7 @@ const Sidebar = ({ open, setOpen, children, title }: ISidebarProps) => {
         '-left-64': !open,
       })}
     >
-      <div className={'bg-white dark:bg-gray-800 rounded-lg m-6 w-full shadow-lg flex flex-col overflow-auto duration-200'}>
+      <div className={'bg-gray-50 dark:bg-gray-800 rounded-lg m-6 w-full shadow-lg flex flex-col overflow-auto duration-200'}>
         <div className={'header p-4 flex justify-between'}>
           <span className={'text-gray-700 dark:text-gray-300 font-semibold'}>{title}</span>
           <div className={'relative'}>

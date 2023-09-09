@@ -62,7 +62,8 @@ const Share = (params: IShareParams) => {
       const pages: string | null = input ? input : null; // if empty set to null
       setInput(''); // reset input
 
-      const givenLink: string = await shareFunction(pages, expaireDateISO);
+      let givenLink: string = await shareFunction(pages, expaireDateISO);
+      givenLink ? givenLink : givenLink = 'error';
       params.setLink(givenLink);
     }
   }
@@ -106,7 +107,7 @@ const Share = (params: IShareParams) => {
       <form className='w-full' onSubmit={handleSubmit}>
         <div className={'relative inline-flex'}>
           <input
-            className={'w-[75%] pl-2 py-1 rounded-md bg-gray-100 dark:bg-gray-900 border border-solid dark:border-gray-500 dark:text-gray-300 outline-none focus:outline-none duration-300'}
+            className={'w-[75%] pl-2 py-1 rounded-md bg-gray-200 dark:bg-gray-900 border border-solid dark:border-gray-500 dark:text-gray-300 outline-none focus:outline-none duration-300'}
             placeholder={t('shareSearch')}
             value={input}
             onChange={handleInput}
@@ -121,7 +122,7 @@ const Share = (params: IShareParams) => {
             {expaireOptions.map((item, i) => (
               <div
                 key={i}
-                className={`text-sm px-2 py-1 bg-none top-0 bottom-0 end-0 text-black dark:text-white hover:bg-gray-400 hover:dark:bg-gray-500 rounded-md border-none ${item.active ? 'bg-gray-400 dark:bg-gray-500' : 'bg-gray-200 dark:bg-gray-700'}`}
+                className={`text-sm px-2 py-1 bg-none top-0 bottom-0 end-0 text-gray-900 dark:text-gray-100 hover:bg-gray-400 hover:dark:bg-gray-500 rounded-md border-none ${item.active ? 'bg-gray-400 dark:bg-gray-500' : 'bg-gray-200 dark:bg-gray-700'}`}
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleExpare(item)}
               >
@@ -133,11 +134,11 @@ const Share = (params: IShareParams) => {
         {
           !isInappropriate && (
             <button
-              className='w-full mt-10 py-1 bg-none bg-blue-500 text-white rounded-md border-none hover:bg-blue-600 duration-300'
+              className='w-full mt-10 py-2 flex align-center justify-center bg-none bg-blue-500 text-gray-100 rounded-md border-none hover:bg-blue-600 duration-300'
               type="submit"
               style={{ cursor: 'pointer' }}
             >
-              <RxShare2 className={'w-[24px] h-[24px] mt-2 text-white'} />
+              <RxShare2 className={'w-[24px] h-[24px] text-gray-100'} />
             </button>
           )
         }

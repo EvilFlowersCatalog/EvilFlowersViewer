@@ -34,6 +34,7 @@
     "shareSearchInfoToolTip": "PAGES\nEnter page numbers or page ranges separated by commas which will start assigning from the beginning of the document.\nExample: 1,4-7,10",
     "shareExpaire": "Lifespan:",
     "shareQrCode": "Scan to download",
+    "shareQrCodeFail": "QR code was not loaded\nSomething went wrong :/",
     "info": "Info",
     "infoToolTip": "Document info",
     "downloadQR": "Download QR",

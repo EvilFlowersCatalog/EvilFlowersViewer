@@ -31,10 +31,10 @@ const Tools = () => {
   const [citationVisibile, setCitationVisible] = useState<boolean>(false);
   const [shareQRVisibility, setShareQRVisibility] = useState<boolean>(false);
   const [link, setLink] = useState<string>('');
-  const sidebarNames = SIDEBAR_TAB_NAMES()
+  const sidebarNames = SIDEBAR_TAB_NAMES();
 
-  const { t } = useTranslation()
-  const { downloadDocument, pdfCitation } = useDocumentContext()
+  const { t } = useTranslation();
+  const { downloadDocument, pdfCitation } = useDocumentContext();
   const { theme, setTheme, shareFunction } = useViewerContext();
 
   useEffect(() => {
@@ -120,7 +120,7 @@ const Tools = () => {
       </Sidebar>
       <div
         className={cx(
-          'fixed top-6 left-6 bg-white dark:bg-gray-800 z-10 rounded-lg shadow-lg flex flex-col gap-4 px-2 py-4 duration-200',
+          'fixed top-6 left-6 bg-gray-50 dark:bg-gray-800 z-10 rounded-lg shadow-lg flex flex-col gap-4 px-2 py-4 duration-200',
           { 'left-6': !sidebarOpen, 'left-64': sidebarOpen }
         )}
       >
@@ -131,7 +131,7 @@ const Tools = () => {
                 id={item.name}
                 onClick={item.onClick}
                 className={
-                  'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-900 border-none cursor-pointer duration-200 rounded-md flex items-center'
+                  'bg-transparent hover:bg-gray-200 dark:hover:bg-gray-900 border-none cursor-pointer duration-200 rounded-md flex items-center'
                 }
               >
                 {item.icon}
@@ -145,7 +145,7 @@ const Tools = () => {
               id={'mode'}
               onClick={handleModeChange}
               className={
-                'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-900 border-none cursor-pointer duration-200 rounded-md flex items-center'
+                'bg-transparent hover:bg-gray-200 dark:hover:bg-gray-900 border-none cursor-pointer duration-200 rounded-md flex items-center'
               }
             >
               {theme === 'light' ? <BiSun className={'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'} /> : <BiMoon className={'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'} />}

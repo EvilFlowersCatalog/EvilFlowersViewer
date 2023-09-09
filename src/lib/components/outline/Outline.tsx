@@ -108,7 +108,7 @@ const Outline = () => {
         <div
           className={`fixed top-6 right-6 z-10 bg-transparent rounded-xl ${isDropdownShown ? 'max-h-[80vh] overflow-auto' : ''}`}
         >
-          <div className="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-lg">
+          <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg shadow-lg">
             <div className="flex justify-between items-center gap-2">
               <div className="text-sm font-bold p-2 rounded-2 text-gray-500 dark:text-gray-300 text-center">
                 {t('outline')}

@@ -48,10 +48,6 @@
     "vite-plugin-dts": "^2.1.0",
     "vite-plugin-svgr": "^2.4.0"
   },
-  "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
   "files": [
     "dist"
   ]

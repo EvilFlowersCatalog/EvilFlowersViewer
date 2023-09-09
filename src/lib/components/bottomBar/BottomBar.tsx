@@ -30,9 +30,9 @@ const BottomBar = ({ pagePreviews }: IBottomBarProps) => {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 gap-2 py-1 shadow-lg justify-center items-center grid grid-cols-1 duration-200 z-10">
+    <div className="fixed bottom-0 left-0 w-full bg-gray-50 dark:bg-gray-800 gap-2 py-1 shadow-lg justify-center items-center grid grid-cols-1 duration-200 z-10">
       <button
-        className="bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer duration-200 items-center justify-self-center h-6 w-8 rounded-md pl-1"
+        className="bg-transparent border-none hover:bg-gray-200 dark:hover:bg-gray-900 cursor-pointer duration-200 items-center justify-self-center h-6 w-8 rounded-md pl-1"
         onClick={toggleDropdown}
         title={t('previewToggle')}
       >
@@ -43,11 +43,11 @@ const BottomBar = ({ pagePreviews }: IBottomBarProps) => {
         )}
       </button>
       {isDropdownOpen && (
-        <div className="flex items-center justify-center bg-white dark:bg-gray-800 p-3 gap-10">
+        <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-800 p-3 gap-10">
           <button
             title={t('prevPage')}
             className={
-              'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer duration-200 flex items-center rounded-md'
+              'bg-transparent border-none hover:bg-gray-200 dark:hover:bg-gray-900 cursor-pointer duration-200 flex items-center rounded-md'
             }
             onClick={prevPage}
           >

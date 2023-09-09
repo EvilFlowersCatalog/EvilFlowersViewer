@@ -338,7 +338,6 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
       }}
     >
       <div onKeyDown={keyDownHandler} tabIndex={-1} className={'outline-0'}>
-        <Tools />
         {!data && (
           <div className="flex items-center justify-center h-screen">
             <div className="text-center">
@@ -348,11 +347,12 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
             </div>
           </div>
         )}
+        {data && <Tools />}
+        {data && <Outline />}
         {data && <Page />}
         {data && <ZoomControls />}
-        {data && <BottomBar pagePreviews={7} />}
         {data && <Pagination />}
-        <Outline />
+        {data && <BottomBar pagePreviews={7} />}
       </div>
     </DocumentContext.Provider>
   )

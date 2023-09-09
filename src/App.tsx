@@ -8,8 +8,7 @@ interface IExample {
   theme?: 'dark' | 'light';
   lang?: string;
   citationBib?: string | null;
-  shareFunction?: ((pages: string | null, expaireDate: string) => Promise<string>) | null,
-  id?: string | null,
+  shareFunction?: ((pages: string | null, expaireDate: string) => Promise<string>) | null;
 }
 
 const inputOptions: IExample = {

@@ -220,7 +220,7 @@ const Search = () => {
         {tmpSecuredView && (
           <button
             className={
-              'bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 h-6 w-4'
+              'bg-transparent border-none hover:bg-gray-400 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 h-6 w-4'
             }
             onClick={(e) => searchQuery()}
           >
@@ -256,7 +256,7 @@ const Search = () => {
               <div
                 key={i}
                 className={
-                  'mx-4 bg-gray-100 dark:bg-gray-300 rounded-md my-1 cursor-pointer hover:bg-gray-200 px-4 py-2 duration-200'
+                  'mx-4 my-1 bg-gray-200 dark:bg-gray-400 hover:bg-gray-300 rounded-md hover:dark:bg-gray-300 cursor-pointer px-4 py-2 duration-200'
                 }
                 onClick={() => {
                   findMatchedText(match.page, i)

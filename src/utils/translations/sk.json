@@ -34,6 +34,7 @@
     "shareSearchInfoToolTip": "STRANY\nZadajte čísla strán alebo rozsahy strán oddelené čiarkou, ktoré sa začnú priraďovaď od začiatku dokumentu.\nPríklad: 1,4-7,10",
     "shareExpaire": "Životnosť:",
     "shareQrCode": "Naskenuj pre stiahnutie",
+    "shareQrCodeFail": "QR kód nebol načítaný\nNiečo sa pokazilo :/",
     "info": "Informácie",
     "infoToolTip": "Informácie o dokumente",
     "downloadQR": "Stiahnúť QR",
