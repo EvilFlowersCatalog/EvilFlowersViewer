@@ -38,7 +38,7 @@ const ZoomControls = () => {
   return (
     <div
       className={
-        'fixed left-6 bottom-10 bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200 flex-col md:flex-row w-8 md:w-auto'
+        'fixed left-6 bottom-10 bg-gray-50 dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200 flex-col md:flex-row md:w-auto'
       }
     >
       <ZoomButton
@@ -83,7 +83,7 @@ const ZoomControls = () => {
           'text-sm font-bold p-2 rounded-2 w-12 text-gray-500 dark:text-gray-300 text-center'
         }
       >
-        {scale * 100} %
+        {scale * 100 + '%'}
       </span>
     </div>
   )

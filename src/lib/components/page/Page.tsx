@@ -89,7 +89,7 @@ const Page = () => {
 
   return (
     <PageContext.Provider value={{}}>
-      <div className={'pb-12 pt-7'}>
+      <div className={'pt-7'} style={{ height: '100vh' }}>
         <div
           id={'evilFlowersContent'}
           className={'w-fit mx-auto shadow relative'}

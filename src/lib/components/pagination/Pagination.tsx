@@ -38,7 +38,7 @@ const Pagination = () => {
   return (
     <div
       className={
-        'fixed right-6 bottom-10 bg-white dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200'
+        'fixed right-6 bottom-10 bg-gray-100 dark:bg-gray-800 flex gap-2 p-2 rounded-xl shadow-lg justify-center items-center duration-200'
       }
     >
       <PaginationButton
@@ -47,8 +47,10 @@ const Pagination = () => {
         icon={
           <AiOutlineLeft
             className={cx('duration-200', {
-              'w-[24px] h-[24px] text-gray-500 dark:text-gray-300': activePage !== 1,
-              'w-[24px] h-[24px] text-gray-300 dark:text-gray-500': activePage === 1,
+              'w-[24px] h-[24px] text-gray-500 dark:text-gray-300':
+                activePage !== 1,
+              'w-[24px] h-[24px] text-gray-300 dark:text-gray-500':
+                activePage === 1,
             })}
           />
         }
@@ -59,8 +61,10 @@ const Pagination = () => {
         icon={
           <AiOutlineRight
             className={cx('duration-200', {
-              'w-[24px] h-[24px] text-gray-300 dark:text-gray-500': activePage === totalPages,
-              'w-[24px] h-[24px] text-gray-500 dark:text-gray-300': activePage !== totalPages,
+              'w-[24px] h-[24px] text-gray-300 dark:text-gray-500':
+                activePage === totalPages,
+              'w-[24px] h-[24px] text-gray-500 dark:text-gray-300':
+                activePage !== totalPages,
             })}
           />
         }

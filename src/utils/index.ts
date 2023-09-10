@@ -2,7 +2,7 @@ import { DEBOUNCE_TIMEOUT } from './enums'
 
 /**
  * Debounces a function
- * 
+ *
  * @param func - function to be debounced
  * @param timeout - timeout in ms
  * @returns - debounced function
@@ -18,3 +18,4 @@ export const debounce = (func: any, timeout = DEBOUNCE_TIMEOUT) => {
 }
 
 export * from './base64'
+export * from './i18n'

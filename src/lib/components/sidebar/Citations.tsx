@@ -84,11 +84,11 @@ const Citations = ({ setCitationVisible }: ICitationsProps) => {
         onClick={() => handleOnClickClick()}
         isOpen={isOpen}
         onClose={() => handleOnCloseClick()}
-        icon={<BiDownload className='ml-3 h-[20px] w-[20px] text-white' />}
+        icon={<BiDownload className='ml-3 h-[20px] w-[20px] text-gray-100' />}
       >
         <h2 className="text-center fw-bold font-medium leading-6 text-gray-900 dark:text-gray-100">{title}</h2>
         <pre
-          className="mt-3 relative max-h-[400px] w-fill overflow-hidden text-sm text-black dark:text-gray-300 p-2"
+          className="mt-3 relative max-h-[400px] w-fill overflow-hidden text-sm text-gray-900 dark:text-gray-300 p-2"
           style={{
             border: isCopied ? '1px solid' : "1px dashed",
             borderRadius: '10px',
@@ -103,10 +103,10 @@ const Citations = ({ setCitationVisible }: ICitationsProps) => {
         >
           {pdfCitation}
           {!isCopied ? (
-            <BiCopyAlt className='absolute top-1 end-1 text-black dark:text-white w-[20px] h-[20px]' />
+            <BiCopyAlt className='absolute top-1 end-1 text-gray-900 dark:text-gray-100 w-[20px] h-[20px]' />
           ) : (
             <BiCheck
-              className='absolute top-1 end-1 text-black dark:text-white w-[20px] h-[20px]'
+              className='absolute top-1 end-1 text-gray-900 dark:text-gray-100 w-[20px] h-[20px]'
               style={{
                 opacity: 0,
                 animation: 'blink-icon 0.5s linear'
@@ -119,7 +119,7 @@ const Citations = ({ setCitationVisible }: ICitationsProps) => {
           {citationFormaters.map((item, i) => (
             <div
               key={i}
-              className={`${item.active ? 'bg-gray-300 dark:bg-gray-600' : 'bg-transparent'} px-2 py-1 rounded-md text-black dark:text-gray-200 text-sm hover:bg-gray-300 hover:dark:bg-gray-600 duration-200`}
+              className={`${item.active ? 'bg-gray-300 dark:bg-gray-600' : 'bg-transparent'} px-2 py-1 rounded-md text-gray-900 dark:text-gray-200 text-sm hover:bg-gray-300 hover:dark:bg-gray-600 duration-200`}
               style={{ cursor: 'pointer' }}
               onClick={() => {
                 setTitle(item.name);
