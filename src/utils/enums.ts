@@ -9,7 +9,7 @@ export enum SIDEBAR_TABS {
 }
 
 export const SIDEBAR_TAB_NAMES = () => ({
-  SEARCH: i18next.t('search'),
+  SEARCH: i18next.t('fullTextSearch'),
   PEN: i18next.t('pen'),
   CITATIONS: i18next.t('citations'),
   SHARE: i18next.t('share'),
