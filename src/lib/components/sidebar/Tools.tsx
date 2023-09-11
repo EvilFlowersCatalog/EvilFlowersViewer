@@ -187,7 +187,7 @@ const Tools = () => {
       </Sidebar>
       <div
         className={cx(
-          'fixed top-6 left-6 bg-gray-50 dark:bg-gray-800 z-10 rounded-lg shadow-lg flex flex-col gap-4 px-2 py-4 duration-200',
+          'fixed top-6 left-6 bg-gray-50 dark:bg-gray-800 z-10 rounded-lg shadow-lg flex flex-col gap-3 px-2 py-3 duration-200',
           { 'left-6': !sidebarOpen, 'left-64': sidebarOpen }
         )}
       >
@@ -206,7 +206,7 @@ const Tools = () => {
             </Tooltip>
           </div>
         ))}
-        <div className={'relative mt-5'}>
+        <div className={'relative mt-4'}>
           <Tooltip
             title={theme === 'light' ? t('lightMode') : t('darkMode')}
             placement="right"

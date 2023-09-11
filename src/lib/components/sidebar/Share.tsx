@@ -129,7 +129,7 @@ const Share = (params: IShareParams) => {
             }}
           />
           <div>
-            <Tooltip placement="bottom" title={t('shareSearchInfoToolTip')}>
+            <Tooltip placement="left" title={t('shareSearchInfoToolTip')}>
               <BiInfoCircle
                 className={
                   'w-[18px] h-[18px] mt-2 ml-2 text-blue-600 dark:text-blue-300'

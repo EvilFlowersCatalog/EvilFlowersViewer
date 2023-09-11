@@ -4,13 +4,13 @@ import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 import * as PDFJSWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry'
 import { base64ToBinary } from '../../utils'
 import Document from './document/Document'
-import { Root, createRoot } from 'react-dom/client'
-import { ViewerContext } from './ViewerContext'
+import { createRoot } from 'react-dom/client'
 import i18n from '../../utils/i18n'
+import { ViewerContext } from './ViewerContext'
 
 pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
-//pdfjs.GlobalWorkerOptions.workerSrc =
-//  '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
+// pdfjs.GlobalWorkerOptions.workerSrc =
+//   '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
 
 interface IViewerOptions {
   theme?: 'dark' | 'light'
@@ -25,8 +25,6 @@ interface IViewerProps {
   data: string | null
   options: IViewerOptions | null
 }
-
-let root: Root | null = null // Stores the root element
 
 /**
  * The Viewer component. It takes a base64 encoded string of the PDF file and renders it.
@@ -120,10 +118,8 @@ export const renderViewer = (
   data: string,
   options: IViewerOptions | null = null
 ) => {
-  if (!root) {
-    // if it was not created, create
-    root = createRoot(document.getElementById(rootId)!)
-  }
+  // if it was not created, create
+  const root = createRoot(document.getElementById(rootId)!)
   // render
   root.render(createElement(() => <Viewer data={data} options={options} />))
 }

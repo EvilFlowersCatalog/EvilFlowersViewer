@@ -25,7 +25,6 @@ const Tooltip = ({ children, title, placement = 'top' }: ITooltipProps) => {
               'right left-14 top-0': placement === 'right',
               'left right-5 top-0': placement === 'left',
               'bottom-12': placement === 'top',
-              'right-0 left top bottom-2': placement === 'bottom',
             }
           )}
         >
