@@ -16,6 +16,14 @@ const Outline = () => {
   const { t } = useTranslation()
   const [isDropdownShown, setIsDropdownShown] = useState(false)
   const { pdf, outline, outlineSetPage } = useDocumentContext()
+  const [toc, setToc] = useState(() => {
+    // Add isExpanded property to each item in outline
+    const newOutline = outline?.map((item) => ({
+      ...item,
+      isExpanded: false,
+    }))
+    return newOutline
+  })
 
   const toggleDropdown = () => {
     setIsDropdownShown((prevState) => !prevState)
@@ -27,7 +35,7 @@ const Outline = () => {
 
   const handleToggleExpand = (item: TOCItem) => {
     item.isExpanded = !item.isExpanded
-    setToc([...toc]) // Update the state to trigger a re-render
+    setToc(...([toc] as const)) // Update the state to trigger a re-render
   }
 
   const renderTOC = (items: TOCItem[] | undefined, level = 1) => {
@@ -36,8 +44,9 @@ const Outline = () => {
         {items?.map((item, i) => (
           <li
             key={`${item.title}-${i}`}
-            className={`${level === 1 ? 'font-bold' : 'font-normal'
-              } text-sm p-2 rounded-2 text-gray-500 dark:text-gray-300 text-center list-none`}
+            className={`${
+              level === 1 ? 'font-bold' : 'font-normal'
+            } text-sm p-2 rounded-2 text-gray-500 dark:text-gray-300 text-center list-none`}
           >
             <div className="flex items-center">
               <div
@@ -59,9 +68,9 @@ const Outline = () => {
                   onClick={() => handleToggleExpand(item)}
                 >
                   {item.isExpanded ? (
-                    <AiOutlineDown className='w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300' />
+                    <AiOutlineDown className="w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300" />
                   ) : (
-                    <AiOutlineLeft className='w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300' />
+                    <AiOutlineLeft className="w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300" />
                   )}
                 </button>
               )}
@@ -74,15 +83,6 @@ const Outline = () => {
       </ul>
     )
   }
-
-  const [toc, setToc] = useState(() => {
-    // Add isExpanded property to each item in outline
-    const newOutline = outline?.map((item) => ({
-      ...item,
-      isExpanded: false,
-    }))
-    return newOutline
-  })
 
   useEffect(() => {
     // Update isExpanded property when outline changes
@@ -106,7 +106,9 @@ const Outline = () => {
     <>
       {outline && outline.length > 0 && (
         <div
-          className={`fixed top-6 right-6 z-10 bg-transparent rounded-xl ${isDropdownShown ? 'max-h-[80vh] overflow-auto' : ''}`}
+          className={`fixed top-6 right-6 z-10 bg-transparent rounded-xl ${
+            isDropdownShown ? 'max-h-[80vh] overflow-auto' : ''
+          }`}
         >
           <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg shadow-lg">
             <div className="flex justify-between items-center gap-2">
@@ -118,9 +120,9 @@ const Outline = () => {
                 onClick={toggleDropdown}
               >
                 {isDropdownShown ? (
-                  <AiOutlineDown className='w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300' />
+                  <AiOutlineDown className="w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300" />
                 ) : (
-                  <AiOutlineLeft className='w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300' />
+                  <AiOutlineLeft className="w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300" />
                 )}
               </button>
             </div>
@@ -130,8 +132,9 @@ const Outline = () => {
                   {outline?.map((item, i) => (
                     <li
                       key={`${item.title}-${i}`}
-                      className={`${item.children ? 'font-bold' : 'font-normal'
-                        } text-sm p-2 rounded-2 text-gray-500 dark:text-gray-300 text-center list-none`}
+                      className={`${
+                        item.children ? 'font-bold' : 'font-normal'
+                      } text-sm p-2 rounded-2 text-gray-500 dark:text-gray-300 text-center list-none`}
                     >
                       <div className="flex items-center">
                         <div
@@ -153,13 +156,13 @@ const Outline = () => {
                             className="mr-2 focus:outline-none bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200"
                             onClick={() => {
                               item.isExpanded = !item.isExpanded
-                              setToc([...toc])
+                              setToc(...([toc] as const))
                             }}
                           >
                             {item.isExpanded ? (
-                              <AiOutlineDown className='w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300' />
+                              <AiOutlineDown className="w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300" />
                             ) : (
-                              <AiOutlineLeft className='w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300' />
+                              <AiOutlineLeft className="w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300" />
                             )}
                           </button>
                         )}

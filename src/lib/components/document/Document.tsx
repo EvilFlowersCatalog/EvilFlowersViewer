@@ -1,6 +1,7 @@
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 
 import { KeyboardEvent, useEffect, useState } from 'react'
+// @ts-ignore
 import Cite from 'citation-js'
 import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
@@ -10,7 +11,10 @@ import Pagination from '../pagination/Pagination'
 import { RENDERING_STATES } from '../../../utils/enums'
 import Outline from '../outline/Outline'
 import BottomBar from '../bottomBar/BottomBar'
-import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api'
+import {
+  GetDocumentParameters,
+  PDFDocumentProxy,
+} from 'pdfjs-dist/types/src/display/api'
 import { t } from 'i18next'
 
 /**
@@ -64,12 +68,8 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
 
   // Set citation on start
   useEffect(() => {
-    const bibRegex = /^@.+\{.+,[\s\S]+\}$/ // little bibtex checker form @'something'{'something', anything}
     if (basedPdfCitation) {
-      if (bibRegex.test(basedPdfCitation)) {
-        // only if pass
-        changeCitationFormat('bibtex')
-      }
+      changeCitationFormat('bibtex')
     }
   }, [])
   /**
@@ -77,24 +77,26 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    *
    */
   const loadDocument = () => {
-    pdfjs.getDocument({ data }).promise.then((doc: any) => {
-      // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
-      // https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFDocumentProxy.html#getDestination
+    pdfjs
+      .getDocument({ data } as GetDocumentParameters)
+      .promise.then((doc: any) => {
+        // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
+        // https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFDocumentProxy.html#getDestination
 
-      // Case where we do not have outlines
-      doc.getOutline().then(async (outline: any) => {
-        if (outline == null || !outline) {
-          return
-        }
+        // Case where we do not have outlines
+        doc.getOutline().then(async (outline: any) => {
+          if (outline == null || !outline) {
+            return
+          }
 
-        // Case where we have outlines
-        const toc = await getTableOfContents(outline, 0, doc)
-        setOutline(toc)
+          // Case where we have outlines
+          const toc = await getTableOfContents(outline, 0, doc)
+          setOutline(toc)
+        })
+
+        setPdf(doc)
+        setTotalPages(doc.numPages)
       })
-
-      setPdf(doc)
-      setTotalPages(doc.numPages)
-    })
   }
 
   const getTableOfContents = async (
@@ -114,8 +116,12 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
 
       let pageNumber
       try {
-        const index = await doc.getPageIndex(item.dest[0])
-        pageNumber = index + 1
+        if (item.dest) {
+          const index = await doc.getPageIndex(item.dest[0])
+          pageNumber = index + 1
+        } else {
+          pageNumber = -1
+        }
       } catch (error) {
         pageNumber = -1
       }

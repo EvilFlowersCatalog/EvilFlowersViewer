@@ -2,8 +2,6 @@ import { ReactNode, useEffect, useState } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import { useTranslation } from 'react-i18next'
 
-interface IInfoProps { }
-
 interface IPdfMetadataProps {
   Author?: string
   Title?: string
@@ -25,12 +23,17 @@ interface IInfoRowProps {
 }
 
 const InfoRow = ({ title, value }: IInfoRowProps) => (
-  <div className={'mx-4'}>
+  <div className={'mx-4 mb-2'}>
     <div className={'flex flex-col'}>
       <span className={'text-m text-gray-900 dark:text-gray-100'}>
         <strong>{title}</strong>
       </span>
-      <span className="text-sm dark:text-gray-300">{value}</span>
+      <span
+        className="text-sm text-gray-900 dark:text-gray-300 mb-0"
+        style={{ overflowWrap: 'break-word' }}
+      >
+        {value}
+      </span>
     </div>
   </div>
 )

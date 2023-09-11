@@ -119,7 +119,7 @@ const Share = (params: IShareParams) => {
         <div className={'flex flex-row'}>
           <input
             className={
-              'w-full pl-2 py-1 rounded-md bg-gray-200 dark:bg-gray-900 border border-solid dark:border-gray-500 dark:text-gray-300 outline-none focus:outline-none duration-300'
+              'w-full pl-2 py-1 text-sm rounded-md bg-gray-200 dark:bg-gray-900 border border-solid dark:border-gray-500 dark:text-gray-300 outline-none focus:outline-none duration-300'
             }
             placeholder={t('shareSearch')}
             value={input}
@@ -132,7 +132,7 @@ const Share = (params: IShareParams) => {
             <Tooltip placement="left" title={t('shareSearchInfoToolTip')}>
               <BiInfoCircle
                 className={
-                  'w-[18px] h-[18px] mt-2 ml-2 text-blue-600 dark:text-blue-300'
+                  'w-[18px] h-[18px] ml-3 mt-1 text-blue-600 dark:text-blue-300'
                 }
               />
             </Tooltip>
