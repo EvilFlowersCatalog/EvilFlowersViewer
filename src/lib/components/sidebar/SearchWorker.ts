@@ -13,7 +13,10 @@ self.onmessage = (e) => {
     height: number
   }[] = []
   const pattern = e.data[0] as string
-  const textContent = e.data[1] as { textItems: Array<TextItem>; page: number }[]
+  const textContent = e.data[1] as {
+    textItems: Array<TextItem>
+    page: number
+  }[]
   const reg = new RegExp('.{0,20}' + pattern + '.{0,20}', 'gimu')
   textContent.sort((a, b) => {
     if (a.page < b.page) return -1
@@ -25,7 +28,6 @@ self.onmessage = (e) => {
         const match: RegExpMatchArray | null = textItem.str.match(reg)
         if (match) {
           match.map((text, index) => {
-
             matches = [
               ...matches,
               {

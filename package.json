@@ -1,6 +1,6 @@
 {
   "name": "@evilflowers/evilflowersviewer",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "type": "module",
   "main": "./dist/evilFlowersViewer.umd.js",
   "module": "./dist/evilFlowersViewer.es.js",
@@ -31,8 +31,6 @@
   },
   "devDependencies": {
     "@angular/core": "~12.1.4",
-    "@types/node": "^20.5.7",
-    "@types/pdfjs-dist": "^2.10.378",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "@vitejs/plugin-react": "^2.1.0",

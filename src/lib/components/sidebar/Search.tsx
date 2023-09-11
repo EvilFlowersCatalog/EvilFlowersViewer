@@ -16,8 +16,6 @@ import { BiSad } from 'react-icons/bi'
 
 /**
  *
- * @param param0 - props
- * @param param0.setActiveSidebar - function to set the active sidebar
  * @returns The search sidebar component
  */
 const Search = () => {
@@ -79,7 +77,7 @@ const Search = () => {
             (n) => {
               return pdf
                 ?.getPage(n + 1)
-                .then((page: any) => {
+                .then((page) => {
                   // ensure text content includes only textItems
                   let e: getTextContentParameters = {
                     disableCombineTextItems: false,
@@ -233,16 +231,18 @@ const Search = () => {
           <span className={'evilflowersviewer-loader-small'}></span>
         </div>
       )}
-      {searching === SEARCH_STATES.DONE && matches.length === 0 && (
-        <span
-          className={
-            'flex flex-col justify-center items-center gap-2 text-gray-500 dark:text-gray-300 text-xs mt-4'
-          }
-        >
-          {t('noMatchesFound')}
-          <BiSad className="w-[30px] h-[30px] text-gray-500 dark:text-gray-300" />
-        </span>
-      )}
+      {searching === SEARCH_STATES.DONE &&
+        matches.length === 0 &&
+        searchPattern.length > 0 && (
+          <span
+            className={
+              'flex flex-col justify-center items-center gap-2 text-gray-500 dark:text-gray-300 text-xs mt-4'
+            }
+          >
+            {t('noMatchesFound')}
+            <BiSad className="w-[30px] h-[30px] text-gray-500 dark:text-gray-300" />
+          </span>
+        )}
       {searching === SEARCH_STATES.DONE && matches.length > 0 && (
         <>
           <span
