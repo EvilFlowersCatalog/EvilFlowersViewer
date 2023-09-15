@@ -11,7 +11,8 @@ import { RENDERING_STATES } from '../../../utils/enums'
  *
  */
 const Page = () => {
-  const { pdf, activePage, scale, rerender, isRendering, setRendering } = useDocumentContext()
+  const { pdf, activePage, scale, rerender, isRendering, setRendering } =
+    useDocumentContext()
 
   /**
    * Renders the page and all its layers
@@ -27,7 +28,7 @@ const Page = () => {
         container.setAttribute('id', 'textLayer')
         container.setAttribute(
           'class',
-          'absolute w-full h-full top-0 left-0 leading-none text-transparent'
+          'absolute top-0 left-0 leading-none text-transparent'
         )
 
         const viewport = page.getViewport({ scale })
@@ -69,9 +70,10 @@ const Page = () => {
             document
               .getElementById('evilFlowersContent')
               ?.replaceChild(container, prevTextLayerNode)
-          else document
-            .getElementById('evilFlowersContent')
-            ?.replaceChildren(container)
+          else
+            document
+              .getElementById('evilFlowersContent')
+              ?.replaceChildren(container)
           if (!prevCanvas)
             document.getElementById('evilFlowersContent')?.appendChild(canvas)
 
@@ -89,14 +91,19 @@ const Page = () => {
 
   return (
     <PageContext.Provider value={{}}>
-      <div className={'pt-7'} style={{ height: '100vh' }}>
+      <div
+        style={{
+          paddingTop: '66px',
+          marginBottom: '50px',
+        }}
+      >
         <div
           id={'evilFlowersContent'}
-          className={'w-fit mx-auto shadow relative'}
+          className={'w-fit mx-auto relative'}
         ></div>
         {isRendering &&
           isRendering in
-          [RENDERING_STATES.LOADING, RENDERING_STATES.RENDERING] && (
+            [RENDERING_STATES.LOADING, RENDERING_STATES.RENDERING] && (
             <div className={'absolute left-1/2 top-1/3 translate-x-1/2'}>
               <span className={'evilflowersviewer-loader'} />
             </div>

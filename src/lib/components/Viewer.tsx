@@ -19,6 +19,7 @@ interface IViewerOptions {
   shareFunction?:
     | ((pages: string | null, expaireDate: string) => Promise<string>)
     | null
+  homeFunction?: (() => void) | null
 }
 
 interface IViewerProps {
@@ -39,6 +40,7 @@ export const Viewer = (viewerProps: IViewerProps) => {
     lang: 'en',
     citationBib: null,
     shareFunction: null,
+    homeFunction: null,
   }
 
   // Update basedOptions with values from inputed options
@@ -90,6 +92,7 @@ export const Viewer = (viewerProps: IViewerProps) => {
         theme,
         setTheme,
         shareFunction: basedOptions.shareFunction,
+        homeFunction: basedOptions.homeFunction,
       }}
     >
       <div
