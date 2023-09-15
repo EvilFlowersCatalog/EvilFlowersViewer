@@ -65,7 +65,7 @@ const Share = (params: IShareParams) => {
       setInput('') // reset input
 
       let givenLink: string = await shareFunction(pages, expaireDateISO)
-      givenLink ? givenLink : (givenLink = 'error')
+      givenLink = givenLink ? givenLink : 'error'
       params.setLink(givenLink)
     }
   }

@@ -81,9 +81,49 @@ renderViewer(rootId, base64, options)
 | options.lang              | 'sk' or 'en'                                                                        |
 | options.citationBib       | string containing bib citation of given document examaple: '@article{name,\n ....}' |
 | options.shareFunction     | type: (pages: string / null, expaireDate: string) => Promise<string>                |
+| options.homeFunction      | type: () => void                                                                    |
 | shareFunction.pages       | string containing selected pages (1,3-6,10) or null (means it's empty)              |
 | shareFunction.expaireDate | string containing lifespan of shared document, the end. ISO                         |
 | shareFunction => return   | link for your shared document as string                                             |
+
+## Examples
+
+Examples of functions shareFunction and homeFunction
+
+1. shareFunction:
+
+```ts
+private shareFunction = async (pages: string | null, expireDate: string) => {
+    // creat whatever object
+    const yourObject = {
+      range: pages,
+      expires_at: expireDate,
+    };
+    let link = '';
+
+    // yout endpoint
+    await this.yourService
+      .yourFunction(yourObject)
+      .toPromise()
+      .then((res) => {
+        link = res.url;
+      })
+      .catch((err) => {
+        console.log('Error:', err);
+      });
+
+    // returned your link
+    return link;
+  };
+```
+
+2. homeFunction:
+
+```ts
+private homeFunction = () => {
+    this.router.navigateByUrl('/path-to/whatever-you-want');
+};
+```
 
 ## Contributing
 

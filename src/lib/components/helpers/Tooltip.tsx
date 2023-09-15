@@ -27,6 +27,7 @@ const Tooltip = ({ children, title, placement = 'top' }: ITooltipProps) => {
               'bottom-12': placement === 'top',
             }
           )}
+          style={{ top: placement === 'bottom' ? '40px' : '', zIndex: 9999 }}
         >
           <span
             className={

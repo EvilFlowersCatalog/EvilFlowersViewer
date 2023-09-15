@@ -1,11 +1,10 @@
 import { ReactNode } from 'react'
 import cx from 'classnames'
 import Tooltip from '../helpers/Tooltip'
+import { useTranslation } from 'react-i18next'
 
 // icons
 import { MdKeyboardDoubleArrowLeft } from 'react-icons/md'
-
-import { useTranslation } from 'react-i18next'
 
 interface ISidebarProps {
   open: boolean
@@ -19,14 +18,18 @@ const Sidebar = ({ open, setOpen, children, title }: ISidebarProps) => {
 
   return (
     <div
-      className={cx('fixed duration-200 w-64 h-[80vh] z-10 flex', {
+      className={cx('fixed duration-200 w-64 z-10 overflow-auto flex', {
         'left-0': open,
         '-left-64': !open,
       })}
+      style={{
+        height: '80vh',
+        top: '42px',
+      }}
     >
       <div
         className={
-          'bg-gray-50 dark:bg-gray-800 rounded-lg m-6 w-full shadow-lg flex flex-col overflow-auto duration-200'
+          'bg-gray-50 pb-3 dark:bg-gray-800 rounded-lg m-6 w-full shadow-lg flex-col overflow-auto duration-200'
         }
         style={{ whiteSpace: 'pre-wrap' }}
       >

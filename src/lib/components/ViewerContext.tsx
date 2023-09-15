@@ -3,7 +3,10 @@ import { createContext, useContext } from 'react'
 interface IViewerContext {
   theme: 'dark' | 'light' | undefined
   setTheme: (theme: 'dark' | 'light') => void
-  shareFunction?: ((pages: string | null, expaireDate: string) => Promise<string>) | null
+  shareFunction?:
+    | ((pages: string | null, expaireDate: string) => Promise<string>)
+    | null
+  homeFunction?: (() => void) | null
 }
 
 export const ViewerContext = createContext<IViewerContext | null>(null)

@@ -16,11 +16,13 @@ interface TOCItemDoc {
 interface IDocumentContext {
   pdf?: PDFDocumentProxy
   activePage: number
-  pdfCitation: string | null
+  menu: boolean
+  setMenu: (visibility: boolean) => void
+  pdfCitation: { citation: string; type: string } | null
   downloadDocument: () => void
   downloadCitation: () => void
   copyCitation: () => void
-  changeCitationFormat: (format: string) => void
+  changeCitationFormat: (format: string, type: string) => void
   nextPage: () => void
   prevPage: () => void
   setPage: (e: React.ChangeEvent<HTMLInputElement>) => void
