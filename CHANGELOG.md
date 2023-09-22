@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.6 : 2023-09-22
+## 0.3.7 : 2023-09-22
 
 - **Added**: css files
 - **Added**: introduction
