@@ -1,47 +1,34 @@
-import { ReactNode, useEffect, useState } from 'react'
-import cx from 'classnames'
 import { useTranslation } from 'react-i18next'
+import Tooltip from '../helpers/Tooltip'
 import { useDocumentContext } from '../document/DocumentContext'
-
-//utils
-import { SIDEBAR_TABS, SIDEBAR_TAB_NAMES } from '../../../utils/enums'
-
-// icons
 import {
   BiDownload,
+  BiHelpCircle,
+  BiHome,
   BiInfoCircle,
+  BiMenuAltLeft,
   BiMoon,
-  BiPencil,
   BiSearch,
   BiSun,
-  BiMenuAltLeft,
-  BiHome,
+  BiZoomIn,
+  BiZoomOut,
 } from 'react-icons/bi'
-import { RxQuote, RxShare2 } from 'react-icons/rx'
-
-// components
-import Search from './Search'
-import Share from './Share'
-import Info from './Info'
-import Tooltip from '../helpers/Tooltip'
-import Sidebar from './Sidebar'
-import Citations from './Citations'
+import { PiCaretUpDownBold } from 'react-icons/pi'
+import { LuChevronsLeftRight } from 'react-icons/lu'
+import { TbZoomReplace } from 'react-icons/tb'
 import { useViewerContext } from '../ViewerContext'
-import ShareQRCode from './ShareQRCode'
+import { SIDEBAR_TABS, SIDEBAR_TAB_NAMES } from '../../../utils/enums'
+import { useEffect, useState } from 'react'
+import { RxQuote, RxShare2 } from 'react-icons/rx'
+import Citations from '../citation/Citations'
+import ShareQRCode from '../share/ShareQRCode'
 import Outline from '../outline/Outline'
+import Sidebar from '../sidebar/Sidebar'
+import Search from '../search/Search'
+import Info from '../info/Info'
+import Share from '../share/Share'
 
-interface IZoomButtonProps {
-  onClick: () => void
-  icon: ReactNode
-  tooltipText?: string
-}
-
-/**
- * The sidebar component
- *
- * @returns - Sidebar component
- */
-const Tools = () => {
+const Menu = () => {
   const [activeSidebar, setActiveSidebar] = useState<SIDEBAR_TABS>(
     SIDEBAR_TABS.NULL
   )
@@ -53,24 +40,19 @@ const Tools = () => {
   const sidebarNames = SIDEBAR_TAB_NAMES()
 
   const { t } = useTranslation()
-  const { downloadDocument, pdfCitation, outline, menu } = useDocumentContext()
-  const { theme, setTheme, shareFunction, homeFunction } = useViewerContext()
-
-  useEffect(() => {
-    if (activeSidebar === SIDEBAR_TABS.NULL) {
-      setSidebarOpen(false)
-    } else {
-      setSidebarOpen(true)
-    }
-  }, [activeSidebar])
-
-  useEffect(() => {
-    if (!sidebarOpen) setActiveSidebar(SIDEBAR_TABS.NULL)
-  }, [sidebarOpen])
-
-  useEffect(() => {
-    if (!menu) setActiveSidebar(SIDEBAR_TABS.NULL)
-  }, [menu])
+  const {
+    zoomIn,
+    zoomOut,
+    resetScale,
+    scale,
+    downloadDocument,
+    pdfCitation,
+    pdfViewing,
+    setPdfViewing,
+    outline,
+  } = useDocumentContext()
+  const { theme, setTheme, shareFunction, homeFunction, setShowIntro } =
+    useViewerContext()
 
   const handleModeChange = () => {
     if (theme === 'light') {
@@ -82,7 +64,14 @@ const Tools = () => {
     }
   }
 
-  // Buttons in tools
+  useEffect(() => {
+    if (activeSidebar === SIDEBAR_TABS.NULL) {
+      setSidebarOpen(false)
+    } else {
+      setSidebarOpen(true)
+    }
+  }, [activeSidebar])
+
   const SidebarItems = [
     // HOME
     {
@@ -90,9 +79,7 @@ const Tools = () => {
       icon: (
         <BiHome
           className={
-            homeFunction
-              ? 'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'
-              : 'w-[24px] h-[24px] text-gray-300 dark:text-gray-500'
+            homeFunction ? 'viewer-button-icon' : 'viewer-button-icon-deactive'
           }
         />
       ),
@@ -102,16 +89,7 @@ const Tools = () => {
     // SEARCH
     {
       name: t('search'),
-      icon: (
-        <BiSearch
-          className={cx('duration-200', {
-            'w-[24px] h-[24px] text-gray-800 dark:text-gray-200':
-              activeSidebar === SIDEBAR_TABS.SEARCH,
-            'w-[24px] h-[24px] text-gray-500 dark:text-gray-300':
-              activeSidebar !== SIDEBAR_TABS.SEARCH,
-          })}
-        />
-      ),
+      icon: <BiSearch className={'viewer-button-icon'} />,
       tooltipText: t('fullTextSearch'),
       onClick: () => {
         setActiveSidebar(
@@ -128,8 +106,8 @@ const Tools = () => {
         <BiMenuAltLeft
           className={
             outline && outline.length
-              ? 'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'
-              : 'w-[24px] h-[24px] text-gray-300 dark:text-gray-500'
+              ? 'viewer-button-icon'
+              : 'viewer-button-icon-deactive'
           }
         />
       ),
@@ -162,9 +140,7 @@ const Tools = () => {
       icon: (
         <RxQuote
           className={
-            pdfCitation
-              ? 'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'
-              : 'w-[24px] h-[24px] text-gray-300 dark:text-gray-500'
+            pdfCitation ? 'viewer-button-icon' : 'viewer-button-icon-deactive'
           }
         />
       ),
@@ -182,9 +158,7 @@ const Tools = () => {
       icon: (
         <RxShare2
           className={
-            shareFunction
-              ? 'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'
-              : 'w-[24px] h-[24px] text-gray-300 dark:text-gray-500'
+            shareFunction ? 'viewer-button-icon' : 'viewer-button-icon-deactive'
           }
         />
       ),
@@ -201,11 +175,7 @@ const Tools = () => {
     // INFO
     {
       name: t('info'),
-      icon: (
-        <BiInfoCircle
-          className={'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'}
-        />
-      ),
+      icon: <BiInfoCircle className={'viewer-button-icon'} />,
       tooltipText: t('infoToolTip'),
       onClick: () =>
         setActiveSidebar(
@@ -217,15 +187,76 @@ const Tools = () => {
     // DOWNLOAD
     {
       name: t('download'),
-      icon: (
-        <BiDownload
-          className={'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'}
-        />
-      ),
+      icon: <BiDownload className={'viewer-button-icon'} />,
       tooltipText: t('downloadToolTip'),
       onClick: () => {
         downloadDocument()
         setActiveSidebar(SIDEBAR_TABS.NULL)
+      },
+    },
+    // PDF listing
+    {
+      name: '',
+      icon:
+        pdfViewing === 'paginator' ? (
+          <PiCaretUpDownBold className={'viewer-button-icon'} />
+        ) : (
+          <LuChevronsLeftRight className={'viewer-button-icon'} />
+        ),
+      tooltipText:
+        pdfViewing === 'paginator' ? t('pdfUpDown') : t('pdfLeftRight'),
+      onClick: () => {
+        setPdfViewing(pdfViewing === 'paginator' ? 'scroll' : 'paginator')
+      },
+    },
+    // HELP
+    {
+      name: t('help'),
+      icon: <BiHelpCircle className={'viewer-button-icon'} />,
+      tooltipText: t('help'),
+      onClick: () => {
+        setShowIntro(true)
+      },
+    },
+    // THEME
+    {
+      name: t(''),
+      icon:
+        theme === 'light' ? (
+          <BiSun className={'viewer-button-icon'} />
+        ) : (
+          <BiMoon className={'viewer-button-icon'} />
+        ),
+      tooltipText: theme === 'light' ? t('lightMode') : t('darkMode'),
+      onClick: () => {
+        handleModeChange()
+      },
+    },
+    // ZOOM IN
+    {
+      name: t(''),
+      icon: <BiZoomIn className={'viewer-button-icon'} />,
+      tooltipText: t('zoomIn'),
+      onClick: () => {
+        zoomIn()
+      },
+    },
+    // ZOOM OUT
+    {
+      name: t(''),
+      icon: <BiZoomOut className={'viewer-button-icon'} />,
+      tooltipText: t('zoomOut'),
+      onClick: () => {
+        zoomOut()
+      },
+    },
+    // RESET ZOOM
+    {
+      name: t(''),
+      icon: <TbZoomReplace className={'viewer-button-icon'} />,
+      tooltipText: t('resetZoom'),
+      onClick: () => {
+        resetScale()
       },
     },
   ]
@@ -235,6 +266,7 @@ const Tools = () => {
       <Sidebar
         open={sidebarOpen}
         setOpen={setSidebarOpen}
+        setSidebar={setActiveSidebar}
         title={sidebarNames[activeSidebar]}
       >
         {activeSidebar === SIDEBAR_TABS.SEARCH && <Search />}
@@ -246,59 +278,37 @@ const Tools = () => {
           />
         )}
       </Sidebar>
-      {menu && (
-        <div
-          className={cx(
-            'fixed left-6 bg-gray-50 dark:bg-gray-800 z-10 rounded-lg shadow-lg flex items-center flex-col duration-200 p-2',
-            { 'left-6': !sidebarOpen, 'left-64': sidebarOpen }
-          )}
-          style={{ top: '66px' }}
-        >
-          {SidebarItems.map((item, i) => (
-            <div className={'relative'} key={i}>
+      <div className={'header-container'}>
+        {SidebarItems.slice(0, SidebarItems.length - 3).map((item, i) => (
+          <div className={'header-buttons-container'} key={i}>
+            <Tooltip title={item.tooltipText} placement="right">
+              <div
+                id={item.name}
+                onClick={item.onClick}
+                className={'viewer-button'}
+              >
+                {item.icon}
+              </div>
+            </Tooltip>
+          </div>
+        ))}
+        <div className="header-zoom-buttons-container">
+          {SidebarItems.slice(SidebarItems.length - 3).map((item, i) => (
+            <div className={'header-buttons-container'} key={i}>
               <Tooltip title={item.tooltipText} placement="right">
                 <div
                   id={item.name}
                   onClick={item.onClick}
-                  className={
-                    'hover:bg-gray-200 hover:dark:bg-gray-900 p-2 border-none cursor-pointer duration-200 rounded-md flex items-center'
-                  }
+                  className={'viewer-button'}
                 >
                   {item.icon}
                 </div>
               </Tooltip>
             </div>
           ))}
-          <div className={'relative mt-4'}>
-            <Tooltip
-              title={theme === 'light' ? t('lightMode') : t('darkMode')}
-              placement="right"
-            >
-              <div
-                id={'mode'}
-                onClick={handleModeChange}
-                className={
-                  'hover:bg-gray-200 dark:hover:bg-gray-900 p-2 border-none cursor-pointer duration-200 rounded-md flex items-center'
-                }
-              >
-                {theme === 'light' ? (
-                  <BiSun
-                    className={
-                      'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'
-                    }
-                  />
-                ) : (
-                  <BiMoon
-                    className={
-                      'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'
-                    }
-                  />
-                )}
-              </div>
-            </Tooltip>
-          </div>
+          <span className={'header-scale-percentage'}>{scale * 100}%</span>
         </div>
-      )}
+      </div>
       {citationVisibile && (
         <Citations setCitationVisible={setCitationVisible} />
       )}
@@ -310,4 +320,4 @@ const Tools = () => {
   )
 }
 
-export default Tools
+export default Menu

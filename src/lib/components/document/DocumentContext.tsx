@@ -16,9 +16,10 @@ interface TOCItemDoc {
 interface IDocumentContext {
   pdf?: PDFDocumentProxy
   activePage: number
+  screenWidth: number
   menu: boolean
   setMenu: (visibility: boolean) => void
-  pdfCitation: { citation: string; type: string } | null
+  pdfCitation: { citation: string; type: string; format: string } | null
   downloadDocument: () => void
   downloadCitation: () => void
   copyCitation: () => void
@@ -26,6 +27,7 @@ interface IDocumentContext {
   nextPage: () => void
   prevPage: () => void
   setPage: (e: React.ChangeEvent<HTMLInputElement>) => void
+  setActivePage: (page: number) => void
   searchPage: (n: number) => void
   scale: number
   setScale: (scale: number) => void
@@ -39,6 +41,8 @@ interface IDocumentContext {
   outline: TOCItemDoc[] | undefined
   setOutline: (outline: TOCItemDoc[] | undefined) => void
   outlineSetPage: (num: number) => void
+  pdfViewing: 'paginator' | 'scroll'
+  setPdfViewing: (type: 'paginator' | 'scroll') => void
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)

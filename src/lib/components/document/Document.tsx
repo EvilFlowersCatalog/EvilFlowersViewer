@@ -1,20 +1,25 @@
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 
-import React, { KeyboardEvent, useEffect, useState } from 'react'
+import React, {
+  KeyboardEvent,
+  MouseEvent,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 // @ts-ignore
 import Cite from 'citation-js'
 import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
-import Tools from '../sidebar/Tools'
-import Pagination from '../pagination/Pagination'
 import { RENDERING_STATES } from '../../../utils/enums'
-import BottomBar from '../bottomBar/BottomBar'
+import PreviewBar from '../preview-bar/PreviewBar'
 import {
   GetDocumentParameters,
   PDFDocumentProxy,
 } from 'pdfjs-dist/types/src/display/api'
 import { t } from 'i18next'
-import Header from '../header/Header'
+import Menu from '../menu/Menu'
+import { useViewerContext } from '../ViewerContext'
 
 /**
  * Document component
@@ -62,17 +67,50 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [rerender, setRerender] = useState<Object>({})
   const [isRendering, setRendering] = useState<RENDERING_STATES | null>(null)
   const [totalPages, setTotalPages] = useState(0)
+  const ref: any = useRef(null)
   const [outline, setOutline] = useState<TOCItemDoc[] | undefined>()
+  const [pdfViewing, setPdfViewing] = useState<'paginator' | 'scroll'>(
+    'paginator'
+  )
   const [basedPdfCitation] = useState<string | null | undefined>(citationBibTeX)
+  const [screenWidth, setScreenWidth] = useState(window.outerWidth)
+  const [pagePreviews, setPagePreviews] = useState(
+    parseInt((window.outerHeight / 240).toString())
+  )
   const [pdfCitation, setPdfCitation] = useState<{
     citation: string
     type: string
+    format: string
   } | null>(null)
+
+  const { setShowIntro, showIntro } = useViewerContext()
 
   // Set citation on start
   useEffect(() => {
+    setPdfViewing(screenWidth > 959 ? 'paginator' : 'scroll')
     if (basedPdfCitation) {
       changeCitationFormat('bibtex', 'bib')
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleResize = () => {
+      const newScreenWidth = window.outerWidth
+      const screenHeight = window.outerHeight
+      setScreenWidth(newScreenWidth)
+      setPagePreviews(parseInt((screenHeight / 240).toString()))
+
+      if (newScreenWidth < 959) {
+        setPdfViewing('scroll')
+      }
+    }
+
+    // Attach the event listener when the component mounts
+    window.addEventListener('resize', handleResize)
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('resize', handleResize)
     }
   }, [])
 
@@ -82,8 +120,8 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    * Load document on mount
    *
    */
-  const loadDocument = () => {
-    pdfjs
+  const loadDocument = async () => {
+    await pdfjs
       .getDocument({ data } as GetDocumentParameters)
       .promise.then((doc: any) => {
         // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
@@ -197,11 +235,16 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
       // set new Cite by based pdf citation
       const citation = new Cite(basedPdfCitation)
       // convert our citation to wanted one
-      let formattedCitation: { citation: string; type: string } = {
+      let formattedCitation: {
+        citation: string
+        type: string
+        format: string
+      } = {
         citation: citation.format(format, {
           template: 'apa',
         }),
         type: type,
+        format: format,
       }
       // fixed utf-8 (just for now)
       formattedCitation.citation = formattedCitation.citation.replace(
@@ -318,14 +361,14 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    * Zoom in on document
    */
   const zoomIn = () => {
-    setScale((prevScale) => (prevScale < 2.5 ? prevScale + 0.25 : prevScale))
+    setScale((prevScale) => (prevScale < 3 ? prevScale + 0.25 : prevScale))
   }
 
   /**
    * Zoom out on document
    */
   const zoomOut = () => {
-    setScale((prevScale) => (prevScale > 1 ? prevScale - 0.25 : prevScale))
+    setScale((prevScale) => (prevScale > 0.25 ? prevScale - 0.25 : prevScale))
   }
 
   /**
@@ -359,7 +402,18 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         event.preventDefault()
         zoomOut()
         break
+      case 'h':
+        event.preventDefault()
+        setShowIntro(!showIntro)
+        break
     }
+  }
+
+  const handleDoubleClick = (event: MouseEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setScale((prevScale) =>
+      prevScale > 1.5 ? 1.5 : prevScale < 1 ? 1 : prevScale === 1.5 ? 1 : 1.5
+    )
   }
 
   return (
@@ -371,12 +425,14 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         changeCitationFormat,
         menu,
         setMenu,
+        screenWidth,
         pdf,
         pdfCitation,
         activePage,
         nextPage,
         prevPage,
         setPage,
+        setActivePage,
         outlineSetPage,
         searchPage,
         scale,
@@ -390,28 +446,26 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         isRendering,
         setRendering,
         totalPages,
+        pdfViewing,
+        setPdfViewing,
       }}
     >
-      <div
-        onKeyDown={keyDownHandler}
-        tabIndex={-1}
-        className={'outline-0 w-full h-full'}
-      >
-        {!data && (
-          <div className="flex items-center justify-center w-screen h-screen">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold mb-4 text-gray-500 dark:text-gray-300">
-                {t('loadPDFerror')}
-              </h1>
-            </div>
-          </div>
-        )}
-        <Header />
-        {data && <Tools />}
-        {data && <Page />}
-        {data && <Pagination />}
-        {data && <BottomBar pagePreviews={7} />}
-      </div>
+      {!data && <h1 className="document-load-error">{t('loadPDFerror')}</h1>}
+      {data && (
+        <div
+          ref={ref}
+          onKeyDown={keyDownHandler}
+          tabIndex={-1}
+          className={'document-container'}
+          onMouseEnter={() => ref.current?.focus()}
+        >
+          <Menu />
+          <Page onDoubleClick={handleDoubleClick} />
+          {pdfViewing === 'paginator' && (
+            <PreviewBar pagePreviews={pagePreviews} />
+          )}
+        </div>
+      )}
     </DocumentContext.Provider>
   )
 }

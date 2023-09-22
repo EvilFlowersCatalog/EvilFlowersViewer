@@ -1,6 +1,5 @@
-import { ReactNode } from 'react'
+import { ChangeEvent, KeyboardEvent, ReactNode, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import cx from 'classnames'
 
 // context
 import { useDocumentContext } from '../document/DocumentContext'
@@ -14,7 +13,7 @@ interface IZoomButtonProps {
   onClick: () => void
   icon: ReactNode
   tooltipText: string
-  position: 'right' | 'left' | 'bottom'
+  position: 'top' | 'left' | 'right' | 'bottom'
 }
 
 const PaginationButton = ({
@@ -25,12 +24,7 @@ const PaginationButton = ({
 }: IZoomButtonProps) => {
   return (
     <Tooltip title={tooltipText} placement={position}>
-      <div
-        onClick={onClick}
-        className={
-          'border-none p-1 hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 flex items-center'
-        }
-      >
+      <div onClick={onClick} className={'viewer-button'}>
         {icon}
       </div>
     </Tooltip>
@@ -39,54 +33,70 @@ const PaginationButton = ({
 
 const Pagination = () => {
   const { t } = useTranslation()
-  const { nextPage, prevPage, activePage, totalPages } = useDocumentContext()
+  const { nextPage, prevPage, activePage, totalPages, setActivePage } =
+    useDocumentContext()
+  const [inputValue, setInputValue] = useState('')
+
+  const handlePaginationChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    const valueRegex = /^[0-9]*$/
+    const valueInt = parseInt(value ? value : '1')
+    if (valueRegex.test(value) && valueInt <= totalPages && valueInt > 0)
+      setInputValue(value)
+  }
+
+  const handlePaginationKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.code === 'Enter' && inputValue) {
+      setActivePage(parseInt(inputValue))
+      setInputValue('')
+    }
+  }
 
   return (
     <div
-      className={
-        'fixed right-0 bg-gray-100 dark:bg-gray-800 flex-col shadow-lg justify-center items-center'
-      }
-      style={{ top: '50px', padding: '5px 20px' }}
+      className={'pagination-container'}
+      onDoubleClick={(e) => e.stopPropagation()}
     >
-      <div className={'flex items-center justify-center gap-3 mb-2'}>
-        <PaginationButton
-          tooltipText={t('prevPage')}
-          onClick={prevPage}
-          position="bottom"
-          icon={
-            <AiOutlineLeft
-              className={cx('duration-200', {
-                'w-[24px] h-[24px] text-gray-500 dark:text-gray-300':
-                  activePage !== 1,
-                'w-[24px] h-[24px] text-gray-300 dark:text-gray-500':
-                  activePage === 1,
-              })}
-            />
-          }
-        />
-        <PaginationButton
-          tooltipText={t('nextPage')}
-          onClick={nextPage}
-          position="left"
-          icon={
-            <AiOutlineRight
-              className={cx('duration-200', {
-                'w-[24px] h-[24px] text-gray-300 dark:text-gray-500':
-                  activePage === totalPages,
-                'w-[24px] h-[24px] text-gray-500 dark:text-gray-300':
-                  activePage !== totalPages,
-              })}
-            />
-          }
-        />
-      </div>
-      <span
-        className={
-          'text-sm flex text-center font-bold px-2 pb-2 flex rounded-2 text-gray-500 dark:text-gray-300'
+      <PaginationButton
+        tooltipText={activePage !== 1 ? t('prevPage') : ''}
+        onClick={prevPage}
+        position="top"
+        icon={
+          <AiOutlineLeft
+            className={
+              activePage !== 1
+                ? 'viewer-button-icon'
+                : 'viewer-button-icon-deactive'
+            }
+          />
         }
-      >
-        {t('pagination', { x: activePage, y: totalPages })}
+      />
+      <span className={'pagination-pages-text'}>
+        {t('pagination')}
+        <input
+          placeholder={activePage.toString()}
+          value={inputValue}
+          className="pagination-input"
+          onChange={handlePaginationChange}
+          onKeyDown={handlePaginationKey}
+        />
+        {t('of')}
+        {totalPages}
       </span>
+      <PaginationButton
+        tooltipText={activePage !== totalPages ? t('nextPage') : ''}
+        onClick={nextPage}
+        position="top"
+        icon={
+          <AiOutlineRight
+            className={
+              activePage !== totalPages
+                ? 'viewer-button-icon'
+                : 'viewer-button-icon-deactive'
+            }
+          />
+        }
+      />
     </div>
   )
 }

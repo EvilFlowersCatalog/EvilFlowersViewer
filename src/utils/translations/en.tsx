@@ -1,6 +1,7 @@
 export const en = {
   translations: {
-    pagination: 'Page {{x}} of {{y}}',
+    pagination: 'Page',
+    of: 'of ',
     prevPage: 'Previous page',
     nextPage: 'Next page',
     zoomIn: 'Zoom in',
@@ -35,12 +36,12 @@ export const en = {
     share: 'Share',
     shareToolTip: 'Share document',
     notShareToolTip: 'Share is not available',
-    shareSearch: 'Pages',
+    shareSearch: 'Pages: 1,2-5...',
     shareSearchInfoToolTip:
       'PAGES:\nEnter page numbers or page ranges separated by commas which will start assigning from the beginning of the document.\nExample: 1,4-7,10',
     shareExpaire: 'Lifespan:',
     shareQrCode: 'Scan to download',
-    shareQrCodeFail: 'QR code was not loaded\nSomething went wrong :/',
+    shareQrCodeFail: 'QR code was not loaded\nSomething went wrong',
     info: 'Info',
     infoToolTip: 'Document info',
     toc: 'Table of content',
@@ -49,6 +50,8 @@ export const en = {
     downloadQR: 'Download QR',
     download: 'Download',
     downloadToolTip: 'Download document',
+    pdfUpDown: 'View all pages',
+    pdfLeftRight: 'View 1 page with paginator',
     null: 'Null',
     close: 'Close',
     Author: 'Author',
@@ -63,5 +66,7 @@ export const en = {
     Producer: 'Producer',
     Subject: 'Subject',
     PDFFormatVersion: 'PDF-Formater version',
+    introShow: `Don't show again`,
+    help: 'Help',
   },
 }

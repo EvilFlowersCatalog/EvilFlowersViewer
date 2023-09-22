@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.6 : 2023-09-22
+
+- **Added**: css files
+- **Added**: introduction
+- **Added**: new senteces in translation
+- **Changed**: Whole design
+- **Changed**: styling compoments
+- **Changed**: project architecture
+- **Changed**: bottomBar -> PreviewBar
+- **Changed**: header -> menu
+- **Fixed**: PDF sizing
+- **Fixed**: Errors and bugs
+
 ## 0.3.6 : 2023-09-15
 
 - **Updated**: README.md

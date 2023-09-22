@@ -4,52 +4,51 @@ import Tooltip from '../helpers/Tooltip'
 import { useTranslation } from 'react-i18next'
 
 // icons
-import { MdKeyboardDoubleArrowLeft } from 'react-icons/md'
+import { AiOutlineDoubleLeft } from 'react-icons/ai'
+import { SIDEBAR_TABS } from '../../../utils/enums'
 
 interface ISidebarProps {
   open: boolean
   setOpen: (open: boolean) => void
   children: ReactNode
   title: ReactNode
+  setSidebar: (state: SIDEBAR_TABS) => void
 }
 
-const Sidebar = ({ open, setOpen, children, title }: ISidebarProps) => {
+const Sidebar = ({
+  open,
+  setOpen,
+  children,
+  title,
+  setSidebar,
+}: ISidebarProps) => {
   const { t } = useTranslation()
 
   return (
     <div
-      className={cx('fixed duration-200 w-64 z-10 overflow-auto flex', {
-        'left-0': open,
-        '-left-64': !open,
+      className={cx('sidebar-container', {
+        'sidebar-container-hidden': !open,
+        'sidebar-container-visible': open,
       })}
-      style={{
-        height: '80vh',
-        top: '42px',
-      }}
     >
-      <div
-        className={
-          'bg-gray-50 pb-3 dark:bg-gray-800 rounded-lg m-6 w-full shadow-lg flex-col overflow-auto duration-200'
-        }
-        style={{ whiteSpace: 'pre-wrap' }}
-      >
-        <div className={'header p-4 flex justify-between'}>
-          <span className={'text-gray-700 dark:text-gray-300 font-semibold'}>
-            {title}
-          </span>
-          <div className={'relative'}>
-            <Tooltip title={t('hidePanel')} placement={'left'}>
-              <MdKeyboardDoubleArrowLeft
-                className={
-                  'ml-auto text-gray-500 w-[20px] h-[20px] dark:text-gray-300 cursor-pointer hover:text-gray-700 dark:hover:text-gray-500 duration-200'
-                }
-                onClick={() => setOpen(false)}
+      <div className="sidebat-title-container">
+        <span className={'sidebar-title'}>{title}</span>
+        <div className={'sidebar-button-container'}>
+          <Tooltip title={t('hidePanel')} placement={'left'}>
+            <div className="viewer-button">
+              <AiOutlineDoubleLeft
+                className={'viewer-button-icon'}
+                style={{ width: '15px', height: '15px' }}
+                onClick={() => {
+                  setSidebar(SIDEBAR_TABS.NULL)
+                  setOpen(false)
+                }}
               />
-            </Tooltip>
-          </div>
+            </div>
+          </Tooltip>
         </div>
-        {children}
       </div>
+      <div className="sidebar-children-container">{children}</div>
     </div>
   )
 }

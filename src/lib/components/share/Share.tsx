@@ -5,6 +5,7 @@ import Tooltip from '../helpers/Tooltip'
 import { RxShare2 } from 'react-icons/rx'
 import { useDocumentContext } from '../document/DocumentContext'
 import { useViewerContext } from '../ViewerContext'
+import cx from 'classnames'
 
 interface IShareParams {
   setLink: (link: string) => void
@@ -114,62 +115,54 @@ const Share = (params: IShareParams) => {
   }
 
   return (
-    <div className={'px-4 text-center gap-2'}>
-      <form className={'w-full'} onSubmit={handleSubmit}>
-        <div className={'flex flex-row'}>
-          <input
-            className={
-              'w-full pl-2 py-1 text-sm rounded-md bg-gray-200 dark:bg-gray-900 border border-solid dark:border-gray-500 dark:text-gray-300 outline-none focus:outline-none duration-300'
-            }
-            placeholder={t('shareSearch')}
-            value={input}
-            onChange={handleInput}
-            onKeyDown={(e) => {
-              e.stopPropagation()
-            }}
-          />
-          <div>
-            <Tooltip placement="left" title={t('shareSearchInfoToolTip')}>
+    <form className={'share-container'} onSubmit={handleSubmit}>
+      <div className={'share-top-row'}>
+        <input
+          className={'share-input'}
+          placeholder={t('shareSearch')}
+          value={input}
+          onChange={handleInput}
+          onKeyDown={(e) => {
+            e.stopPropagation()
+          }}
+        />
+        <div className="share-info-button-container">
+          <Tooltip placement="left" title={t('shareSearchInfoToolTip')}>
+            <div className="viewer-button" style={{ cursor: 'default' }}>
               <BiInfoCircle
-                className={
-                  'w-[18px] h-[18px] ml-3 mt-1 text-blue-600 dark:text-blue-300'
-                }
+                className={'viewer-button-icon'}
+                style={{ width: '20px', height: '20px', color: 'lightblue' }}
               />
-            </Tooltip>
-          </div>
+            </div>
+          </Tooltip>
         </div>
-        <div className="mt-3 text-left">
-          <span className="text-sm text-gray-800 dark:text-gray-200">
-            {t('shareExpaire')}
-          </span>
-          <div className={'flex-row gap-6 mt-2 flex justify-center'}>
-            {expaireOptions.map((item, i) => (
-              <div
-                key={i}
-                className={`text-sm px-2 py-1 bg-none top-0 bottom-0 end-0 text-gray-900 dark:text-gray-100 hover:bg-gray-400 hover:dark:bg-gray-500 rounded-md border-none ${
-                  item.active
-                    ? 'bg-gray-400 dark:bg-gray-500'
-                    : 'bg-gray-200 dark:bg-gray-700'
-                }`}
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleExpare(item)}
-              >
-                {item.name}
-              </div>
-            ))}
-          </div>
+      </div>
+      <div className="share-lifespan-container">
+        <span className="share-lifespan-title">{t('shareExpaire')}</span>
+        <div className={'share-lifespan-buttons-container'}>
+          {expaireOptions.map((item, i) => (
+            <div
+              key={i}
+              className={cx('share-lifespan-button', {
+                'share-lifespan-button-active': item.active,
+                'share-lifespan-button-no-active': !item.active,
+              })}
+              onClick={() => handleExpare(item)}
+            >
+              {item.name}
+            </div>
+          ))}
         </div>
-        {!isInappropriate && (
-          <button
-            className="w-full mt-10 py-2 flex align-center justify-center bg-none bg-blue-500 text-gray-100 rounded-md border-none hover:bg-blue-600 duration-300"
-            type="submit"
-            style={{ cursor: 'pointer' }}
-          >
-            <RxShare2 className={'w-[24px] h-[24px] text-white'} />
-          </button>
-        )}
-      </form>
-    </div>
+      </div>
+      {!isInappropriate && (
+        <button className="share-button" type="submit">
+          <RxShare2
+            className={'viewer-button-icon'}
+            style={{ color: 'white' }}
+          />
+        </button>
+      )}
+    </form>
   )
 }
 export default Share

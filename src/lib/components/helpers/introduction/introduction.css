@@ -1,0 +1,60 @@
+.introdaction-container {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  z-index: 999;
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 50px;
+  align-items: center;
+  box-sizing: border-box;
+  flex-direction: column;
+}
+
+.introdaction-image {
+  width: 70%;
+  height: auto;
+  object-fit: cover;
+}
+
+.introdaction-buttons-container {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  gap: 50px;
+  justify-content: center;
+  align-items: center;
+}
+
+.introdaction-button-close {
+  display: flex;
+  font-size: 20px;
+  font-weight: bold;
+  color: lightgray;
+  cursor: pointer;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+}
+.introdaction-button-close:hover {
+  background-color: black;
+}
+
+.introdaction-button {
+  display: flex;
+  font-size: 15px;
+  color: lightgray;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+}
+.introdaction-button:hover {
+  border-bottom: 1px solid lightgray;
+}
+
+@media screen and (max-width: 959px) {
+  .introdaction-image {
+    width: 150%;
+    margin-left: 30px;
+  }
+}

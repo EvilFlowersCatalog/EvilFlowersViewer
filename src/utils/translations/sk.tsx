@@ -1,6 +1,7 @@
 export const sk = {
   translations: {
-    pagination: 'Strana {{x}} z {{y}}',
+    pagination: 'Strana',
+    of: 'z ',
     prevPage: 'Predošlá strana',
     nextPage: 'Ďalšia strana',
     zoomIn: 'Priblížiť',
@@ -35,12 +36,12 @@ export const sk = {
     share: 'Zdielať',
     shareToolTip: 'Zdielať dokument',
     notShareToolTip: 'Share nieje k dispozíci',
-    shareSearch: 'Strany',
+    shareSearch: 'Strany: 1,2-5...',
     shareSearchInfoToolTip:
       'STRANY:\nZadajte čísla strán alebo rozsahy strán oddelené čiarkou, ktoré sa začnú priraďovaď od začiatku dokumentu.\nPríklad: 1,4-7,10',
     shareExpaire: 'Životnosť:',
     shareQrCode: 'Naskenuj pre stiahnutie',
-    shareQrCodeFail: 'QR kód nebol načítaný\nNiečo sa pokazilo :/',
+    shareQrCodeFail: 'QR kód nebol načítaný\nNiečo sa pokazilo',
     info: 'Informácie',
     infoToolTip: 'Informácie o dokumente',
     toc: 'Obsah',
@@ -49,6 +50,8 @@ export const sk = {
     downloadQR: 'Stiahnúť QR',
     download: 'Stiahnúť',
     downloadToolTip: 'Stiahnúť dokument',
+    pdfUpDown: 'Zobraziť všetky strany',
+    pdfLeftRight: 'Zobraziť 1 stranu so stránkovačom',
     null: 'Null',
     close: 'Zavrieť',
     Author: 'Autor',
@@ -63,5 +66,7 @@ export const sk = {
     Producer: 'Producent',
     Subject: 'Predmet',
     PDFFormatVersion: 'PDF-Formater verzia',
+    introShow: `Neukázať znova`,
+    help: 'Pomoc',
   },
 }
