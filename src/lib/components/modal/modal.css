@@ -31,8 +31,7 @@
   max-height: 70%;
   flex-direction: column;
   overflow: hidden;
-  padding: 0 50px;
-  padding-bottom: 30px;
+  padding: 30px 50px;
   border-radius: 10px;
   background-color: var(--component-background-color);
   z-index: 30;
