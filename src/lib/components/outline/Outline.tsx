@@ -3,6 +3,8 @@ import { useDocumentContext } from '../document/DocumentContext'
 import { useTranslation } from 'react-i18next'
 import { AiOutlineLeft, AiOutlineDown } from 'react-icons/ai'
 import ModalWrapper from '../modal/Modal'
+import cx from 'classnames'
+import Tooltip from '../helpers/Tooltip'
 
 interface TOCItem {
   title: string
@@ -47,20 +49,18 @@ const Outline = ({ setTocVisibility }: IOutlineProps) => {
 
   const renderTOC = (items: TOCItem[] | undefined, level = 1) => {
     return (
-      <ul className="ml-2 p-0">
+      <div className="outline-container">
         {items?.map((item, i) => (
-          <li
+          <div
             key={`${item.title}-${i}`}
-            className={`${
-              level === 1 ? 'font-bold' : 'font-normal'
-            } text-sm p-2 rounded-2 text-gray-500 dark:text-gray-300 list-none`}
+            className={cx('outline-section-container', {
+              'outline-section-container-main': level === 1,
+              'outline-section-container-basic': level !== 1,
+            })}
           >
-            <div className="flex items-center">
+            <div className="outline-section-inner-container">
               <div
-                className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg p-2"
-                style={{
-                  cursor: item.pageNumber === -1 ? 'default' : 'pointer',
-                }}
+                className="viewer-button"
                 onClick={
                   item.pageNumber === -1
                     ? undefined
@@ -70,24 +70,30 @@ const Outline = ({ setTocVisibility }: IOutlineProps) => {
                 {item.title}
               </div>
               {item.children.length > 0 && (
-                <button
-                  className="mr-2 focus:outline-none bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200"
+                <div
+                  className="viewer-button"
                   onClick={() => handleToggleExpand(item)}
                 >
                   {item.isExpanded ? (
-                    <AiOutlineDown className="w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300" />
+                    <AiOutlineDown
+                      className="viewer-button-icon"
+                      style={{ width: '15px', height: '15px' }}
+                    />
                   ) : (
-                    <AiOutlineLeft className="w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300" />
+                    <AiOutlineLeft
+                      className="viewer-button-icon"
+                      style={{ width: '15px', height: '15px' }}
+                    />
                   )}
-                </button>
+                </div>
               )}
             </div>
             {item.isExpanded &&
               item.children &&
               renderTOC(item.children, level + 1)}
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     )
   }
 
@@ -117,62 +123,8 @@ const Outline = ({ setTocVisibility }: IOutlineProps) => {
   return (
     <ModalWrapper isOpen={isOpen} onClose={() => handleOnCloseClick()}>
       <>
-        <h4 className="text-center fw-bold font-medium leading-6 text-gray-900 dark:text-gray-100">
-          {t('toc')}
-        </h4>
-        {outline && outline.length > 0 && (
-          <div
-            className={'bg-transparent rounded-xl overflow-auto'}
-            style={{
-              maxHeight: '60vh',
-            }}
-          >
-            <div className="mt-2">
-              <ul className="ml-2 p-0">
-                {outline?.map((item, i) => (
-                  <li
-                    key={`${item.title}-${i}`}
-                    className={`${
-                      item.children ? 'font-bold' : 'font-normal'
-                    } text-sm p-2 rounded-2 text-gray-500 dark:text-gray-300 list-none`}
-                  >
-                    <div className="flex items-center">
-                      <div
-                        className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg p-2"
-                        style={{
-                          cursor:
-                            item.pageNumber === -1 ? 'default' : 'pointer',
-                        }}
-                        onClick={
-                          item.pageNumber === -1
-                            ? undefined
-                            : () => handleItemClick(item.pageNumber)
-                        }
-                      >
-                        {item.title}
-                      </div>
-                      {item.children && (
-                        <button
-                          className="mr-2 focus:outline-none bg-transparent border-none hover:bg-gray-50 dark:hover:bg-gray-900 rounded cursor-pointer duration-200"
-                          onClick={() => handleToggleExpand(item)}
-                        >
-                          {item.isExpanded ? (
-                            <AiOutlineDown className="w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300" />
-                          ) : (
-                            <AiOutlineLeft className="w-[20px] h-[20px] mt-1 text-gray-500 dark:text-gray-300" />
-                          )}
-                        </button>
-                      )}
-                    </div>
-                    {item.isExpanded &&
-                      item.children &&
-                      renderTOC(item.children, item.level + 1)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
+        <h4 className="outline-title">{t('toc')}</h4>
+        {renderTOC(outline)}
       </>
     </ModalWrapper>
   )

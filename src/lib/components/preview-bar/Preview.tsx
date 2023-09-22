@@ -16,7 +16,7 @@ interface IPreviewProps {
  *
  */
 const Preview = ({ pageNumber, previewNumber }: IPreviewProps) => {
-  const { pdf, totalPages, searchPage } = useDocumentContext()
+  const { pdf, totalPages, searchPage, activePage } = useDocumentContext()
   const canvas = document.createElement('canvas')
 
   /**
@@ -27,24 +27,21 @@ const Preview = ({ pageNumber, previewNumber }: IPreviewProps) => {
   const renderPreview = useCallback(async () => {
     return await new Promise((resolve) => {
       pdf?.getPage(pageNumber).then((page) => {
-        const button = document.createElement('button')
-        button.setAttribute(
-          'class',
-          'bg-transparent border-none shadow-lg cursor-pointer duration-200 flex w-128 items-center p-0'
-        )
-        button.onclick = () => {
-          searchPage(pageNumber)
+        document.getElementById('preview ' + previewNumber)?.appendChild(canvas)
+        canvas.setAttribute('style', 'cursor: pointer;')
+        if (pageNumber === activePage) {
+          canvas.setAttribute('style', 'border: 5px double red')
+        } else {
+          canvas.setAttribute('style', 'border: 1px solid black;')
         }
-        document.getElementById('preview ' + previewNumber)?.appendChild(button)
-        button.appendChild(canvas)
-        canvas.setAttribute(
-          'className',
-          'duration-200 transition-all border-none'
-        )
-        let desiredWidth = 80
+
+        let desiredWidth = 160
         let viewport = page.getViewport({ scale: 1 })
         let scale = desiredWidth / viewport.width
         viewport = page.getViewport({ scale: scale })
+        canvas.onclick = () => {
+          searchPage(pageNumber)
+        }
         canvas.width = viewport.width
         canvas.height = viewport.height
         canvas.style.width = viewport.width + 'px'
@@ -68,11 +65,7 @@ const Preview = ({ pageNumber, previewNumber }: IPreviewProps) => {
   }, [pdf, pageNumber])
 
   return (
-    <div
-      key={'preview ' + previewNumber}
-      id={'preview ' + previewNumber}
-      className="w-16"
-    ></div>
+    <div key={'preview ' + previewNumber} id={'preview ' + previewNumber}></div>
   )
 }
 

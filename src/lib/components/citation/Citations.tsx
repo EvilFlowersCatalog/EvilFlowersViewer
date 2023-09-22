@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 // icons
@@ -7,6 +7,7 @@ import { BiCopyAlt } from 'react-icons/bi'
 
 import ModalWrapper from '../modal/Modal'
 import { useDocumentContext } from '../document/DocumentContext'
+import cx from 'classnames'
 
 interface ICitationsProps {
   setCitationVisible: (state: boolean) => void
@@ -21,36 +22,40 @@ interface ICitationsProps {
 const Citations = ({ setCitationVisible }: ICitationsProps) => {
   const [isOpen, setIsOpen] = useState(true)
   const [isCopied, setIsCopied] = useState(false)
-  const [title, setTitle] = useState<string>('BibTeX')
+  const [title, setTitle] = useState<string>('bibtex')
   const [citationFormaters, setCitationFormaters] = useState([
     {
       name: 'BibTeX',
       format: 'bibtex',
       type: 'bib',
-      active: true,
     },
     {
       name: 'BibLaTeX',
       format: 'biblatex',
       type: 'bib',
-      active: false,
     },
     {
       name: 'RIS',
       format: 'ris',
       type: 'ris',
-      active: false,
     },
     {
       name: 'Plain-Text',
       format: 'bibliography',
       type: 'txt',
-      active: false,
     },
   ])
   const { downloadCitation, copyCitation, pdfCitation, changeCitationFormat } =
     useDocumentContext()
   const { t } = useTranslation()
+
+  useEffect(() => {
+    citationFormaters.forEach((item) => {
+      if (item.format === pdfCitation?.format) {
+        setTitle(item.name)
+      }
+    })
+  }, [])
 
   /**
    * function for handling close click
@@ -89,20 +94,23 @@ const Citations = ({ setCitationVisible }: ICitationsProps) => {
         onClick={() => handleOnClickClick()}
         isOpen={isOpen}
         onClose={() => handleOnCloseClick()}
-        icon={<BiDownload className="ml-3 h-[20px] w-[20px] text-gray-100" />}
+        icon={
+          <BiDownload
+            className="viewer-button-icon"
+            style={{
+              color: 'white',
+              width: '20px',
+              height: '20px',
+            }}
+          />
+        }
       >
-        <h4 className="text-center fw-bold font-medium leading-6 text-gray-900 dark:text-gray-100">
-          {title}
-        </h4>
-        <pre
-          className="mt-3 relative max-h-[400px] w-fill overflow-hidden text-sm text-gray-900 dark:text-gray-300 p-2"
-          style={{
-            border: isCopied ? '1px solid' : '1px dashed',
-            borderRadius: '10px',
-            cursor: isCopied ? 'default' : 'pointer',
-            animation: isCopied ? 'blink-border 0.5s linear' : 'none',
-            whiteSpace: 'pre-wrap',
-          }}
+        <h4 className="citations-title">{title}</h4>
+        <span
+          className={cx('citations-citation', {
+            'citations-citation-coppied': isCopied,
+            'citations-citation-not-coppied': !isCopied,
+          })}
           onClick={() => {
             setIsCopied(true)
             copyCitation()
@@ -110,31 +118,22 @@ const Citations = ({ setCitationVisible }: ICitationsProps) => {
         >
           {pdfCitation?.citation}
           {!isCopied ? (
-            <BiCopyAlt className="absolute top-1 end-1 text-gray-900 dark:text-gray-100 w-[20px] h-[20px]" />
+            <BiCopyAlt className="citation-icon" />
           ) : (
-            <BiCheck
-              className="absolute top-1 end-1 text-gray-900 dark:text-gray-100 w-[20px] h-[20px]"
-              style={{
-                opacity: 0,
-                animation: 'blink-icon 0.5s linear',
-              }}
-            />
+            <BiCheck className="citation-icon citation-coppied-icon" />
           )}
-        </pre>
-        <div className="inline-flex gap-2">
+        </span>
+        <div className="citation-buttons-container">
           {citationFormaters.map((item, i) => (
             <div
               key={i}
-              className={`${
-                item.active ? 'bg-gray-300 dark:bg-gray-600' : 'bg-transparent'
-              } px-2 py-1 rounded-md text-gray-900 dark:text-gray-200 text-sm hover:bg-gray-300 hover:dark:bg-gray-600 duration-200`}
-              style={{ cursor: 'pointer' }}
+              className={'viewer-button'}
               onClick={() => {
                 setTitle(item.name)
                 handleFormatClick(item.format, item.type)
               }}
             >
-              {item.name}
+              <span style={{ fontSize: '13px' }}>{item.name}</span>
             </div>
           ))}
         </div>

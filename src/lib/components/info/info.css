@@ -1,0 +1,16 @@
+.info-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--main-text-color);
+}
+
+.info-content {
+  font-size: 12px;
+  overflow-wrap: break-word;
+  color: var(--text-color);
+}

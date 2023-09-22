@@ -7,10 +7,11 @@ import Document from './document/Document'
 import { createRoot } from 'react-dom/client'
 import i18n from '../../utils/i18n'
 import { ViewerContext } from './ViewerContext'
+import Introduction from './helpers/introduction/Introduction'
 
 pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
-// pdfjs.GlobalWorkerOptions.workerSrc =
-//   '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
+//pdfjs.GlobalWorkerOptions.workerSrc =
+//  '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
 
 interface IViewerOptions {
   theme?: 'dark' | 'light'
@@ -34,6 +35,16 @@ interface IViewerProps {
  * @returns - The Viewer component
  */
 export const Viewer = (viewerProps: IViewerProps) => {
+  const localShow = localStorage.getItem('show-intro')
+  const [showIntro, setShowIntro] = useState<boolean>(
+    localShow === 'false' ? false : true
+  )
+  const [documentData, setDocumentData] = useState<string | null>(null)
+
+  const stayHidden = () => {
+    localStorage.setItem('show-intro', JSON.stringify(false))
+  }
+
   // Based options, cuz options are not required
   let basedOptions: IViewerOptions = {
     theme: 'dark',
@@ -52,18 +63,19 @@ export const Viewer = (viewerProps: IViewerProps) => {
   const [theme, setTheme] = useState<'dark' | 'light' | undefined>(
     basedOptions.theme
   )
-  const [documentData, setDocumentData] = useState<string | null>(null)
 
   useEffect(() => {
     // set given theme
     if (theme === 'dark') {
       setTheme('dark')
-      document.getElementById('evilFlowersViewer')?.classList.add('dark')
+      document.querySelector('body')?.setAttribute('data-theme', 'dark')
     } else {
       setTheme('light')
-      document.getElementById('evilFlowersViewer')?.classList.remove('dark')
+      document.querySelector('body')?.setAttribute('data-theme', 'light')
     }
+  }, [theme])
 
+  useEffect(() => {
     // Set languege based on given language
     if (viewerProps.options?.lang === 'sk') {
       i18n.changeLanguage('sk')
@@ -93,19 +105,20 @@ export const Viewer = (viewerProps: IViewerProps) => {
         setTheme,
         shareFunction: basedOptions.shareFunction,
         homeFunction: basedOptions.homeFunction,
+        setShowIntro,
+        showIntro,
       }}
     >
-      <div
-        id={'evilFlowersViewer'}
-        className={
-          'evilFlowersViewer w-full h-full flex items-center justify-center'
-        }
-      >
-        <div
-          className={
-            'bg-zinc-300 dark:bg-zinc-700 w-full h-full duration-200 overflow-auto'
-          }
-        >
+      {showIntro && (
+        <Introduction
+          setShow={setShowIntro}
+          stayHidden={stayHidden}
+          lang={basedOptions.lang}
+          visible={localShow === 'false' ? false : true}
+        />
+      )}
+      <div id={'evilFlowersViewer'} className={'viewer-container'}>
+        <div className={'viewer-inner-container'}>
           <Document
             data={documentData}
             citationBibTeX={basedOptions.citationBib}

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useState } from 'react'
 import cx from 'classnames'
 
 interface ITooltipProps {
@@ -17,26 +17,16 @@ const Tooltip = ({ children, title, placement = 'top' }: ITooltipProps) => {
     >
       {title && (
         <div
-          className={cx(
-            'tooltip absolute bg-gray-50 dark:bg-gray-800 py-1 px-2 shadow-md text-xs rounded-md border border-gray-200 dark:border-gray-500 border-solid duration-200 pointer-events-none',
-            {
-              'opacity-100 scale-100': visible,
-              'opacity-0 scale-95': !visible,
-              'right left-14 top-0': placement === 'right',
-              'left right-5 top-0': placement === 'left',
-              'bottom-12': placement === 'top',
-            }
-          )}
-          style={{ top: placement === 'bottom' ? '40px' : '', zIndex: 9999 }}
+          className={cx('tool-tip-container', {
+            'tool-tip-container-visible': visible,
+            'tool-tip-container-hidden': !visible,
+            'tool-tip-right': placement === 'right',
+            'tool-tip-left': placement === 'left',
+            'tool-tip-top': placement === 'top',
+            'tool-tip-bottom': placement === 'bottom',
+          })}
         >
-          <span
-            className={
-              'text-gray-600 dark:text-gray-300 font-semibold w-max max-w-[150px] inline-block'
-            }
-            style={{ whiteSpace: 'pre-wrap' }}
-          >
-            {title}
-          </span>
+          <span className={'tool-tip-text'}>{title}</span>
         </div>
       )}
       {children}

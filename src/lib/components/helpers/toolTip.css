@@ -1,0 +1,49 @@
+.tool-tip-container {
+  opacity: 1;
+  position: absolute;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 5px 10px;
+  border: 0.01rem solid var(--text-color);
+  border-radius: 10px;
+  pointer-events: none;
+  overflow: hidden;
+  background-color: var(--component-background-color);
+  z-index: 9999;
+  user-select: none;
+}
+
+.tool-tip-container-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transition-duration: 0s;
+}
+
+.tool-tip-container-visible {
+  opacity: 1;
+  pointer-events: none;
+  transition-duration: 0s;
+}
+
+.tool-tip-top {
+  bottom: 50px;
+}
+.tool-tip-left {
+  right: 40px;
+}
+.tool-tip-right {
+  left: 50px;
+}
+.tool-tip-bottom {
+  top: 50px;
+}
+
+.tool-tip-text {
+  font-size: 12px;
+  width: max-content;
+  text-align: start;
+  max-width: 100px;
+  white-space: pre-wrap;
+  color: var(--main-text-color);
+}

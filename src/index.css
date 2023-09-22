@@ -1,8 +1,51 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800;900&display=swap');
+@import '../src/lib/components/viewer.css';
+@import '../src/lib/components/document/document.css';
+@import '../src/lib/components/menu/menu.css';
+@import '../src/lib/components/sidebar/sidebar.css';
+@import '../src/lib/components/info/info.css';
+@import '../src/lib/components/helpers/toolTip.css';
+@import '../src/lib/components/share/share.css';
+@import '../src/lib/components/modal/modal.css';
+@import '../src/lib/components/citation/citations.css';
+@import '../src/lib/components/search/search.css';
+@import '../src/lib/components/page/page.css';
+@import '../src/lib/components/pagination/pagination.css';
+@import '../src/lib/components/preview-bar/previewBar.css';
+@import '../src/lib/components/outline/outline.css';
+@import '../src/lib/components/helpers/introduction/introduction.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --viewer-background-color: rgb(212 212 216);
+  --text-color: black;
+  --main-text-color: rgb(17 24 39);
+  --component-background-color: white;
+  --button-background-color: rgb(224, 226, 229);
+  --button-text-color-active: rgb(107 114 128);
+  --button-text-color-deactive: rgb(188, 192, 199);
+  --share-button-background-color: rgb(229 231 235);
+  --share-active-button-background-color: rgb(156 163 175);
+  --search-button-background-color: rgb(229 231 235);
+  --search-hover-button-background-color: rgb(199, 201, 206);
+}
+
+[data-theme='dark'] {
+  --viewer-background-color: rgb(63 63 70);
+  --text-color: white;
+  --main-text-color: rgb(243 244 246);
+  --component-background-color: rgb(31 41 55);
+  --button-background-color: rgb(17 24 39);
+  --button-text-color-active: rgb(209 213 219);
+  --button-text-color-deactive: rgb(107 114 128);
+  --share-button-background-color: rgb(55 65 81);
+  --share-active-button-background-color: rgb(107 114 128);
+  --search-button-background-color: rgb(55 65 81);
+  --search-hover-button-background-color: rgb(102, 109, 122);
+}
 
 body {
   margin: 0;
@@ -13,6 +56,31 @@ body {
   font-family: 'Poppins', sans-serif;
 }
 
+.viewer-button {
+  display: flex;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background-color: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  transition-duration: 0.2s;
+}
+
+.viewer-button:hover {
+  background-color: var(--button-background-color);
+}
+
+.viewer-button-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--button-text-color-active);
+}
+
+.viewer-button-icon-deactive {
+  width: 24px;
+  height: 24px;
+  color: var(--button-text-color-deactive);
+}
 
 /* Making text layer elements transparent and position absolute for proper positioning */
 
@@ -28,32 +96,28 @@ body {
   background: #8f8fe352;
 }
 
+.viewer-loader {
+  border: 4px solid var(--main-text-color);
+  border-top: 4px solid #00b7ff;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  animation: spin 1s linear infinite;
+}
+
+.viewer-loader-small {
+  border: 2px solid var(--main-text-color);
+  border-top: 2px solid #00b7ff;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+}
+
 .divider {
   border: none;
   border-top: 1px solid #eee;
   width: 80%;
-}
-
-.evilflowersviewer-loader {
-  width: 48px;
-  height: 48px;
-  border: 5px solid #999;
-  border-bottom-color: #fff;
-  border-radius: 50%;
-  display: inline-block;
-  box-sizing: border-box;
-  animation: rotation 1s linear infinite;
-}
-
-.evilflowersviewer-loader-small {
-  width: 24px;
-  height: 24px;
-  border: 2px solid theme('colors.gray.400');
-  border-bottom-color: #fff;
-  border-radius: 50%;
-  display: inline-block;
-  box-sizing: border-box;
-  animation: rotation 1s linear infinite;
 }
 
 @keyframes rotation {
@@ -64,36 +128,6 @@ body {
   100% {
     transform: rotate(360deg);
   }
-}
-
-@keyframes blink-border {
-  from {
-    border: 1px solid #00FF40;
-  }
-
-  to {
-    border: 1px solid;
-  }
-}
-
-@keyframes blink-icon {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-  }
-}
-
-/* QR CODE spinner */
-.spinner {
-  border: 4px solid rgba(0, 0, 0, 0.7);
-  border-top: 4px solid #00b7ff;
-  border-radius: 50%;
-  width: 100px;
-  height: 100px;
-  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {

@@ -23,18 +23,9 @@ interface IInfoRowProps {
 }
 
 const InfoRow = ({ title, value }: IInfoRowProps) => (
-  <div className={'mx-4 mb-2'}>
-    <div className={'flex flex-col'}>
-      <span className={'text-m text-gray-900 dark:text-gray-100'}>
-        <strong>{title}</strong>
-      </span>
-      <span
-        className="text-sm text-gray-900 dark:text-gray-300 mb-0"
-        style={{ overflowWrap: 'break-word' }}
-      >
-        {value}
-      </span>
-    </div>
+  <div className={'info-container'}>
+    <span className={'info-title'}>{title}</span>
+    <span className={'info-content'}>{value}</span>
   </div>
 )
 
@@ -109,7 +100,7 @@ const Info = () => {
   }, [pdf])
 
   return (
-    <div className={'flex flex-col'}>
+    <>
       {Object.keys(result)
         .filter((key) => result[key as keyof IPdfMetadataProps])
         .map((key) => (
@@ -119,7 +110,7 @@ const Info = () => {
             value={result[key as keyof IPdfMetadataProps]}
           />
         ))}
-    </div>
+    </>
   )
 }
 export default Info

@@ -203,19 +203,18 @@ const Search = () => {
 
   return (
     <>
-      <div className={'flex items-center justify-center gap-0 border-none'}>
+      <div className={'search-input-container'}>
         <input
           type={'text'}
           value={searchPattern}
           onChange={handleSearchChange}
-          className={`ml-4 text-sm mr-4 py-1 px-2 rounded-md bg-gray-100 dark:bg-gray-900 border border-solid dark:border-gray-500 dark:text-gray-300 outline-none focus:outline-none focus:border-gray-500 dark:focus:border-gray-300 duration-300 
-            ${tmpSecuredView ? 'w-32' : ''}`}
+          className={'search-input'}
           placeholder={t('search')}
           onKeyDown={(e) => {
             e.stopPropagation()
           }}
         />
-        {tmpSecuredView && (
+        {/* {tmpSecuredView && (
           <button
             className={
               'bg-transparent border-none hover:bg-gray-400 dark:hover:bg-gray-900 rounded cursor-pointer duration-200 h-6 w-4'
@@ -224,66 +223,59 @@ const Search = () => {
           >
             S
           </button>
-        )}
+        )} */}
       </div>
       {searching === SEARCH_STATES.LOADING && (
-        <div className={'w-full flex justify-center py-4'}>
-          <span className={'evilflowersviewer-loader-small'}></span>
+        <div className={'search-loader'}>
+          <span className={'viewer-loader-small'}></span>
         </div>
       )}
       {searchPattern.length === 0 && (
         <span
-          className={
-            'flex flex-col justify-center items-center text-center gap-2 text-gray-500 dark:text-gray-300 text-sm mt-4'
-          }
+          className={'search-tips-titles'}
           style={{ whiteSpace: 'pre-wrap' }}
         >
           {t('searchPattern')}
-          <BiSmile className="w-[30px] h-[30px] text-gray-500 dark:text-gray-300" />
+          <BiSmile className="viewer-button-icon" />
         </span>
       )}
       {searching === SEARCH_STATES.DONE &&
         matches.length === 0 &&
         searchPattern.length > 0 && (
-          <span
-            className={
-              'flex flex-col justify-center items-center text-center gap-2 text-gray-500 dark:text-gray-300 text-sm mt-4'
-            }
-            style={{ whiteSpace: 'pre-wrap' }}
-          >
+          <span className={'search-tips-titles'}>
             {t('noMatchesFound')}
-            <BiSad className="w-[30px] h-[30px] text-gray-500 dark:text-gray-300" />
+            <BiSad className="viewer-button-icon" />
           </span>
         )}
       {searching === SEARCH_STATES.DONE &&
         matches.length > 0 &&
         searchPattern.length > 0 && (
-          <>
-            <span
-              className={'text-xs mx-4 mt-4 text-gray-500 dark:text-gray-300'}
-            >
+          <div className="search-found-results-container">
+            <span className={'search-found-results'}>
               {t('foundResults', { count: matches.length })}
             </span>
-            {matches.map((match, i) => {
-              if (!match) return <></>
-              return (
-                <div
-                  key={i}
-                  className={
-                    'mx-4 my-1 bg-gray-200 dark:bg-gray-400 hover:bg-gray-300 rounded-md hover:dark:bg-gray-300 cursor-pointer px-4 py-2 duration-200'
-                  }
-                  onClick={() => {
-                    findMatchedText(match.page, i)
-                  }}
-                >
-                  <span className={'break-all text-xs'}>{match.text}</span>
-                  <span className={'text-right block break-all text-sm'}>
-                    {t('pageNumber', { number: match.page })}
-                  </span>
-                </div>
-              )
-            })}
-          </>
+            <div className="search-matches-container">
+              {matches.map((match, i) => {
+                if (!match) return <></>
+                return (
+                  <div
+                    key={i}
+                    className={'search-mached-text-container'}
+                    onClick={() => {
+                      findMatchedText(match.page, i)
+                    }}
+                  >
+                    <span className={'search-mached-pattern'}>
+                      {match.text}
+                    </span>
+                    <span className={'search-mached-page'}>
+                      {t('pageNumber', { number: match.page })}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         )}
     </>
   )

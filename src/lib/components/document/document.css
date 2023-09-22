@@ -1,0 +1,17 @@
+.document-container {
+  width: 100vw;
+  height: 100vh;
+  outline: none;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.document-load-error {
+  font-size: 25px;
+  text-align: center;
+  color: var(--text-color);
+  border: none;
+}
