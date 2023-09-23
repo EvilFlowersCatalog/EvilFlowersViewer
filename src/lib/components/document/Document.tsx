@@ -18,7 +18,7 @@ import {
   PDFDocumentProxy,
 } from 'pdfjs-dist/types/src/display/api'
 import { t } from 'i18next'
-import Menu from '../menu/Menu'
+import SideMenu from '../sideMenu/SideMenu'
 import { useViewerContext } from '../ViewerContext'
 
 /**
@@ -62,6 +62,7 @@ interface PDFOutlineItem {
 const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [activePage, setActivePage] = useState(1)
   const [scale, setScale] = useState(1)
+  const [desiredScale, setDesiredScale] = useState(1)
   const [menu, setMenu] = useState(false)
   const [pdf, setPdf] = useState<PDFDocumentProxy>()
   const [rerender, setRerender] = useState<Object>({})
@@ -123,7 +124,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const loadDocument = async () => {
     await pdfjs
       .getDocument({ data } as GetDocumentParameters)
-      .promise.then((doc: any) => {
+      .promise.then(async (doc: PDFDocumentProxy) => {
         // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
         // https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFDocumentProxy.html#getDestination
 
@@ -436,7 +437,8 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         outlineSetPage,
         searchPage,
         scale,
-        setScale,
+        desiredScale,
+        setDesiredScale,
         zoomIn,
         zoomOut,
         resetScale,
@@ -459,7 +461,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
           className={'document-container'}
           onMouseEnter={() => ref.current?.focus()}
         >
-          <Menu />
+          <SideMenu />
           <Page onDoubleClick={handleDoubleClick} />
           {pdfViewing === 'paginator' && (
             <PreviewBar pagePreviews={pagePreviews} />

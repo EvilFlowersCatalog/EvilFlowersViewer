@@ -30,7 +30,8 @@ interface IDocumentContext {
   setActivePage: (page: number) => void
   searchPage: (n: number) => void
   scale: number
-  setScale: (scale: number) => void
+  desiredScale: number
+  setDesiredScale: (desiredScale: number) => void
   resetScale: () => void
   zoomIn: () => void
   zoomOut: () => void

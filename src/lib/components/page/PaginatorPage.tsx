@@ -19,6 +19,7 @@ const PaginatorPage = () => {
     setRendering,
     screenWidth,
     pdfViewing,
+    setDesiredScale,
   } = useDocumentContext()
 
   /**
@@ -36,11 +37,12 @@ const PaginatorPage = () => {
         container.setAttribute('class', 'pdf-canvas-textLayer')
 
         let viewport = page.getViewport({ scale })
-        let calcScreenWidth =
+        const calcScreenWidth =
           screenWidth > 959 ? screenWidth * 0.5 : screenWidth * 0.75
-        let desiredWidth = calcScreenWidth * viewport.scale
-        let viewportWidth = viewport.width / viewport.scale
-        let desiredScale = desiredWidth / viewportWidth
+        const desiredWidth = calcScreenWidth * viewport.scale
+        const viewportWidth = viewport.width / viewport.scale
+        const desiredScale = desiredWidth / viewportWidth
+        setDesiredScale(desiredScale)
         viewport = page.getViewport({ scale: desiredScale })
 
         page.getTextContent().then((textContent) => {

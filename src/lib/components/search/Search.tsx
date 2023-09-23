@@ -39,7 +39,7 @@ const Search = () => {
   let searchWorker: Worker | undefined = undefined
   const tmpSecuredView = false
 
-  const { pdf, searchPage, scale, isRendering, setRendering } =
+  const { pdf, searchPage, desiredScale, isRendering, setRendering } =
     useDocumentContext()
 
   /**
@@ -191,10 +191,10 @@ const Search = () => {
           context.fillStyle = 'yellow'
           context.globalAlpha = 0.3
           context.fillRect(
-            x * scale,
-            parseInt(canvas_height!) - y * scale - height * scale,
-            width * scale,
-            height * scale
+            x * desiredScale,
+            parseInt(canvas_height!) - y * desiredScale - height * desiredScale,
+            width * desiredScale,
+            height * desiredScale
           )
         }
       }
