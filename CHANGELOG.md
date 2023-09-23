@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.8 : 2023-09-22
+
+- **Changed**: Modal padding
+- **Changed**: pdf viewing button poisition
+- **Changed**: pdf viewing visibility for mobile/tablets
+- **Changed**: .header- style names to .menu- in menu.css
+
 ## 0.3.7 : 2023-09-22
 
 - **Added**: css files

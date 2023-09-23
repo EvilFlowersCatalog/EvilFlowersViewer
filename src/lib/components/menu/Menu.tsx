@@ -50,6 +50,7 @@ const Menu = () => {
     pdfViewing,
     setPdfViewing,
     outline,
+    screenWidth,
   } = useDocumentContext()
   const { theme, setTheme, shareFunction, homeFunction, setShowIntro } =
     useViewerContext()
@@ -194,21 +195,6 @@ const Menu = () => {
         setActiveSidebar(SIDEBAR_TABS.NULL)
       },
     },
-    // PDF listing
-    {
-      name: '',
-      icon:
-        pdfViewing === 'paginator' ? (
-          <PiCaretUpDownBold className={'viewer-button-icon'} />
-        ) : (
-          <LuChevronsLeftRight className={'viewer-button-icon'} />
-        ),
-      tooltipText:
-        pdfViewing === 'paginator' ? t('pdfUpDown') : t('pdfLeftRight'),
-      onClick: () => {
-        setPdfViewing(pdfViewing === 'paginator' ? 'scroll' : 'paginator')
-      },
-    },
     // HELP
     {
       name: t('help'),
@@ -278,9 +264,9 @@ const Menu = () => {
           />
         )}
       </Sidebar>
-      <div className={'header-container'}>
+      <div className={'menu-container'}>
         {SidebarItems.slice(0, SidebarItems.length - 3).map((item, i) => (
-          <div className={'header-buttons-container'} key={i}>
+          <div className={'menu-buttons-container'} key={i}>
             <Tooltip title={item.tooltipText} placement="right">
               <div
                 id={item.name}
@@ -292,9 +278,34 @@ const Menu = () => {
             </Tooltip>
           </div>
         ))}
-        <div className="header-zoom-buttons-container">
+        {screenWidth > 959 && (
+          <div className="menu-pdf-viewing-button-container">
+            <Tooltip
+              title={
+                pdfViewing === 'paginator' ? t('pdfUpDown') : t('pdfLeftRight')
+              }
+              placement="right"
+            >
+              <div
+                onClick={() =>
+                  setPdfViewing(
+                    pdfViewing === 'paginator' ? 'scroll' : 'paginator'
+                  )
+                }
+                className={'viewer-button'}
+              >
+                {pdfViewing === 'paginator' ? (
+                  <PiCaretUpDownBold className={'viewer-button-icon'} />
+                ) : (
+                  <LuChevronsLeftRight className={'viewer-button-icon'} />
+                )}
+              </div>
+            </Tooltip>
+          </div>
+        )}
+        <div className="menu-zoom-buttons-container">
           {SidebarItems.slice(SidebarItems.length - 3).map((item, i) => (
-            <div className={'header-buttons-container'} key={i}>
+            <div className={'menu-buttons-container'} key={i}>
               <Tooltip title={item.tooltipText} placement="right">
                 <div
                   id={item.name}
@@ -306,7 +317,7 @@ const Menu = () => {
               </Tooltip>
             </div>
           ))}
-          <span className={'header-scale-percentage'}>{scale * 100}%</span>
+          <span className={'menu-scale-percentage'}>{scale * 100}%</span>
         </div>
       </div>
       {citationVisibile && (
