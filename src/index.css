@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800;900&display=swap');
 @import '../src/lib/components/viewer.css';
 @import '../src/lib/components/document/document.css';
-@import '../src/lib/components/menu/menu.css';
+@import '../src/lib/components/sideMenu/sideMenu.css';
 @import '../src/lib/components/sidebar/sidebar.css';
 @import '../src/lib/components/info/info.css';
 @import '../src/lib/components/helpers/toolTip.css';

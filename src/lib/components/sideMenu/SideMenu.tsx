@@ -28,7 +28,7 @@ import Search from '../search/Search'
 import Info from '../info/Info'
 import Share from '../share/Share'
 
-const Menu = () => {
+const SideMenu = () => {
   const [activeSidebar, setActiveSidebar] = useState<SIDEBAR_TABS>(
     SIDEBAR_TABS.NULL
   )
@@ -264,9 +264,9 @@ const Menu = () => {
           />
         )}
       </Sidebar>
-      <div className={'menu-container'}>
+      <div className={'side-menu-container'}>
         {SidebarItems.slice(0, SidebarItems.length - 3).map((item, i) => (
-          <div className={'menu-buttons-container'} key={i}>
+          <div className={'side-menu-buttons-container'} key={i}>
             <Tooltip title={item.tooltipText} placement="right">
               <div
                 id={item.name}
@@ -279,7 +279,7 @@ const Menu = () => {
           </div>
         ))}
         {screenWidth > 959 && (
-          <div className="menu-pdf-viewing-button-container">
+          <div className="side-menu-pdf-viewing-button-container">
             <Tooltip
               title={
                 pdfViewing === 'paginator' ? t('pdfUpDown') : t('pdfLeftRight')
@@ -303,9 +303,9 @@ const Menu = () => {
             </Tooltip>
           </div>
         )}
-        <div className="menu-zoom-buttons-container">
+        <div className="side-menu-zoom-buttons-container">
           {SidebarItems.slice(SidebarItems.length - 3).map((item, i) => (
-            <div className={'menu-buttons-container'} key={i}>
+            <div className={'side-menu-buttons-container'} key={i}>
               <Tooltip title={item.tooltipText} placement="right">
                 <div
                   id={item.name}
@@ -317,7 +317,7 @@ const Menu = () => {
               </Tooltip>
             </div>
           ))}
-          <span className={'menu-scale-percentage'}>{scale * 100}%</span>
+          <span className={'side-menu-scale-percentage'}>{scale * 100}%</span>
         </div>
       </div>
       {citationVisibile && (
@@ -331,4 +331,4 @@ const Menu = () => {
   )
 }
 
-export default Menu
+export default SideMenu

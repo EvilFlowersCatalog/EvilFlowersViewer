@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.9 : 2023-09-23
+
+- **Changed**: Menu compnent -> SideMenu
+- **Changed**: padding in modal
+- **Fixed**: search pattern highlighting
+
 ## 0.3.8 : 2023-09-22
 
 - **Changed**: Modal padding
