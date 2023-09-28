@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 : 2023-09-28
+
+- **Added**: new introdaction images
+- **Changed**: button in introduction/helper
+- **Fixed**: centering helper image
+
 ## 0.4.0 : 2023-09-28
 
 - **Added**: Scroll view
