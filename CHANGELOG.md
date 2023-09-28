@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0 : 2023-09-28
+
+- **Added**: Scroll view
+- **Changed**: little design
+
 ## 0.3.9 : 2023-09-23
 
 - **Changed**: Menu compnent -> SideMenu

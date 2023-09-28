@@ -130,7 +130,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
 
         // Case where we do not have outlines
         doc.getOutline().then(async (outline: any) => {
-          if (outline == null || !outline) {
+          if (!outline) {
             return
           }
 
@@ -162,7 +162,13 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
       let pageNumber
       try {
         if (item.dest) {
-          const index = await doc.getPageIndex(item.dest[0])
+          let ref: any
+          await doc.getDestination(item.dest as string).then((dest) => {
+            if (dest) {
+              ref = dest[0]
+            }
+          })
+          const index = await doc.getPageIndex(ref)
           pageNumber = index + 1
         } else {
           pageNumber = -1
