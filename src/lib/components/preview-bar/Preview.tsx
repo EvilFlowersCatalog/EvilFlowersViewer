@@ -3,7 +3,6 @@ import { useDocumentContext } from '../document/DocumentContext'
 
 interface IPreviewProps {
   pageNumber: number
-  previewNumber: number
 }
 
 /**
@@ -15,7 +14,7 @@ interface IPreviewProps {
  * @returns Preview component
  *
  */
-const Preview = ({ pageNumber, previewNumber }: IPreviewProps) => {
+const Preview = ({ pageNumber }: IPreviewProps) => {
   const { pdf, totalPages, searchPage, activePage } = useDocumentContext()
   const canvas = document.createElement('canvas')
 
@@ -27,7 +26,7 @@ const Preview = ({ pageNumber, previewNumber }: IPreviewProps) => {
   const renderPreview = useCallback(async () => {
     return await new Promise((resolve) => {
       pdf?.getPage(pageNumber).then((page) => {
-        document.getElementById('preview ' + previewNumber)?.appendChild(canvas)
+        document.getElementById('preview' + pageNumber)?.appendChild(canvas)
         canvas.setAttribute('style', 'cursor: pointer;')
         if (pageNumber === activePage) {
           canvas.setAttribute('style', 'border: 5px double red')
@@ -35,7 +34,7 @@ const Preview = ({ pageNumber, previewNumber }: IPreviewProps) => {
           canvas.setAttribute('style', 'border: 1px solid black;')
         }
 
-        let desiredWidth = 160
+        let desiredWidth = 135
         let viewport = page.getViewport({ scale: 1 })
         let scale = desiredWidth / viewport.width
         viewport = page.getViewport({ scale: scale })
@@ -55,18 +54,16 @@ const Preview = ({ pageNumber, previewNumber }: IPreviewProps) => {
         page.render(renderContext)
       })
     })
-  }, [pdf, pageNumber])
+  }, [pdf, pageNumber, activePage])
 
   useEffect(() => {
-    document.getElementById('preview ' + previewNumber)?.replaceChildren()
+    document.getElementById('preview' + pageNumber)?.replaceChildren()
     if (pageNumber > 0 && pageNumber <= totalPages) {
       renderPreview()
     }
-  }, [pdf, pageNumber])
+  }, [pdf, pageNumber, activePage])
 
-  return (
-    <div key={'preview ' + previewNumber} id={'preview ' + previewNumber}></div>
-  )
+  return <div key={'preview' + pageNumber} id={'preview' + pageNumber}></div>
 }
 
 export default Preview

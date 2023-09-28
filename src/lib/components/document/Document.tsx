@@ -76,7 +76,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [basedPdfCitation] = useState<string | null | undefined>(citationBibTeX)
   const [screenWidth, setScreenWidth] = useState(window.outerWidth)
   const [pagePreviews, setPagePreviews] = useState(
-    parseInt((window.outerHeight / 240).toString())
+    parseInt((window.outerHeight / 220).toString())
   )
   const [pdfCitation, setPdfCitation] = useState<{
     citation: string
@@ -99,7 +99,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
       const newScreenWidth = window.outerWidth
       const screenHeight = window.outerHeight
       setScreenWidth(newScreenWidth)
-      setPagePreviews(parseInt((screenHeight / 240).toString()))
+      setPagePreviews(parseInt((screenHeight / 220).toString()))
 
       if (newScreenWidth < 959) {
         setPdfViewing('scroll')
