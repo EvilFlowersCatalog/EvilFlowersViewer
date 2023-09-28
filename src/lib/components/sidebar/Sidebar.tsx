@@ -35,14 +35,16 @@ const Sidebar = ({
         <span className={'sidebar-title'}>{title}</span>
         <div className={'sidebar-button-container'}>
           <Tooltip title={t('hidePanel')} placement={'left'}>
-            <div className="viewer-button">
+            <div
+              className="viewer-button"
+              onClick={() => {
+                setSidebar(SIDEBAR_TABS.NULL)
+                setOpen(false)
+              }}
+            >
               <AiOutlineDoubleLeft
                 className={'viewer-button-icon'}
                 style={{ width: '15px', height: '15px' }}
-                onClick={() => {
-                  setSidebar(SIDEBAR_TABS.NULL)
-                  setOpen(false)
-                }}
               />
             </div>
           </Tooltip>

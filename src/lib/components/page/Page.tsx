@@ -41,12 +41,9 @@ const Page = ({ onDoubleClick }: IPageParams) => {
       )}
       {pdfViewing === 'scroll' && (
         <>
-          <div className={'page-loader-container'}>
-            <span>NOT IMPLEMENTED</span>
-          </div>
-          {/* {Array.from({ length: totalPages - 1 }).map((_, index) => (
+          {Array.from({ length: totalPages }).map((_, index) => (
             <ScrollPage pageNumber={index + 1} key={index} />
-          ))} */}
+          ))}
         </>
       )}
     </div>

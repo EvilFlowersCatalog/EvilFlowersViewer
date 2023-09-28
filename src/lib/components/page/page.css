@@ -16,8 +16,8 @@
 }
 
 .page-container-scroll-padding {
-  padding: 10px;
-  padding-bottom: 0;
+  padding: 20px;
+  padding-bottom: 10px;
 }
 
 .page-loader-container {
@@ -48,6 +48,8 @@
 
 .pdf-canvas-textLayer {
   position: absolute;
+  top: 0;
+  left: 0;
   line-height: 1;
   color: transparent;
 }

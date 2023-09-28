@@ -1,12 +1,11 @@
 .pagination-container {
   padding: 5px;
-  background-color: var(--component-background-color);
+  background-color: var(--viewer-background-color);
   display: flex;
   flex-direction: row;
   border-radius: 10px;
   gap: 20px;
   align-items: center;
-  border: 1px solid var(--text-color);
   user-select: none;
 }
 

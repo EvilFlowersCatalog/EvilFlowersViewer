@@ -58,7 +58,6 @@ const PaginatorPage = () => {
           (document.getElementById('evilFlowersCanvas') as HTMLCanvasElement) ??
           document.createElement('canvas')
         canvas.setAttribute('id', 'evilFlowersCanvas')
-        canvas.setAttribute('class', 'pdf-canvas-container')
         canvas.width = viewport.width
         canvas.height = viewport.height
         canvas.style.width = viewport.width + 'px'
