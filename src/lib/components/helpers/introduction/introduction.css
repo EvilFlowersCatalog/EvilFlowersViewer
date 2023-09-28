@@ -13,8 +13,8 @@
 }
 
 .introdaction-image {
-  width: auto;
-  height: 100%;
+  width: 70%;
+  height: auto;
   object-fit: cover;
 }
 
@@ -25,7 +25,8 @@
   width: 100%;
   justify-content: center;
   align-items: center;
-  gap: 50px;
+  gap: 20px;
+  z-index: 1;
 }
 
 .introdaction-dont-show-button-container {
@@ -34,7 +35,7 @@
 
 .introdaction-button-close {
   display: flex;
-  font-size: 20px;
+  font-size: 15px;
   font-weight: bold;
   color: lightgray;
   cursor: pointer;
@@ -51,7 +52,7 @@
 
 .introdaction-button {
   display: flex;
-  font-size: 15px;
+  font-size: 12px;
   color: lightgray;
   cursor: pointer;
   border-bottom: 1px solid transparent;

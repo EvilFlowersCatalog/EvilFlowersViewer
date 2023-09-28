@@ -43,7 +43,6 @@ const Introduction = ({
             if (isChecked) {
               stayHidden()
             }
-            console.log('AJO')
             setShow(false)
           }}
         >

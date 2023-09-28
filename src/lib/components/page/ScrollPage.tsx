@@ -81,7 +81,7 @@ const ScrollPage = ({ pageNumber }: IScrollPageProps) => {
         setRendering(RENDERING_STATES.RENDERED)
       })
     }
-  }, [pdf, scale, rerender])
+  }, [pdf, scale])
 
   return (
     <div
