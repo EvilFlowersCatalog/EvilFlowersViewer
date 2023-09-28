@@ -13,18 +13,23 @@
 }
 
 .introdaction-image {
-  width: 70%;
-  height: auto;
+  width: auto;
+  height: 100%;
   object-fit: cover;
 }
 
 .introdaction-buttons-container {
   display: flex;
+  position: fixed;
+  bottom: 20px;
   width: 100%;
-  flex-direction: row;
-  gap: 50px;
   justify-content: center;
   align-items: center;
+  gap: 50px;
+}
+
+.introdaction-dont-show-button-container {
+  display: flex;
 }
 
 .introdaction-button-close {
@@ -34,11 +39,14 @@
   color: lightgray;
   cursor: pointer;
   color: white;
-  padding: 10px 20px;
+  padding: 5px 10px;
   border-radius: 10px;
+  transition-duration: 0.2s;
+  cursor: pointer;
 }
 .introdaction-button-close:hover {
-  background-color: black;
+  background-color: white;
+  color: black;
 }
 
 .introdaction-button {
@@ -47,6 +55,8 @@
   color: lightgray;
   cursor: pointer;
   border-bottom: 1px solid transparent;
+  user-select: none;
+  margin-left: 10px;
 }
 .introdaction-button:hover {
   border-bottom: 1px solid lightgray;
@@ -54,7 +64,6 @@
 
 @media screen and (max-width: 959px) {
   .introdaction-image {
-    width: 150%;
-    margin-left: 30px;
+    width: 100%;
   }
 }

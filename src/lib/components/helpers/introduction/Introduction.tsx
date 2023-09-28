@@ -1,21 +1,23 @@
-import introSK from '../../../../utils/images/Tool-Tip-SK.png'
-import introEN from '../../../../utils/images/Tool-Tip-EN.png'
+import introSK from '../../../../utils/images/introductionSK.png'
+import introEN from '../../../../utils/images/introductionEN.png'
 import { useTranslation } from 'react-i18next'
+import { useState } from 'react'
 
 interface IIntrodactionParams {
   setShow: (show: boolean) => void
-  stayHidden?: (() => void) | null
+  stayHidden: () => void
   lang: string | undefined
   visible?: boolean
 }
 
 const Introduction = ({
   setShow,
-  stayHidden = null,
+  stayHidden,
   lang,
   visible = false,
 }: IIntrodactionParams) => {
   const { t } = useTranslation()
+  const [isChecked, setIsChecked] = useState(true)
 
   return (
     <div className="introdaction-container" onClick={() => setShow(false)}>
@@ -25,16 +27,25 @@ const Introduction = ({
       />
       <div className="introdaction-buttons-container">
         {visible && (
-          <div
-            className="introdaction-button"
-            onClick={() => (stayHidden ? stayHidden() : null)}
-          >
-            {t('introShow')}
+          <div className="introdaction-dont-show-button-container">
+            <input type="checkbox" checked={isChecked} onChange={() => {}} />
+            <label
+              className="introdaction-button"
+              onClick={() => setIsChecked(!isChecked)}
+            >
+              {t('introShow')}
+            </label>
           </div>
         )}
         <div
           className="introdaction-button-close"
-          onClick={() => setShow(false)}
+          onClick={() => {
+            if (isChecked) {
+              stayHidden()
+            }
+            console.log('AJO')
+            setShow(false)
+          }}
         >
           {t('close')}
         </div>
