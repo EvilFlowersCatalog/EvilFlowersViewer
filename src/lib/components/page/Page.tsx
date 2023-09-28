@@ -1,4 +1,4 @@
-import { MouseEvent, useEffect } from 'react'
+import { MouseEvent, createRef, useEffect, useRef, useState } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import { RENDERING_STATES } from '../../../utils/enums'
 import Pagination from '../pagination/Pagination'
@@ -12,9 +12,6 @@ interface IPageParams {
 
 const Page = ({ onDoubleClick }: IPageParams) => {
   const { isRendering, pdfViewing, totalPages } = useDocumentContext()
-
-  // triger rerender
-  useEffect(() => {}, [pdfViewing])
 
   return (
     <div
@@ -39,13 +36,10 @@ const Page = ({ onDoubleClick }: IPageParams) => {
           <PaginatorPage />
         </>
       )}
-      {pdfViewing === 'scroll' && (
-        <>
-          {Array.from({ length: totalPages }).map((_, index) => (
-            <ScrollPage pageNumber={index + 1} key={index} />
-          ))}
-        </>
-      )}
+      {pdfViewing === 'scroll' &&
+        Array.from({ length: 30 }).map((_, index) => (
+          <ScrollPage pageNumber={index + 1} key={index} />
+        ))}
     </div>
   )
 }
