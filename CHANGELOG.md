@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2 : 2023-09-28
+
+- **Changed**: preview bar
+- **Changed**: preview bar design
+
 ## 0.4.1 : 2023-09-28
 
 - **Added**: new introdaction images

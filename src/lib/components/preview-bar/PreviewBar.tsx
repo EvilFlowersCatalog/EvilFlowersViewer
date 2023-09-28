@@ -3,15 +3,11 @@ import { useTranslation } from 'react-i18next'
 import cx from 'classnames'
 
 // icons
-import {
-  AiOutlineLeft,
-  AiOutlineDown,
-  AiOutlineRight,
-  AiOutlineUp,
-} from 'react-icons/ai'
+import { AiOutlineDown, AiOutlineUp } from 'react-icons/ai'
 
 import Preview from './Preview'
 import Pagination from '../pagination/Pagination'
+import { useState } from 'react'
 
 interface IBottomBarProps {
   pagePreviews: number
@@ -26,6 +22,7 @@ interface IBottomBarProps {
  * @returns The bottom bar component
  */
 const PreviewBar = ({ pagePreviews }: IBottomBarProps) => {
+  const [nextIndex, setNextIndex] = useState(0)
   const { activePage, prevPage, nextPage, totalPages } = useDocumentContext()
   const { t } = useTranslation()
 
@@ -35,7 +32,10 @@ const PreviewBar = ({ pagePreviews }: IBottomBarProps) => {
         <div
           title={t('prevPage')}
           className={'viewer-button'}
-          onClick={prevPage}
+          onClick={() => {
+            setNextIndex(Math.max(nextIndex - 1, 0))
+            prevPage()
+          }}
         >
           <AiOutlineUp
             className={
@@ -47,17 +47,16 @@ const PreviewBar = ({ pagePreviews }: IBottomBarProps) => {
         </div>
         <div className="prievew-bar-pages-container">
           {Array.from({ length: pagePreviews }).map((_, index) => (
-            <Preview
-              pageNumber={activePage - Math.ceil(pagePreviews / 2) + index + 1}
-              previewNumber={index + 1}
-              key={index}
-            />
+            <Preview pageNumber={index + 1 + nextIndex} key={index} />
           ))}
         </div>
         <div
           title={t('nextPage')}
           className={'viewer-button'}
-          onClick={nextPage}
+          onClick={() => {
+            setNextIndex(Math.min(nextIndex + 1, totalPages - pagePreviews))
+            nextPage()
+          }}
         >
           <AiOutlineDown
             className={

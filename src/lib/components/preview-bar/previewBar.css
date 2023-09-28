@@ -2,7 +2,7 @@
   box-sizing: border-box;
   padding: 5px 0;
   height: 100%;
-  width: 200px;
+  width: 170px;
   flex-direction: column;
   background-color: var(--component-background-color);
 }
@@ -20,8 +20,9 @@
   display: flex;
   width: 100%;
   flex: 1;
-  margin: 10px 0;
+  padding: 10px 0;
   align-items: center;
+  justify-content: space-between;
   flex-direction: column;
   background-color: transparent;
   gap: 10px;
