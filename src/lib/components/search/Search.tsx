@@ -39,8 +39,16 @@ const Search = () => {
   let searchWorker: Worker | undefined = undefined
   const tmpSecuredView = false
 
-  const { pdf, searchPage, desiredScale, isRendering, setRendering } =
-    useDocumentContext()
+  const {
+    pdf,
+    searchPage,
+    desiredScale,
+    isRendering,
+    setRendering,
+    nextPreviewPage,
+    pagePreviews,
+    setNextPreviewPage,
+  } = useDocumentContext()
 
   /**
    *
@@ -148,6 +156,11 @@ const Search = () => {
    * @param index index of match in matches array
    */
   const findMatchedText = (page: number, index: number) => {
+    if (pagePreviews + nextPreviewPage < page) {
+      setNextPreviewPage(page - pagePreviews)
+    } else if (nextPreviewPage >= page) {
+      setNextPreviewPage(page < pagePreviews ? 0 : page - pagePreviews)
+    }
     setRendering(RENDERING_STATES.RENDERING)
     searchPage(page)
     setSelectedMatch(index)

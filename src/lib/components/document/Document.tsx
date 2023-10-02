@@ -466,6 +466,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         totalPages,
         pdfViewing,
         setPdfViewing,
+        pagePreviews,
         nextPreviewPage,
         setNextPreviewPage,
       }}
@@ -483,9 +484,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
             <SideMenu />
             <Page onDoubleClick={handleDoubleClick} />
           </div>
-          {pdfViewing === 'paginator' && (
-            <BottomBar pagePreviews={pagePreviews} />
-          )}
+          {pdfViewing === 'paginator' && <BottomBar />}
         </div>
       )}
     </DocumentContext.Provider>

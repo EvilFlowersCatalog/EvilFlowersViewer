@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.5 : 2023-10-02
+
+- **Fixed**: input flex in bottom bar
+- **Fixed**: setting bottom bar based on choosen item in search
+- **Changed**: few little things
+
 ## 0.4.4 : 2023-10-02
 
 - **Added**: Hover in preview bar, so it will show hovered page

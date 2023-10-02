@@ -31,9 +31,10 @@
 
 .preview-bar-pagination-input {
   display: flex;
+  box-sizing: border-box;
   font-size: 14px;
-  padding: 5px 10px;
-  width: 30px;
+  padding: 5px;
+  width: 100px;
   border: none;
   border-radius: 10px;
   text-align: center;
