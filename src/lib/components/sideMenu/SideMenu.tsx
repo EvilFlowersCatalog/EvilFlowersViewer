@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import Tooltip from '../helpers/Tooltip'
+import Tooltip from '../helpers/toolTip/Tooltip'
 import { useDocumentContext } from '../document/DocumentContext'
 import {
   BiDownload,
@@ -10,19 +10,17 @@ import {
   BiMoon,
   BiSearch,
   BiSun,
-  BiZoomIn,
-  BiZoomOut,
 } from 'react-icons/bi'
+import { AiOutlinePlus, AiOutlineMinus } from 'react-icons/ai'
 import { PiCaretUpDownBold } from 'react-icons/pi'
 import { LuChevronsLeftRight } from 'react-icons/lu'
-import { TbZoomReplace } from 'react-icons/tb'
 import { useViewerContext } from '../ViewerContext'
 import { SIDEBAR_TABS, SIDEBAR_TAB_NAMES } from '../../../utils/enums'
 import { useEffect, useState } from 'react'
 import { RxQuote, RxShare2 } from 'react-icons/rx'
 import Citations from '../citation/Citations'
 import ShareQRCode from '../share/ShareQRCode'
-import Outline from '../outline/Outline'
+import Toc from '../toc/Toc'
 import Sidebar from '../sidebar/Sidebar'
 import Search from '../search/Search'
 import Info from '../info/Info'
@@ -43,13 +41,12 @@ const SideMenu = () => {
   const {
     zoomIn,
     zoomOut,
-    resetScale,
     scale,
     downloadDocument,
     pdfCitation,
     pdfViewing,
     setPdfViewing,
-    outline,
+    TOC,
     screenWidth,
   } = useDocumentContext()
   const { theme, setTheme, shareFunction, homeFunction, setShowIntro } =
@@ -106,16 +103,15 @@ const SideMenu = () => {
       icon: (
         <BiMenuAltLeft
           className={
-            outline && outline.length
+            TOC && TOC.length
               ? 'viewer-button-icon'
               : 'viewer-button-icon-deactive'
           }
         />
       ),
-      tooltipText:
-        outline && outline.length ? t('tocToolTip') : t('tocNoneToolTip'),
+      tooltipText: TOC && TOC.length ? t('tocToolTip') : t('tocNoneToolTip'),
       onClick: () => {
-        outline && outline.length ? setTocVisibility(true) : null
+        TOC && TOC.length ? setTocVisibility(true) : null
         setActiveSidebar(SIDEBAR_TABS.NULL)
       },
     },
@@ -221,7 +217,7 @@ const SideMenu = () => {
     // ZOOM IN
     {
       name: t(''),
-      icon: <BiZoomIn className={'viewer-button-icon'} />,
+      icon: <AiOutlinePlus className={'viewer-button-icon'} />,
       tooltipText: t('zoomIn'),
       onClick: () => {
         zoomIn()
@@ -230,19 +226,10 @@ const SideMenu = () => {
     // ZOOM OUT
     {
       name: t(''),
-      icon: <BiZoomOut className={'viewer-button-icon'} />,
+      icon: <AiOutlineMinus className={'viewer-button-icon'} />,
       tooltipText: t('zoomOut'),
       onClick: () => {
         zoomOut()
-      },
-    },
-    // RESET ZOOM
-    {
-      name: t(''),
-      icon: <TbZoomReplace className={'viewer-button-icon'} />,
-      tooltipText: t('resetZoom'),
-      onClick: () => {
-        resetScale()
       },
     },
   ]
@@ -265,7 +252,7 @@ const SideMenu = () => {
         )}
       </Sidebar>
       <div className={'side-menu-container'}>
-        {SidebarItems.slice(0, SidebarItems.length - 3).map((item, i) => (
+        {SidebarItems.slice(0, SidebarItems.length - 2).map((item, i) => (
           <div className={'side-menu-buttons-container'} key={i}>
             <Tooltip title={item.tooltipText} placement="right">
               <div
@@ -278,7 +265,7 @@ const SideMenu = () => {
             </Tooltip>
           </div>
         ))}
-        {screenWidth > 959 && (
+        {screenWidth > 599 && (
           <div className="side-menu-pdf-viewing-button-container">
             <Tooltip
               title={
@@ -304,7 +291,7 @@ const SideMenu = () => {
           </div>
         )}
         <div className="side-menu-zoom-buttons-container">
-          {SidebarItems.slice(SidebarItems.length - 3).map((item, i) => (
+          {SidebarItems.slice(SidebarItems.length - 2).map((item, i) => (
             <div className={'side-menu-buttons-container'} key={i}>
               <Tooltip title={item.tooltipText} placement="right">
                 <div
@@ -326,7 +313,7 @@ const SideMenu = () => {
       {shareQRVisibility && (
         <ShareQRCode setShareQRVisibility={setShareQRVisibility} link={link} />
       )}
-      {tocVisibility && <Outline setTocVisibility={setTocVisibility} />}
+      {tocVisibility && <Toc setTocVisibility={setTocVisibility} />}
     </>
   )
 }

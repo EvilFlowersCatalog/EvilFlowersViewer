@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { AiOutlineLeft, AiOutlineDown } from 'react-icons/ai'
 import ModalWrapper from '../modal/Modal'
 import cx from 'classnames'
-import Tooltip from '../helpers/Tooltip'
 
 interface TOCItem {
   title: string
@@ -17,13 +16,13 @@ interface IOutlineProps {
   setTocVisibility: (state: boolean) => void
 }
 
-const Outline = ({ setTocVisibility }: IOutlineProps) => {
+const Toc = ({ setTocVisibility }: IOutlineProps) => {
   const { t } = useTranslation()
   const [isDropdownShown, setIsDropdownShown] = useState(false)
-  const { pdf, outline, outlineSetPage } = useDocumentContext()
+  const { pdf, TOC, tocSetPage } = useDocumentContext()
   const [toc, setToc] = useState(() => {
     // Add isExpanded property to each item in outline
-    const newOutline = outline?.map((item) => ({
+    const newOutline = TOC?.map((item) => ({
       ...item,
       isExpanded: false,
     }))
@@ -31,12 +30,8 @@ const Outline = ({ setTocVisibility }: IOutlineProps) => {
   })
   const [isOpen, setIsOpen] = useState(true)
 
-  const toggleDropdown = () => {
-    setIsDropdownShown((prevState) => !prevState)
-  }
-
   const handleItemClick = (pageNumber: number) => {
-    outlineSetPage(pageNumber)
+    tocSetPage(pageNumber)
     setTocVisibility(false)
     setIsOpen(false)
   }
@@ -100,7 +95,7 @@ const Outline = ({ setTocVisibility }: IOutlineProps) => {
   useEffect(() => {
     // Update isExpanded property when outline changes
     setToc((prevToc) => {
-      const newOutline = outline?.map((item) => {
+      const newOutline = TOC?.map((item) => {
         const matchingItem = prevToc?.find(
           (prevItem) =>
             prevItem.title === item.title &&
@@ -113,7 +108,7 @@ const Outline = ({ setTocVisibility }: IOutlineProps) => {
       })
       return newOutline
     })
-  }, [outline])
+  }, [TOC])
 
   const handleOnCloseClick = () => {
     setIsOpen(false)
@@ -124,10 +119,10 @@ const Outline = ({ setTocVisibility }: IOutlineProps) => {
     <ModalWrapper isOpen={isOpen} onClose={() => handleOnCloseClick()}>
       <>
         <h4 className="outline-title">{t('toc')}</h4>
-        {renderTOC(outline)}
+        {renderTOC(TOC)}
       </>
     </ModalWrapper>
   )
 }
 
-export default Outline
+export default Toc

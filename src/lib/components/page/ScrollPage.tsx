@@ -27,6 +27,10 @@ const ScrollPage = ({ pageNumber }: IScrollPageProps) => {
   const renderPage = useCallback(async () => {
     setRendering(RENDERING_STATES.RENDERING)
 
+    /**
+     * SPRAVIT TO TUNA, TEN SKROLL
+     */
+
     return await new Promise((resolve) => {
       pdf?.getPage(pageNumber).then((page) => {
         const container = document.createElement('textLayer')

@@ -12,7 +12,7 @@ import Cite from 'citation-js'
 import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
 import { RENDERING_STATES } from '../../../utils/enums'
-import PreviewBar from '../preview-bar/PreviewBar'
+import BottomBar from '../bottomBar/BottomBar'
 import {
   GetDocumentParameters,
   PDFDocumentProxy,
@@ -69,26 +69,27 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [isRendering, setRendering] = useState<RENDERING_STATES | null>(null)
   const [totalPages, setTotalPages] = useState(0)
   const ref: any = useRef(null)
-  const [outline, setOutline] = useState<TOCItemDoc[] | undefined>()
+  const [TOC, setTOC] = useState<TOCItemDoc[] | undefined>()
   const [pdfViewing, setPdfViewing] = useState<'paginator' | 'scroll'>(
     'paginator'
   )
   const [basedPdfCitation] = useState<string | null | undefined>(citationBibTeX)
   const [screenWidth, setScreenWidth] = useState(window.outerWidth)
   const [pagePreviews, setPagePreviews] = useState(
-    parseInt((window.outerHeight / 220).toString())
+    parseInt(Math.floor(window.innerWidth / 125).toString())
   )
   const [pdfCitation, setPdfCitation] = useState<{
     citation: string
     type: string
     format: string
   } | null>(null)
+  const [nextPreviewPage, setNextPreviewPage] = useState(0)
 
   const { setShowIntro, showIntro } = useViewerContext()
 
   // Set citation on start
   useEffect(() => {
-    setPdfViewing(screenWidth > 959 ? 'paginator' : 'scroll')
+    setPdfViewing(screenWidth > 599 ? 'paginator' : 'scroll')
     if (basedPdfCitation) {
       changeCitationFormat('bibtex', 'bib')
     }
@@ -96,12 +97,11 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
 
   useEffect(() => {
     const handleResize = () => {
-      const newScreenWidth = window.outerWidth
-      const screenHeight = window.outerHeight
+      const newScreenWidth = window.innerWidth
       setScreenWidth(newScreenWidth)
-      setPagePreviews(parseInt((screenHeight / 220).toString()))
+      setPagePreviews(parseInt(Math.floor(newScreenWidth / 125).toString()))
 
-      if (newScreenWidth < 959) {
+      if (newScreenWidth <= 599) {
         setPdfViewing('scroll')
       }
     }
@@ -136,7 +136,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
 
           // Case where we have outlines
           const toc = await getTableOfContents(outline, 0, doc)
-          setOutline(toc)
+          setTOC(toc)
         })
 
         setPdf(doc)
@@ -162,14 +162,19 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
       let pageNumber
       try {
         if (item.dest) {
-          let ref: any
-          await doc.getDestination(item.dest as string).then((dest) => {
-            if (dest) {
-              ref = dest[0]
-            }
-          })
-          const index = await doc.getPageIndex(ref)
-          pageNumber = index + 1
+          if (typeof item.dest === 'string') {
+            let ref: any
+            await doc.getDestination(item.dest).then((dest) => {
+              if (dest) {
+                ref = dest[0]
+              }
+            })
+            const index = await doc.getPageIndex(ref)
+            pageNumber = index + 1
+          } else {
+            const index = await doc.getPageIndex(item.dest[0])
+            pageNumber = index + 1
+          }
         } else {
           pageNumber = -1
         }
@@ -320,6 +325,13 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    * Go to next page
    */
   const nextPage = () => {
+    setNextPreviewPage(
+      pagePreviews < totalPages
+        ? nextPreviewPage + 1 > totalPages - pagePreviews
+          ? nextPreviewPage
+          : nextPreviewPage + 1
+        : 0
+    )
     setActivePage((prevPage) =>
       pdf && pdf?.numPages > prevPage ? prevPage + 1 : prevPage
     )
@@ -329,6 +341,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    * Go to previous page
    */
   const prevPage = () => {
+    setNextPreviewPage(Math.max(nextPreviewPage - 1, 0))
     setActivePage((prevPage) => (prevPage > 1 ? prevPage - 1 : prevPage))
   }
 
@@ -349,7 +362,12 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
     }
   }
 
-  const outlineSetPage = (numPage: number) => {
+  const tocSetPage = (numPage: number) => {
+    if (pagePreviews + nextPreviewPage < numPage) {
+      setNextPreviewPage(numPage - pagePreviews)
+    } else if (nextPreviewPage >= numPage) {
+      setNextPreviewPage(numPage < pagePreviews ? 0 : numPage - pagePreviews)
+    }
     setActivePage(numPage)
   }
 
@@ -376,13 +394,6 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    */
   const zoomOut = () => {
     setScale((prevScale) => (prevScale > 0.25 ? prevScale - 0.25 : prevScale))
-  }
-
-  /**
-   * Reset zoom on document
-   */
-  const resetScale = () => {
-    setScale(1)
   }
 
   // Loads the document every time the data changes
@@ -440,22 +451,23 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         prevPage,
         setPage,
         setActivePage,
-        outlineSetPage,
+        tocSetPage,
         searchPage,
         scale,
         desiredScale,
         setDesiredScale,
         zoomIn,
         zoomOut,
-        resetScale,
-        setOutline,
-        outline,
+        setTOC,
+        TOC,
         rerender,
         isRendering,
         setRendering,
         totalPages,
         pdfViewing,
         setPdfViewing,
+        nextPreviewPage,
+        setNextPreviewPage,
       }}
     >
       {!data && <h1 className="document-load-error">{t('loadPDFerror')}</h1>}
@@ -467,10 +479,12 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
           className={'document-container'}
           onMouseEnter={() => ref.current?.focus()}
         >
-          <SideMenu />
-          <Page onDoubleClick={handleDoubleClick} />
+          <div className="document-upper-row-container">
+            <SideMenu />
+            <Page onDoubleClick={handleDoubleClick} />
+          </div>
           {pdfViewing === 'paginator' && (
-            <PreviewBar pagePreviews={pagePreviews} />
+            <BottomBar pagePreviews={pagePreviews} />
           )}
         </div>
       )}

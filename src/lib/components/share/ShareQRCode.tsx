@@ -73,7 +73,7 @@ const ShareQRCode = (props: IShareQRProps) => {
       <div className={'share-qr-code-container'}>
         {props.link ? (
           props.link !== 'error' ? (
-            <QRCode id="QRCode" size={300} value={props.link} />
+            <QRCode id="QRCode" size={250} value={props.link} />
           ) : (
             <pre className="share-failed-qr-code-text">
               {t('shareQrCodeFail')}

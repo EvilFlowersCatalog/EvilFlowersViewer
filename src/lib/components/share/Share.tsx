@@ -1,7 +1,7 @@
 import { ChangeEvent, FormEvent, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BiInfoCircle } from 'react-icons/bi'
-import Tooltip from '../helpers/Tooltip'
+import Tooltip from '../helpers/toolTip/Tooltip'
 import { RxShare2 } from 'react-icons/rx'
 import { useDocumentContext } from '../document/DocumentContext'
 import { useViewerContext } from '../ViewerContext'

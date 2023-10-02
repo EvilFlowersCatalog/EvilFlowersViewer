@@ -32,18 +32,19 @@ interface IDocumentContext {
   scale: number
   desiredScale: number
   setDesiredScale: (desiredScale: number) => void
-  resetScale: () => void
   zoomIn: () => void
   zoomOut: () => void
   rerender: Object
   isRendering: RENDERING_STATES | null
   setRendering: (state: RENDERING_STATES) => void
   totalPages: number
-  outline: TOCItemDoc[] | undefined
-  setOutline: (outline: TOCItemDoc[] | undefined) => void
-  outlineSetPage: (num: number) => void
+  TOC: TOCItemDoc[] | undefined
+  setTOC: (outline: TOCItemDoc[] | undefined) => void
+  tocSetPage: (num: number) => void
   pdfViewing: 'paginator' | 'scroll'
   setPdfViewing: (type: 'paginator' | 'scroll') => void
+  nextPreviewPage: number
+  setNextPreviewPage: (preview: number) => void
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)
