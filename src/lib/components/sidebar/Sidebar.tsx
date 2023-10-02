@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import cx from 'classnames'
-import Tooltip from '../helpers/Tooltip'
+import Tooltip from '../helpers/toolTip/Tooltip'
 import { useTranslation } from 'react-i18next'
 
 // icons

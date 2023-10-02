@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
+import PreviewHover from '../helpers/previewHover/PreviewHover'
 
 interface IPreviewProps {
   pageNumber: number
+  right: number
 }
 
 /**
@@ -14,7 +16,7 @@ interface IPreviewProps {
  * @returns Preview component
  *
  */
-const Preview = ({ pageNumber }: IPreviewProps) => {
+const Preview = ({ pageNumber, right }: IPreviewProps) => {
   const { pdf, totalPages, searchPage, activePage } = useDocumentContext()
   const canvas = document.createElement('canvas')
 
@@ -34,7 +36,7 @@ const Preview = ({ pageNumber }: IPreviewProps) => {
           canvas.setAttribute('style', 'border: 1px solid black;')
         }
 
-        let desiredWidth = 135
+        let desiredWidth = 100
         let viewport = page.getViewport({ scale: 1 })
         let scale = desiredWidth / viewport.width
         viewport = page.getViewport({ scale: scale })
@@ -63,7 +65,11 @@ const Preview = ({ pageNumber }: IPreviewProps) => {
     }
   }, [pdf, pageNumber, activePage])
 
-  return <div key={'preview' + pageNumber} id={'preview' + pageNumber}></div>
+  return (
+    <PreviewHover right={right} key={pageNumber} pageNumber={pageNumber}>
+      <div id={'preview' + pageNumber}></div>
+    </PreviewHover>
+  )
 }
 
 export default Preview

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.4 : 2023-10-02
+
+- **Added**: Hover in preview bar, so it will show hovered page
+- **Changed**: whole design, again
+- **Changed**: name outline to TOC
+- **Fixed**: scroll view, better handling
+- **Fixed**: bugs and design bugs
+- **Fixed**: Toc navigation in document
+
 ## 0.4.3 : 2023-09-28
 
 - **Changed**: Scroll pages viewing
