@@ -53,7 +53,7 @@ npm install @evilflowers/evilflowersviewer
                 }
             ],
             "styles": [
-                "node_modules/@evilflowers/evilflowersviewer/dist/styles.css"
+                "node_modules/@evilflowers/evilflowersviewer/dist/style.css"
             ]
         }
     }

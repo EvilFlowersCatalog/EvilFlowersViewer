@@ -8,10 +8,6 @@ import Preview from './Preview'
 import { ChangeEvent, ReactNode, useState, KeyboardEvent } from 'react'
 import Tooltip from '../helpers/toolTip/Tooltip'
 
-interface IBottomBarProps {
-  pagePreviews: number
-}
-
 interface IZoomButtonProps {
   onClick: () => void
   icon: ReactNode
@@ -36,7 +32,7 @@ const PaginationButton = ({ onClick, icon, tooltipText }: IZoomButtonProps) => {
  *
  * @returns The bottom bar component
  */
-const BottomBar = ({ pagePreviews }: IBottomBarProps) => {
+const BottomBar = () => {
   const {
     activePage,
     prevPage,
@@ -45,6 +41,7 @@ const BottomBar = ({ pagePreviews }: IBottomBarProps) => {
     setActivePage,
     nextPreviewPage,
     setNextPreviewPage,
+    pagePreviews,
   } = useDocumentContext()
   const { t } = useTranslation()
 
@@ -54,8 +51,9 @@ const BottomBar = ({ pagePreviews }: IBottomBarProps) => {
     const value = e.target.value
     const valueRegex = /^[0-9]*$/
     const valueInt = parseInt(value ? value : '1')
-    if (valueRegex.test(value) && valueInt <= totalPages && valueInt > 0)
+    if (valueRegex.test(value) && valueInt <= totalPages && valueInt > 0) {
       setInputValue(value)
+    }
   }
 
   const handlePaginationKey = async (e: KeyboardEvent<HTMLDivElement>) => {
@@ -122,11 +120,7 @@ const BottomBar = ({ pagePreviews }: IBottomBarProps) => {
       <div className="prievew-bar-pages-container">
         {Array.from({ length: Math.min(pagePreviews, totalPages) }).map(
           (_, index) => (
-            <Preview
-              right={index + 1 > pagePreviews * (3 / 4) ? 20 : 0}
-              pageNumber={index + 1 + nextPreviewPage}
-              key={index}
-            />
+            <Preview pageNumber={index + 1 + nextPreviewPage} key={index} />
           )
         )}
       </div>

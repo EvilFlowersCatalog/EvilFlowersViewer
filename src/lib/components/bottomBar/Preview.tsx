@@ -4,7 +4,6 @@ import PreviewHover from '../helpers/previewHover/PreviewHover'
 
 interface IPreviewProps {
   pageNumber: number
-  right: number
 }
 
 /**
@@ -16,8 +15,9 @@ interface IPreviewProps {
  * @returns Preview component
  *
  */
-const Preview = ({ pageNumber, right }: IPreviewProps) => {
-  const { pdf, totalPages, searchPage, activePage } = useDocumentContext()
+const Preview = ({ pageNumber }: IPreviewProps) => {
+  const { pdf, totalPages, searchPage, activePage, pagePreviews } =
+    useDocumentContext()
   const canvas = document.createElement('canvas')
 
   /**
@@ -66,7 +66,11 @@ const Preview = ({ pageNumber, right }: IPreviewProps) => {
   }, [pdf, pageNumber, activePage])
 
   return (
-    <PreviewHover right={right} key={pageNumber} pageNumber={pageNumber}>
+    <PreviewHover
+      right={pageNumber > pagePreviews * (3 / 4) ? 20 : 0}
+      key={pageNumber}
+      pageNumber={pageNumber}
+    >
       <div id={'preview' + pageNumber}></div>
     </PreviewHover>
   )

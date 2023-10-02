@@ -43,6 +43,7 @@ interface IDocumentContext {
   tocSetPage: (num: number) => void
   pdfViewing: 'paginator' | 'scroll'
   setPdfViewing: (type: 'paginator' | 'scroll') => void
+  pagePreviews: number
   nextPreviewPage: number
   setNextPreviewPage: (preview: number) => void
 }
