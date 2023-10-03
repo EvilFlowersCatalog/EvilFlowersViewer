@@ -90,7 +90,8 @@ const BottomBar = () => {
   }, [pagePreviews, totalPages, nextPreviewPage])
 
   useEffect(() => {
-    if (arr.length >= pagePreviews) {
+    const max = pagePreviews > totalPages ? totalPages : pagePreviews
+    if (arr.length >= max) {
       setRender('RENDERED')
     }
   }, [arr])

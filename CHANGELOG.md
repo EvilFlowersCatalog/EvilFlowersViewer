@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.7 : 2023-10-03
+
+- **Fixed**: bug in bottom bar
+
 ## 0.4.6 : 2023-10-03
 
 - **Fixed**: hover on preview pages in bottom bar
