@@ -17,9 +17,9 @@ const PreviewHover = ({ pageNumber, children, right }: IPreviewHover) => {
     const doc = document.getElementById('preview-page-show' + pageNumber)!
     return await new Promise((resolve) => {
       pdf?.getPage(pageNumber).then((page) => {
-        let desiredWidth = screenWidth * 0.25
+        let desiredHeight = window.outerHeight * 0.6
         let viewport = page.getViewport({ scale: 1 })
-        let scale = desiredWidth / viewport.width
+        let scale = desiredHeight / viewport.height
         viewport = page.getViewport({ scale: scale })
 
         const canvas = document.createElement('canvas')
