@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.6 : 2023-10-03
+
+- **Fixed**: hover on preview pages in bottom bar
+- **Fixed**: printing in bottom bar
+
 ## 0.4.5 : 2023-10-02
 
 - **Fixed**: input flex in bottom bar

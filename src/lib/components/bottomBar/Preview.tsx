@@ -16,8 +16,14 @@ interface IPreviewProps {
  *
  */
 const Preview = ({ pageNumber }: IPreviewProps) => {
-  const { pdf, totalPages, searchPage, activePage, pagePreviews } =
-    useDocumentContext()
+  const {
+    pdf,
+    totalPages,
+    searchPage,
+    activePage,
+    pagePreviews,
+    nextPreviewPage,
+  } = useDocumentContext()
   const canvas = document.createElement('canvas')
 
   /**
@@ -31,14 +37,20 @@ const Preview = ({ pageNumber }: IPreviewProps) => {
         document.getElementById('preview' + pageNumber)?.appendChild(canvas)
         canvas.setAttribute('style', 'cursor: pointer;')
         if (pageNumber === activePage) {
-          canvas.setAttribute('style', 'border: 5px double red')
+          canvas.setAttribute(
+            'style',
+            'border: 5px double red; cursor: pointer;'
+          )
         } else {
-          canvas.setAttribute('style', 'border: 1px solid black;')
+          canvas.setAttribute(
+            'style',
+            'border: 1px solid black; cursor: pointer;'
+          )
         }
 
-        let desiredWidth = 100
+        let desiredHeight = 140
         let viewport = page.getViewport({ scale: 1 })
-        let scale = desiredWidth / viewport.width
+        let scale = desiredHeight / viewport.height
         viewport = page.getViewport({ scale: scale })
         canvas.onclick = () => {
           searchPage(pageNumber)
@@ -67,7 +79,7 @@ const Preview = ({ pageNumber }: IPreviewProps) => {
 
   return (
     <PreviewHover
-      right={pageNumber > pagePreviews * (3 / 4) ? 20 : 0}
+      right={pageNumber - nextPreviewPage > pagePreviews * (3 / 4) ? 20 : 0}
       key={pageNumber}
       pageNumber={pageNumber}
     >

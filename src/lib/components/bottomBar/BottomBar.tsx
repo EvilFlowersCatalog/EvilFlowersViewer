@@ -5,7 +5,13 @@ import { useTranslation } from 'react-i18next'
 import { AiOutlineLeft, AiOutlineRight } from 'react-icons/ai'
 
 import Preview from './Preview'
-import { ChangeEvent, ReactNode, useState, KeyboardEvent } from 'react'
+import {
+  ChangeEvent,
+  ReactNode,
+  useState,
+  KeyboardEvent,
+  useEffect,
+} from 'react'
 import Tooltip from '../helpers/toolTip/Tooltip'
 
 interface IZoomButtonProps {
@@ -46,6 +52,8 @@ const BottomBar = () => {
   const { t } = useTranslation()
 
   const [inputValue, setInputValue] = useState('')
+  const [render, setRender] = useState<'RENDERED' | 'RENDERING'>('RENDERING')
+  const [arr, setArr] = useState<JSX.Element[]>([])
 
   const handlePaginationChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
@@ -69,13 +77,31 @@ const BottomBar = () => {
     }
   }
 
+  useEffect(() => {
+    setRender('RENDERING')
+    setArr([])
+    setArr(
+      Array.from({ length: Math.min(pagePreviews, totalPages) }).map(
+        (_, index) => (
+          <Preview pageNumber={index + 1 + nextPreviewPage} key={index} />
+        )
+      )
+    )
+  }, [pagePreviews, totalPages, nextPreviewPage])
+
+  useEffect(() => {
+    if (arr.length >= pagePreviews) {
+      setRender('RENDERED')
+    }
+  }, [arr])
+
   return (
     <div className="preview-bar-container">
       <div className="preview-bar-paginator-container">
         <PaginationButton
           tooltipText={activePage !== 1 ? t('prevPage') : ''}
           onClick={() => {
-            prevPage()
+            render === 'RENDERED' ? prevPage() : null
           }}
           icon={
             <AiOutlineLeft
@@ -103,7 +129,7 @@ const BottomBar = () => {
         <PaginationButton
           tooltipText={activePage !== totalPages ? t('nextPage') : ''}
           onClick={() => {
-            nextPage()
+            render === 'RENDERED' ? nextPage() : null
           }}
           icon={
             <AiOutlineRight
@@ -118,10 +144,10 @@ const BottomBar = () => {
         />
       </div>
       <div className="prievew-bar-pages-container">
-        {Array.from({ length: Math.min(pagePreviews, totalPages) }).map(
-          (_, index) => (
-            <Preview pageNumber={index + 1 + nextPreviewPage} key={index} />
-          )
+        {render === 'RENDERED' ? (
+          arr
+        ) : (
+          <div className="viewer-loader-small"></div>
         )}
       </div>
     </div>
