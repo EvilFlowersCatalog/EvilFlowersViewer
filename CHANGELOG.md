@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.8 : 2023-10-05
+
+- **Fixed**: preview in bottom bar printing
+- **Fixed**: searching in scroll
+- **Changed**: few little things
+
 ## 0.4.7 : 2023-10-03
 
 - **Fixed**: bug in bottom bar

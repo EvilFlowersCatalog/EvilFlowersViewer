@@ -10,8 +10,7 @@ interface IPreviewHover {
 
 const PreviewHover = ({ pageNumber, children, right }: IPreviewHover) => {
   const [visible, setVisible] = useState(false)
-  let canSet = false
-  const { pdf, screenWidth } = useDocumentContext()
+  const { pdf, activePage } = useDocumentContext()
 
   const renderPage = useCallback(async () => {
     const doc = document.getElementById('preview-page-show' + pageNumber)!
@@ -46,21 +45,22 @@ const PreviewHover = ({ pageNumber, children, right }: IPreviewHover) => {
     renderPage()
   }, [])
 
+  const handleMouseEnter = () => {
+    if (pageNumber !== activePage) {
+      setVisible(true)
+    }
+  }
+
+  const handleMouseOut = () => {
+    setVisible(false)
+  }
+
+  useEffect(() => {
+    setVisible(false)
+  }, [activePage])
+
   return (
-    <div
-      onMouseEnter={() => {
-        canSet = true
-        setTimeout(() => {
-          if (canSet) {
-            setVisible(true)
-          }
-        }, 500)
-      }}
-      onMouseLeave={() => {
-        canSet = false
-        setVisible(false)
-      }}
-    >
+    <div onMouseEnter={handleMouseEnter} onMouseOut={handleMouseOut}>
       <div
         className={cx('preview-hover-container', {
           'preview-hover-container-visible': visible,

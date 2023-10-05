@@ -20,7 +20,7 @@
 @tailwind utilities;
 
 :root {
-  --viewer-background-color: rgb(212 212 216);
+  --viewer-background-color: rgb(210, 210, 210);
   --text-color: black;
   --main-text-color: rgb(17 24 39);
   --component-background-color: white;

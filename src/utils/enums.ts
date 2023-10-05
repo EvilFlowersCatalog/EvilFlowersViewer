@@ -30,4 +30,9 @@ export enum SEARCH_STATES {
   ERROR,
 }
 
+export enum BOTTOMBAR_STATES {
+  RENDERING,
+  RENDERED,
+}
+
 export const DEBOUNCE_TIMEOUT = 300

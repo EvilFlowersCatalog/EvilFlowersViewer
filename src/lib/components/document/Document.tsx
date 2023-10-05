@@ -11,7 +11,7 @@ import React, {
 import Cite from 'citation-js'
 import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
-import { RENDERING_STATES } from '../../../utils/enums'
+import { BOTTOMBAR_STATES, RENDERING_STATES } from '../../../utils/enums'
 import BottomBar from '../bottomBar/BottomBar'
 import {
   GetDocumentParameters,
@@ -67,6 +67,8 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [pdf, setPdf] = useState<PDFDocumentProxy>()
   const [rerender, setRerender] = useState<Object>({})
   const [isRendering, setRendering] = useState<RENDERING_STATES | null>(null)
+  const [isBottomBarRendering, setBottomBarRendering] =
+    useState<BOTTOMBAR_STATES | null>(null)
   const [totalPages, setTotalPages] = useState(0)
   const ref: any = useRef(null)
   const [TOC, setTOC] = useState<TOCItemDoc[] | undefined>()
@@ -76,7 +78,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [basedPdfCitation] = useState<string | null | undefined>(citationBibTeX)
   const [screenWidth, setScreenWidth] = useState(window.outerWidth)
   const [pagePreviews, setPagePreviews] = useState(
-    parseInt(Math.floor(window.innerWidth / 125).toString())
+    parseInt(Math.floor(window.innerWidth / 130).toString())
   )
   const [pdfCitation, setPdfCitation] = useState<{
     citation: string
@@ -99,7 +101,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
     const handleResize = () => {
       const newScreenWidth = window.innerWidth
       setScreenWidth(newScreenWidth)
-      setPagePreviews(parseInt(Math.floor(newScreenWidth / 125).toString()))
+      setPagePreviews(parseInt(Math.floor(newScreenWidth / 130).toString()))
 
       if (newScreenWidth <= 599) {
         setPdfViewing('scroll')
@@ -325,24 +327,36 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    * Go to next page
    */
   const nextPage = () => {
-    setNextPreviewPage(
-      pagePreviews < totalPages
-        ? nextPreviewPage + 1 > totalPages - pagePreviews
-          ? nextPreviewPage
-          : nextPreviewPage + 1
-        : 0
-    )
-    setActivePage((prevPage) =>
-      pdf && pdf?.numPages > prevPage ? prevPage + 1 : prevPage
-    )
+    if (
+      isBottomBarRendering &&
+      isBottomBarRendering === BOTTOMBAR_STATES.RENDERED &&
+      activePage !== totalPages
+    ) {
+      setNextPreviewPage(
+        pagePreviews < totalPages
+          ? nextPreviewPage + 1 > totalPages - pagePreviews
+            ? nextPreviewPage
+            : nextPreviewPage + 1
+          : 0
+      )
+      setActivePage((prevPage) =>
+        pdf && pdf?.numPages > prevPage ? prevPage + 1 : prevPage
+      )
+    }
   }
 
   /**
    * Go to previous page
    */
   const prevPage = () => {
-    setNextPreviewPage(Math.max(nextPreviewPage - 1, 0))
-    setActivePage((prevPage) => (prevPage > 1 ? prevPage - 1 : prevPage))
+    if (
+      isBottomBarRendering &&
+      isBottomBarRendering === BOTTOMBAR_STATES.RENDERED &&
+      activePage !== 1
+    ) {
+      setNextPreviewPage(Math.max(nextPreviewPage - 1, 0))
+      setActivePage((prevPage) => (prevPage > 1 ? prevPage - 1 : prevPage))
+    }
   }
 
   /**
@@ -463,6 +477,8 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         rerender,
         isRendering,
         setRendering,
+        isBottomBarRendering,
+        setBottomBarRendering,
         totalPages,
         pdfViewing,
         setPdfViewing,

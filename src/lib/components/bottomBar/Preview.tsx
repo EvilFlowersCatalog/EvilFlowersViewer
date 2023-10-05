@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import PreviewHover from '../helpers/previewHover/PreviewHover'
 
@@ -10,7 +10,6 @@ interface IPreviewProps {
  * A preview of a document page
  *
  * @param pageNumber - number of page to be previewed
- * @param previewNumber - number of the preview element
  *
  * @returns Preview component
  *
@@ -24,7 +23,6 @@ const Preview = ({ pageNumber }: IPreviewProps) => {
     pagePreviews,
     nextPreviewPage,
   } = useDocumentContext()
-  const canvas = document.createElement('canvas')
 
   /**
    * Renders the page preview on a canvas, append to the div element
@@ -32,26 +30,16 @@ const Preview = ({ pageNumber }: IPreviewProps) => {
    * @returns A promise that resolves when the page is rendered
    */
   const renderPreview = useCallback(async () => {
-    return await new Promise((resolve) => {
+    await new Promise(() => {
       pdf?.getPage(pageNumber).then((page) => {
-        document.getElementById('preview' + pageNumber)?.appendChild(canvas)
-        canvas.setAttribute('style', 'cursor: pointer;')
-        if (pageNumber === activePage) {
-          canvas.setAttribute(
-            'style',
-            'border: 5px double red; cursor: pointer;'
-          )
-        } else {
-          canvas.setAttribute(
-            'style',
-            'border: 1px solid black; cursor: pointer;'
-          )
-        }
-
-        let desiredHeight = 140
+        // set sdesired scale
+        let desiredHeight = 135
         let viewport = page.getViewport({ scale: 1 })
         let scale = desiredHeight / viewport.height
         viewport = page.getViewport({ scale: scale })
+
+        // create and style canvas
+        const canvas = document.createElement('canvas')
         canvas.onclick = () => {
           searchPage(pageNumber)
         }
@@ -59,13 +47,22 @@ const Preview = ({ pageNumber }: IPreviewProps) => {
         canvas.height = viewport.height
         canvas.style.width = viewport.width + 'px'
         canvas.style.height = viewport.height + 'px'
+        canvas.setAttribute(
+          'style',
+          pageNumber === activePage
+            ? 'border: 5px double red; cursor: pointer;'
+            : 'border: 1px solid black; cursor: pointer;'
+        )
+        document.getElementById('preview' + pageNumber)?.replaceChildren(canvas) // replace
+
+        // remove context
         const context = canvas.getContext('2d')
         context!.clearRect(0, 0, canvas.width, canvas.height)
         const renderContext = {
           canvasContext: context as Object,
           viewport: viewport,
         }
-        page.render(renderContext)
+        page.render(renderContext) // render
       })
     })
   }, [pdf, pageNumber, activePage])

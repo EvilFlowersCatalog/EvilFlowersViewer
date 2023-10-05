@@ -14,6 +14,7 @@ const Page = ({ onDoubleClick }: IPageParams) => {
   const { isRendering, pdfViewing, totalPages } = useDocumentContext()
   const [nextIndex, setNextIndex] = useState(pages)
 
+  // when scroll to 3/5 page, load next pages
   const handleScroll = (event: any) => {
     const scrollY = event.target.scrollTop
     const height = event.target.scrollHeight

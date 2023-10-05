@@ -1,7 +1,7 @@
 import { PDFDocumentProxy } from 'pdfjs-dist'
 import { createContext, useContext } from 'react'
 
-import { RENDERING_STATES } from '../../../utils/enums'
+import { BOTTOMBAR_STATES, RENDERING_STATES } from '../../../utils/enums'
 
 /**
  * Document context
@@ -37,6 +37,8 @@ interface IDocumentContext {
   rerender: Object
   isRendering: RENDERING_STATES | null
   setRendering: (state: RENDERING_STATES) => void
+  isBottomBarRendering: BOTTOMBAR_STATES | null
+  setBottomBarRendering: (state: BOTTOMBAR_STATES) => void
   totalPages: number
   TOC: TOCItemDoc[] | undefined
   setTOC: (outline: TOCItemDoc[] | undefined) => void
