@@ -11,8 +11,10 @@ import {
   useState,
   KeyboardEvent,
   useEffect,
+  useCallback,
 } from 'react'
 import Tooltip from '../helpers/toolTip/Tooltip'
+import { BOTTOMBAR_STATES } from '../../../utils/enums'
 
 interface IZoomButtonProps {
   onClick: () => void
@@ -48,53 +50,61 @@ const BottomBar = () => {
     nextPreviewPage,
     setNextPreviewPage,
     pagePreviews,
+    isBottomBarRendering,
+    setBottomBarRendering,
   } = useDocumentContext()
   const { t } = useTranslation()
 
   const [inputValue, setInputValue] = useState('')
-  const [render, setRender] = useState<'RENDERED' | 'RENDERING'>('RENDERING')
-  const [arr, setArr] = useState<JSX.Element[]>([])
+  const [previewBar, setPreviewBar] = useState<JSX.Element[]>([])
 
-  const handlePaginationChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    const valueRegex = /^[0-9]*$/
+  // handle when input changed
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value // get value
+    const valueRegex = /^[0-9]*$/ // regex
     const valueInt = parseInt(value ? value : '1')
     if (valueRegex.test(value) && valueInt <= totalPages && valueInt > 0) {
+      // if pass set input val
       setInputValue(value)
     }
   }
 
-  const handlePaginationKey = async (e: KeyboardEvent<HTMLDivElement>) => {
+  // Handle enter
+  const handleInputKey = async (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.code === 'Enter' && inputValue) {
-      const value = parseInt(inputValue)
-      setActivePage(value)
+      // if enter adn input has value
+      const value = parseInt(inputValue) // to int
+      setActivePage(value) // set page
       if (pagePreviews + nextPreviewPage < value) {
         setNextPreviewPage(value - pagePreviews)
       } else if (nextPreviewPage >= value) {
         setNextPreviewPage(value < pagePreviews ? 0 : value - pagePreviews)
       }
-      setInputValue('')
+      setInputValue('') // reset
     }
   }
 
-  useEffect(() => {
-    setRender('RENDERING')
-    setArr([])
-    setArr(
-      Array.from({ length: Math.min(pagePreviews, totalPages) }).map(
-        (_, index) => (
-          <Preview pageNumber={index + 1 + nextPreviewPage} key={index} />
-        )
+  // Load pages in preview bar
+  const loadPreviews = useCallback(async () => {
+    return await new Promise((resolve) => {
+      // set new arr
+      setPreviewBar(
+        Array.from({
+          length: Math.min(pagePreviews, totalPages),
+        }).map((_, index) => (
+          <Preview key={index} pageNumber={index + 1 + nextPreviewPage} />
+        ))
       )
-    )
-  }, [pagePreviews, totalPages, nextPreviewPage])
+      resolve(BOTTOMBAR_STATES.RENDERED) // resolve value
+    }) // return resolve
+  }, [pagePreviews, totalPages, nextPreviewPage, activePage])
 
+  // When something in given arr change, rerender
   useEffect(() => {
-    const max = pagePreviews > totalPages ? totalPages : pagePreviews
-    if (arr.length >= max) {
-      setRender('RENDERED')
-    }
-  }, [arr])
+    setPreviewBar([])
+    setBottomBarRendering(BOTTOMBAR_STATES.RENDERING) // set rendering
+    loadPreviews().then((e: any) => setBottomBarRendering(e))
+  }, [pagePreviews, totalPages, nextPreviewPage, activePage])
 
   return (
     <div className="preview-bar-container">
@@ -102,7 +112,9 @@ const BottomBar = () => {
         <PaginationButton
           tooltipText={activePage !== 1 ? t('prevPage') : ''}
           onClick={() => {
-            render === 'RENDERED' ? prevPage() : null
+            isBottomBarRendering === BOTTOMBAR_STATES.RENDERED
+              ? prevPage()
+              : null
           }}
           icon={
             <AiOutlineLeft
@@ -121,8 +133,8 @@ const BottomBar = () => {
             placeholder={activePage.toString()}
             value={inputValue}
             className="preview-bar-pagination-input"
-            onChange={handlePaginationChange}
-            onKeyDown={handlePaginationKey}
+            onChange={handleInputChange}
+            onKeyDown={handleInputKey}
           />
           {t('of')}
           {totalPages}
@@ -130,7 +142,9 @@ const BottomBar = () => {
         <PaginationButton
           tooltipText={activePage !== totalPages ? t('nextPage') : ''}
           onClick={() => {
-            render === 'RENDERED' ? nextPage() : null
+            isBottomBarRendering === BOTTOMBAR_STATES.RENDERED
+              ? nextPage()
+              : null
           }}
           icon={
             <AiOutlineRight
@@ -144,10 +158,9 @@ const BottomBar = () => {
           }
         />
       </div>
-      <div className="prievew-bar-pages-container">
-        {render === 'RENDERED' ? (
-          arr
-        ) : (
+      <div id="preview-bar-container" className="prievew-bar-pages-container">
+        {isBottomBarRendering === BOTTOMBAR_STATES.RENDERED && previewBar}
+        {isBottomBarRendering === BOTTOMBAR_STATES.RENDERING && (
           <div className="viewer-loader-small"></div>
         )}
       </div>

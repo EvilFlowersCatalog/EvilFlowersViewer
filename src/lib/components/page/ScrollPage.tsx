@@ -27,16 +27,14 @@ const ScrollPage = ({ pageNumber }: IScrollPageProps) => {
   const renderPage = useCallback(async () => {
     setRendering(RENDERING_STATES.RENDERING)
 
-    /**
-     * SPRAVIT TO TUNA, TEN SKROLL
-     */
-
     return await new Promise((resolve) => {
       pdf?.getPage(pageNumber).then((page) => {
+        // create textlayer
         const container = document.createElement('textLayer')
         container.setAttribute('id', 'textLayer')
         container.setAttribute('class', 'pdf-canvas-textLayer')
 
+        // set vieweport to wanted scale
         let viewport = page.getViewport({ scale })
         const calcScreenWidth =
           screenWidth > 959 ? screenWidth * 0.5 : screenWidth * 0.75
@@ -46,6 +44,7 @@ const ScrollPage = ({ pageNumber }: IScrollPageProps) => {
         setDesiredScale(desiredScale)
         viewport = page.getViewport({ scale: desiredScale })
 
+        // set textlyer
         page.getTextContent().then((textContent) => {
           pdfjs.renderTextLayer({
             textContent,
@@ -55,25 +54,27 @@ const ScrollPage = ({ pageNumber }: IScrollPageProps) => {
           })
         })
 
-        canvas.width = viewport.width
+        // style canvas
         canvas.setAttribute('style', 'margin-bottom: 5px;')
+        canvas.setAttribute('id', 'evilFlowersCanvas' + pageNumber)
+        canvas.width = viewport.width
         canvas.height = viewport.height
         canvas.style.width = viewport.width + 'px'
         canvas.style.height = viewport.height + 'px'
         const context = canvas.getContext('2d')
-        context!.clearRect(0, 0, canvas.width, canvas.height)
         const renderContext = {
           canvasContext: context as Object,
           viewport: viewport,
         }
 
+        // render dask
         const renderTask = page.render(renderContext)
         renderTask.promise.then(() => {
           document
             .getElementById('evilFlowersContent' + pageNumber)
             ?.replaceChildren(container, canvas)
 
-          resolve(RENDERING_STATES.RENDERED)
+          resolve(RENDERING_STATES.RENDERED) // resolve
         })
       })
     })
@@ -85,7 +86,7 @@ const ScrollPage = ({ pageNumber }: IScrollPageProps) => {
         setRendering(RENDERING_STATES.RENDERED)
       })
     }
-  }, [pdf, scale])
+  }, [pdf, scale, rerender])
 
   return (
     <div

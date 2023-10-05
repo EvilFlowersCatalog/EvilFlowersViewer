@@ -48,6 +48,7 @@ const Search = () => {
     nextPreviewPage,
     pagePreviews,
     setNextPreviewPage,
+    pdfViewing,
   } = useDocumentContext()
 
   /**
@@ -170,7 +171,6 @@ const Search = () => {
    * seach with every change of searchPattern, for loaded PDFs only
    */
   useEffect(() => {
-    //TODO: update condition
     if (!tmpSecuredView) {
       if (searchPattern === '') return setMatches([])
       setSearching(SEARCH_STATES.LOADING)
@@ -189,20 +189,25 @@ const Search = () => {
       matches.length > selectedMatch &&
       matches[selectedMatch]?.transform
     ) {
-      const canvas = document.getElementById(
-        'evilFlowersCanvas'
-      ) as HTMLCanvasElement | null
+      let canvas
+      pdfViewing === 'paginator'
+        ? (canvas = document.getElementById(
+            'evilFlowersCanvas'
+          ) as HTMLCanvasElement | null)
+        : (canvas = document.getElementById(
+            'evilFlowersCanvas' + matches[selectedMatch]!.page
+          ) as HTMLCanvasElement | null)
 
       if (canvas) {
         const x: number = matches[selectedMatch]!.transform![4]
-        const y: number = matches[selectedMatch]!.transform![5]
+        const y: number = matches[selectedMatch]!.transform![5] - 3
         const width: number = matches[selectedMatch]!.width
         const height: number = matches[selectedMatch]!.height
         const canvas_height = canvas.getAttribute('height')
         const context: CanvasRenderingContext2D | null = canvas.getContext('2d')
         if (context) {
-          context.fillStyle = 'yellow'
-          context.globalAlpha = 0.3
+          context.fillStyle = 'orange'
+          context.globalAlpha = 0.4
           context.fillRect(
             x * desiredScale,
             parseInt(canvas_height!) - y * desiredScale - height * desiredScale,

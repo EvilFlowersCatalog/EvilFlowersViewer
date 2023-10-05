@@ -11,15 +11,8 @@ import { RENDERING_STATES } from '../../../utils/enums'
  */
 
 const PaginatorPage = () => {
-  const {
-    pdf,
-    activePage,
-    scale,
-    rerender,
-    setRendering,
-    pdfViewing,
-    setDesiredScale,
-  } = useDocumentContext()
+  const { pdf, activePage, scale, rerender, setRendering, setDesiredScale } =
+    useDocumentContext()
 
   /**
    * Renders the page and all its layers
@@ -93,10 +86,11 @@ const PaginatorPage = () => {
   }, [activePage, pdf, scale])
 
   useEffect(() => {
+    console.log('ahoj')
     renderPage().then((resolve) => {
       setRendering(RENDERING_STATES.RENDERED)
     })
-  }, [activePage, pdf, scale, rerender, pdfViewing])
+  }, [activePage, pdf, scale, rerender])
 
   return <div id={'evilFlowersContent'} className={'pdf-container'}></div>
 }
