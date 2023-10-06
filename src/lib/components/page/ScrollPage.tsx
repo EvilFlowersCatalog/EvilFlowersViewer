@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 
 const ScrollPage = () => {
-  const { pdf, totalPages, scale, setDesiredScale, screenWidth } =
-    useDocumentContext()
+  const { pdf, totalPages, setDesiredScale, screenWidth } = useDocumentContext()
   // when scroll to 3/5 page, load next pages
   const handleScroll = (event: any) => {
     const scrollY = event.target.scrollTop
@@ -17,7 +16,7 @@ const ScrollPage = () => {
     async (givenPage: number, canvas: HTMLCanvasElement, div: HTMLElement) => {
       await new Promise((resolve) => {
         pdf?.getPage(givenPage).then(async (page) => {
-          let viewport = page.getViewport({ scale })
+          let viewport = page.getViewport({ scale: 1 })
           const width = document
             .getElementById('evilFlowersContent')!
             .getBoundingClientRect().width
@@ -47,8 +46,8 @@ const ScrollPage = () => {
             viewport: viewport,
           })
           await renderTask.promise.then(() => {
-            div.appendChild(canvas)
-            div.appendChild(container)
+            div.replaceChildren(canvas, container)
+
             resolve('')
           })
         })
@@ -79,9 +78,7 @@ const ScrollPage = () => {
           div.replaceChildren()
           div.appendChild(loader)
         }
-        await renderPage(page, canvas, div).then(() => {
-          div?.removeChild(loader)
-        })
+        await renderPage(page, canvas, div)
       }
     }
     startRender()
