@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import { RENDERING_STATES } from '../../../utils/enums'
 
-let positions: number[] = []
+let positions: { x: number; width: number }[] = []
 
 const Preview = () => {
   const {
@@ -76,7 +76,8 @@ const Preview = () => {
           div.appendChild(loader)
         }
 
-        positions.push(div.getBoundingClientRect().x)
+        const divBounding = div.getBoundingClientRect()
+        positions.push({ x: divBounding.x, width: divBounding.width })
 
         await renderPage(page, canvas, div)
       }
@@ -129,9 +130,9 @@ const Preview = () => {
 
             // Calculate the target scroll position to center the picture in the container
             const targetScrollPosition =
-              positions[activePage - 1] -
+              positions[activePage - 1].x -
               containerRect.x -
-              containerRect.width / 2 // Center the picture
+              (containerRect.width - positions[activePage - 1].width) / 2 // Center the picture
 
             // Scroll to the target position smoothly
             container.scrollTo({
