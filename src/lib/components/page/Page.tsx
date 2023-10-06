@@ -1,6 +1,5 @@
 import { MouseEvent } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
-import { RENDERING_STATES } from '../../../utils/enums'
 import PaginatorPage from './PaginatorPage'
 import ScrollPage from './ScrollPage'
 

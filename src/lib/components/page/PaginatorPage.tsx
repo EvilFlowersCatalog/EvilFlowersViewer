@@ -28,7 +28,7 @@ const PaginatorPage = () => {
   const renderPage = useCallback(
     async (viewer: HTMLElement) => {
       return await new Promise((resolve) => {
-        pdf?.getPage(activePage).then((page) => {
+        pdf?.getPage(activePage).then(async (page) => {
           const height = document
             .getElementById('evilFlowersContent')!
             .getBoundingClientRect().height
@@ -67,7 +67,7 @@ const PaginatorPage = () => {
             viewport: viewport,
           }
           const renderTask = page.render(renderContext)
-          renderTask.promise.then(() => {
+          await renderTask.promise.then(() => {
             viewer.replaceChildren(canvas, container)
 
             resolve('')
