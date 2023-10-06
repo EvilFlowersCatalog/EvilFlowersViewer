@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import { RENDERING_STATES } from '../../../utils/enums'
 
-const positions: number[] = []
+let positions: number[] = []
 
 const Preview = () => {
   const {
@@ -43,6 +43,7 @@ const Preview = () => {
   )
 
   useEffect(() => {
+    positions = []
     setPreviewRender(RENDERING_STATES.RENDERING)
     const loader = document.createElement('div')
     loader.setAttribute('class', 'viewer-loader-small')
