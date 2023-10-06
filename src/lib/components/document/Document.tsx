@@ -11,13 +11,12 @@ import React, {
 import Cite from 'citation-js'
 import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
-import { BOTTOMBAR_STATES, RENDERING_STATES } from '../../../utils/enums'
+import { RENDERING_STATES } from '../../../utils/enums'
 import BottomBar from '../bottomBar/BottomBar'
 import {
   GetDocumentParameters,
   PDFDocumentProxy,
 } from 'pdfjs-dist/types/src/display/api'
-import { t } from 'i18next'
 import SideMenu from '../sideMenu/SideMenu'
 import { useViewerContext } from '../ViewerContext'
 
@@ -61,14 +60,18 @@ interface PDFOutlineItem {
 
 const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [activePage, setActivePage] = useState(1)
+  const [prevActivePage, setPrevActivePage] = useState<number>(activePage)
   const [scale, setScale] = useState(1)
   const [desiredScale, setDesiredScale] = useState(1)
   const [menu, setMenu] = useState(false)
   const [pdf, setPdf] = useState<PDFDocumentProxy>()
+  const [screenWidth, setScreenWidth] = useState(window.outerWidth)
   const [rerender, setRerender] = useState<Object>({})
-  const [isRendering, setRendering] = useState<RENDERING_STATES | null>(null)
-  const [isBottomBarRendering, setBottomBarRendering] =
-    useState<BOTTOMBAR_STATES | null>(null)
+  const [paginatorPageRender, setPaginatorPageRender] =
+    useState<RENDERING_STATES>(RENDERING_STATES.RENDERING)
+  const [previewRender, setPreviewRender] = useState<RENDERING_STATES>(
+    RENDERING_STATES.RENDERING
+  )
   const [totalPages, setTotalPages] = useState(0)
   const ref: any = useRef(null)
   const [TOC, setTOC] = useState<TOCItemDoc[] | undefined>()
@@ -76,22 +79,16 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
     'paginator'
   )
   const [basedPdfCitation] = useState<string | null | undefined>(citationBibTeX)
-  const [screenWidth, setScreenWidth] = useState(window.outerWidth)
-  const [pagePreviews, setPagePreviews] = useState(
-    parseInt(Math.floor(window.innerWidth / 130).toString())
-  )
   const [pdfCitation, setPdfCitation] = useState<{
     citation: string
     type: string
     format: string
   } | null>(null)
-  const [nextPreviewPage, setNextPreviewPage] = useState(0)
 
   const { setShowIntro, showIntro } = useViewerContext()
 
   // Set citation on start
   useEffect(() => {
-    setPdfViewing(screenWidth > 599 ? 'paginator' : 'scroll')
     if (basedPdfCitation) {
       changeCitationFormat('bibtex', 'bib')
     }
@@ -101,11 +98,6 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
     const handleResize = () => {
       const newScreenWidth = window.innerWidth
       setScreenWidth(newScreenWidth)
-      setPagePreviews(parseInt(Math.floor(newScreenWidth / 130).toString()))
-
-      if (newScreenWidth <= 599) {
-        setPdfViewing('scroll')
-      }
     }
 
     // Attach the event listener when the component mounts
@@ -117,8 +109,12 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
     }
   }, [])
 
-  // reload
-  useEffect(() => {}, [pdfCitation])
+  useEffect(() => {
+    if (screenWidth <= 599) {
+      setPdfViewing('scroll')
+    }
+  }, [screenWidth])
+
   /**
    * Load document on mount
    *
@@ -323,25 +319,28 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
     }
   }
 
+  const setPage = (page: number) => {
+    if (
+      paginatorPageRender === RENDERING_STATES.RENDERED &&
+      previewRender === RENDERING_STATES.RENDERED
+    ) {
+      setPrevActivePage(activePage)
+      setActivePage(page)
+    }
+  }
+
   /**
    * Go to next page
    */
   const nextPage = () => {
     if (
-      isBottomBarRendering &&
-      isBottomBarRendering === BOTTOMBAR_STATES.RENDERED &&
-      activePage !== totalPages
+      paginatorPageRender === RENDERING_STATES.RENDERED &&
+      previewRender === RENDERING_STATES.RENDERED
     ) {
-      setNextPreviewPage(
-        pagePreviews < totalPages
-          ? nextPreviewPage + 1 > totalPages - pagePreviews
-            ? nextPreviewPage
-            : nextPreviewPage + 1
-          : 0
-      )
-      setActivePage((prevPage) =>
-        pdf && pdf?.numPages > prevPage ? prevPage + 1 : prevPage
-      )
+      if (activePage !== totalPages) {
+        setPrevActivePage(activePage)
+        setActivePage(activePage + 1)
+      }
     }
   }
 
@@ -350,39 +349,14 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    */
   const prevPage = () => {
     if (
-      isBottomBarRendering &&
-      isBottomBarRendering === BOTTOMBAR_STATES.RENDERED &&
-      activePage !== 1
+      paginatorPageRender === RENDERING_STATES.RENDERED &&
+      previewRender === RENDERING_STATES.RENDERED
     ) {
-      setNextPreviewPage(Math.max(nextPreviewPage - 1, 0))
-      setActivePage((prevPage) => (prevPage > 1 ? prevPage - 1 : prevPage))
+      if (activePage !== 1) {
+        setPrevActivePage(activePage)
+        setActivePage(activePage - 1)
+      }
     }
-  }
-
-  /**
-   * Go to selected page
-   *
-   * @param e - Input event
-   *
-   */
-  const setPage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.validity.valid) {
-      // Fix for valid number input
-      let page = parseInt(e.target.value)
-      if (page < 1) setActivePage(1)
-      else if (pdf?.numPages && page > pdf?.numPages)
-        setActivePage(pdf?.numPages)
-      else setActivePage(page)
-    }
-  }
-
-  const tocSetPage = (numPage: number) => {
-    if (pagePreviews + nextPreviewPage < numPage) {
-      setNextPreviewPage(numPage - pagePreviews)
-    } else if (nextPreviewPage >= numPage) {
-      setNextPreviewPage(numPage < pagePreviews ? 0 : numPage - pagePreviews)
-    }
-    setActivePage(numPage)
   }
 
   /**
@@ -391,9 +365,17 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    * @param page - Page number
    */
   const searchPage = (page: number) => {
-    if (page < 1 || (pdf?.numPages && pdf?.numPages < page)) return
-    else if (page === activePage) setRerender({})
-    else setActivePage(page)
+    if (
+      paginatorPageRender === RENDERING_STATES.RENDERED &&
+      previewRender === RENDERING_STATES.RENDERED
+    ) {
+      if (page < 1 || (pdf?.numPages && pdf?.numPages < page)) return
+      else if (page === activePage) setRerender({})
+      else {
+        setPrevActivePage(activePage)
+        setActivePage(page)
+      }
+    }
   }
 
   /**
@@ -457,15 +439,13 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         changeCitationFormat,
         menu,
         setMenu,
-        screenWidth,
         pdf,
         pdfCitation,
         activePage,
+        prevActivePage,
+        setPage,
         nextPage,
         prevPage,
-        setPage,
-        setActivePage,
-        tocSetPage,
         searchPage,
         scale,
         desiredScale,
@@ -475,19 +455,16 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         setTOC,
         TOC,
         rerender,
-        isRendering,
-        setRendering,
-        isBottomBarRendering,
-        setBottomBarRendering,
+        paginatorPageRender,
+        setPaginatorPageRender,
         totalPages,
         pdfViewing,
         setPdfViewing,
-        pagePreviews,
-        nextPreviewPage,
-        setNextPreviewPage,
+        previewRender,
+        setPreviewRender,
+        screenWidth,
       }}
     >
-      {!data && <h1 className="document-load-error">{t('loadPDFerror')}</h1>}
       {data && (
         <div
           ref={ref}

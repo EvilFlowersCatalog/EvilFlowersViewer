@@ -20,31 +20,31 @@
 @tailwind utilities;
 
 :root {
-  --viewer-background-color: rgb(210, 210, 210);
+  --viewer-background-color: rgb(235, 235, 235);
   --text-color: black;
-  --main-text-color: rgb(17 24 39);
-  --component-background-color: white;
-  --button-background-color: rgb(224, 226, 229);
-  --button-text-color-active: rgb(107 114 128);
-  --button-text-color-deactive: rgb(188, 192, 199);
-  --share-button-background-color: rgb(229 231 235);
-  --share-active-button-background-color: rgb(156 163 175);
-  --search-button-background-color: rgb(229 231 235);
-  --search-hover-button-background-color: rgb(199, 201, 206);
+  --main-text-color: rgb(40, 40, 40);
+  --component-background-color: rgb(255, 255, 255);
+  --button-background-color: rgb(225, 225, 225);
+  --button-text-color-active: rgb(30, 30, 30);
+  --button-text-color-deactive: rgb(190, 190, 190);
+  --share-button-background-color: rgb(240, 240, 240);
+  --share-active-button-background-color: rgb(190, 190, 190);
+  --search-button-background-color: rgb(230, 230, 230);
+  --search-hover-button-background-color: rgb(200, 200, 200);
 }
 
 [data-theme='dark'] {
-  --viewer-background-color: rgb(63 63 70);
+  --viewer-background-color: rgb(40, 40, 40);
   --text-color: white;
-  --main-text-color: rgb(243 244 246);
-  --component-background-color: rgb(31 41 55);
-  --button-background-color: rgb(17 24 39);
-  --button-text-color-active: rgb(209 213 219);
-  --button-text-color-deactive: rgb(107 114 128);
-  --share-button-background-color: rgb(55 65 81);
-  --share-active-button-background-color: rgb(107 114 128);
-  --search-button-background-color: rgb(55 65 81);
-  --search-hover-button-background-color: rgb(102, 109, 122);
+  --main-text-color: rgb(235, 235, 235);
+  --component-background-color: rgb(25, 25, 25);
+  --button-background-color: rgb(50, 50, 50);
+  --button-text-color-active: rgb(220, 220, 220);
+  --button-text-color-deactive: rgb(100, 100, 100);
+  --share-button-background-color: rgb(70, 70, 70);
+  --share-active-button-background-color: rgb(120, 120, 120);
+  --search-button-background-color: rgb(60, 60, 60);
+  --search-hover-button-background-color: rgb(40, 40, 40);
 }
 
 body {

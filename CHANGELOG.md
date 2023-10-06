@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.9 : 2023-10-06
+
+- **Fixed**: better printing in scroll view
+- **Fixed**: better printing in preview
+- **Changed**: design
+- **Changed**: few more things...
+
 ## 0.4.8 : 2023-10-05
 
 - **Fixed**: preview in bottom bar printing

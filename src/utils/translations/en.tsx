@@ -14,6 +14,7 @@ export const en = {
     foundResults: 'Found {{count}} results',
     hidePanel: 'Hide panel',
     fullTextSearch: 'Full text search',
+    searchScroll: 'Search is not available for scroll',
     title: 'Title',
     creationDate: 'Creation date',
     author: 'Author',

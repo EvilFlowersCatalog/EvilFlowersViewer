@@ -13,7 +13,7 @@
   font-size: 15px;
   border: 1px solid var(--text-color);
   border-radius: 10px;
-  background-color: var(--button-background-color);
+  background-color: transparent;
   outline: none;
   color: var(--text-color);
 }

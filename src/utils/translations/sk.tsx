@@ -14,6 +14,7 @@ export const sk = {
     foundResults: 'Našlo sa {{count}} zhôd',
     hidePanel: 'Hide panel',
     fullTextSearch: 'Full text vyhľadávanie',
+    searchScroll: 'Vyhľadávanie nieje prístupné pre scroll',
     title: 'Title',
     creationDate: 'Creation date',
     author: 'Author',

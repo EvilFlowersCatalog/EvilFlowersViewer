@@ -43,11 +43,8 @@ const Search = () => {
     pdf,
     searchPage,
     desiredScale,
-    isRendering,
-    setRendering,
-    nextPreviewPage,
-    pagePreviews,
-    setNextPreviewPage,
+    paginatorPageRender,
+    setPaginatorPageRender,
     pdfViewing,
   } = useDocumentContext()
 
@@ -157,12 +154,7 @@ const Search = () => {
    * @param index index of match in matches array
    */
   const findMatchedText = (page: number, index: number) => {
-    if (pagePreviews + nextPreviewPage < page) {
-      setNextPreviewPage(page - pagePreviews)
-    } else if (nextPreviewPage >= page) {
-      setNextPreviewPage(page < pagePreviews ? 0 : page - pagePreviews)
-    }
-    setRendering(RENDERING_STATES.RENDERING)
+    setPaginatorPageRender(RENDERING_STATES.RENDERING)
     searchPage(page)
     setSelectedMatch(index)
   }
@@ -184,7 +176,7 @@ const Search = () => {
   useEffect(() => {
     if (
       selectedMatch != null &&
-      isRendering === RENDERING_STATES.RENDERED &&
+      paginatorPageRender === RENDERING_STATES.RENDERED &&
       matches &&
       matches.length > selectedMatch &&
       matches[selectedMatch]?.transform
@@ -217,7 +209,7 @@ const Search = () => {
         }
       }
     }
-  }, [selectedMatch, isRendering])
+  }, [selectedMatch, paginatorPageRender])
 
   return (
     <>
@@ -226,6 +218,7 @@ const Search = () => {
           type={'text'}
           value={searchPattern}
           onChange={handleSearchChange}
+          name="search-input"
           className={'search-input'}
           placeholder={t('search')}
           onKeyDown={(e) => {

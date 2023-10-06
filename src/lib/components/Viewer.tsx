@@ -1,4 +1,4 @@
-import { createElement, useEffect, useState } from 'react'
+import { createElement, useEffect, useState, useTransition } from 'react'
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 // @ts-ignore
 import * as PDFJSWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry'
@@ -8,6 +8,7 @@ import { createRoot } from 'react-dom/client'
 import i18n from '../../utils/i18n'
 import { ViewerContext } from './ViewerContext'
 import Introduction from './helpers/introduction/Introduction'
+import { useTranslation } from 'react-i18next'
 
 pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
 // pdfjs.GlobalWorkerOptions.workerSrc =
@@ -39,7 +40,8 @@ export const Viewer = (viewerProps: IViewerProps) => {
   const [showIntro, setShowIntro] = useState<boolean>(
     localShow === 'false' ? false : true
   )
-  const [documentData, setDocumentData] = useState<string | null>(null)
+  const [documentData, setDocumentData] = useState<string | null>('null')
+  const { t } = useTranslation()
 
   const stayHidden = () => {
     localStorage.setItem('show-intro', JSON.stringify(false))
@@ -90,7 +92,7 @@ export const Viewer = (viewerProps: IViewerProps) => {
   useEffect(() => {
     if (!viewerProps.data) return
     try {
-      const binary = base64ToBinary(viewerProps.data)
+      const binary = base64ToBinary(viewerProps.data!)
       setDocumentData(binary)
     } catch (error) {
       console.error(error)
@@ -119,10 +121,18 @@ export const Viewer = (viewerProps: IViewerProps) => {
       )}
       <div id={'evilFlowersViewer'} className={'viewer-container'}>
         <div className={'viewer-inner-container'}>
-          <Document
-            data={documentData}
-            citationBibTeX={basedOptions.citationBib}
-          />
+          {documentData === null && (
+            <h1 className="document-load-error">{t('loadPDFerror')}</h1>
+          )}
+          {documentData === 'null' && (
+            <div className="viewer-loader-small"></div>
+          )}
+          {documentData !== 'null' && documentData && (
+            <Document
+              data={documentData}
+              citationBibTeX={basedOptions.citationBib}
+            />
+          )}
         </div>
       </div>
     </ViewerContext.Provider>

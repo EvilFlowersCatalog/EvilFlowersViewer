@@ -5,16 +5,9 @@ import { useTranslation } from 'react-i18next'
 import { AiOutlineLeft, AiOutlineRight } from 'react-icons/ai'
 
 import Preview from './Preview'
-import {
-  ChangeEvent,
-  ReactNode,
-  useState,
-  KeyboardEvent,
-  useEffect,
-  useCallback,
-} from 'react'
+import { ChangeEvent, ReactNode, useState, KeyboardEvent } from 'react'
 import Tooltip from '../helpers/toolTip/Tooltip'
-import { BOTTOMBAR_STATES } from '../../../utils/enums'
+import { RENDERING_STATES } from '../../../utils/enums'
 
 interface IZoomButtonProps {
   onClick: () => void
@@ -41,22 +34,11 @@ const PaginationButton = ({ onClick, icon, tooltipText }: IZoomButtonProps) => {
  * @returns The bottom bar component
  */
 const BottomBar = () => {
-  const {
-    activePage,
-    prevPage,
-    nextPage,
-    totalPages,
-    setActivePage,
-    nextPreviewPage,
-    setNextPreviewPage,
-    pagePreviews,
-    isBottomBarRendering,
-    setBottomBarRendering,
-  } = useDocumentContext()
+  const { activePage, prevPage, nextPage, totalPages, setPage, previewRender } =
+    useDocumentContext()
   const { t } = useTranslation()
 
   const [inputValue, setInputValue] = useState('')
-  const [previewBar, setPreviewBar] = useState<JSX.Element[]>([])
 
   // handle when input changed
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -74,48 +56,17 @@ const BottomBar = () => {
     if (e.code === 'Enter' && inputValue) {
       // if enter adn input has value
       const value = parseInt(inputValue) // to int
-      setActivePage(value) // set page
-      if (pagePreviews + nextPreviewPage < value) {
-        setNextPreviewPage(value - pagePreviews)
-      } else if (nextPreviewPage >= value) {
-        setNextPreviewPage(value < pagePreviews ? 0 : value - pagePreviews)
-      }
+      setPage(value)
       setInputValue('') // reset
     }
   }
-
-  // Load pages in preview bar
-  const loadPreviews = useCallback(async () => {
-    return await new Promise((resolve) => {
-      // set new arr
-      setPreviewBar(
-        Array.from({
-          length: Math.min(pagePreviews, totalPages),
-        }).map((_, index) => (
-          <Preview key={index} pageNumber={index + 1 + nextPreviewPage} />
-        ))
-      )
-      resolve(BOTTOMBAR_STATES.RENDERED) // resolve value
-    }) // return resolve
-  }, [pagePreviews, totalPages, nextPreviewPage, activePage])
-
-  // When something in given arr change, rerender
-  useEffect(() => {
-    setPreviewBar([])
-    setBottomBarRendering(BOTTOMBAR_STATES.RENDERING) // set rendering
-    loadPreviews().then((e: any) => setBottomBarRendering(e))
-  }, [pagePreviews, totalPages, nextPreviewPage, activePage])
 
   return (
     <div className="preview-bar-container">
       <div className="preview-bar-paginator-container">
         <PaginationButton
           tooltipText={activePage !== 1 ? t('prevPage') : ''}
-          onClick={() => {
-            isBottomBarRendering === BOTTOMBAR_STATES.RENDERED
-              ? prevPage()
-              : null
-          }}
+          onClick={prevPage}
           icon={
             <AiOutlineLeft
               className={
@@ -132,6 +83,8 @@ const BottomBar = () => {
           <input
             placeholder={activePage.toString()}
             value={inputValue}
+            disabled={previewRender === RENDERING_STATES.RENDERING}
+            name="page-input"
             className="preview-bar-pagination-input"
             onChange={handleInputChange}
             onKeyDown={handleInputKey}
@@ -141,11 +94,7 @@ const BottomBar = () => {
         </span>
         <PaginationButton
           tooltipText={activePage !== totalPages ? t('nextPage') : ''}
-          onClick={() => {
-            isBottomBarRendering === BOTTOMBAR_STATES.RENDERED
-              ? nextPage()
-              : null
-          }}
+          onClick={nextPage}
           icon={
             <AiOutlineRight
               className={
@@ -158,12 +107,7 @@ const BottomBar = () => {
           }
         />
       </div>
-      <div id="preview-bar-container" className="prievew-bar-pages-container">
-        {isBottomBarRendering === BOTTOMBAR_STATES.RENDERED && previewBar}
-        {isBottomBarRendering === BOTTOMBAR_STATES.RENDERING && (
-          <div className="viewer-loader-small"></div>
-        )}
-      </div>
+      <Preview />
     </div>
   )
 }
