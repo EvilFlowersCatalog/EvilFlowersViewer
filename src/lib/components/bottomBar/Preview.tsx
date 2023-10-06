@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import { RENDERING_STATES } from '../../../utils/enums'
 
+const positions: number[] = []
+
 const Preview = () => {
   const {
     pdf,
@@ -73,6 +75,8 @@ const Preview = () => {
           div.appendChild(loader)
         }
 
+        positions.push(div.getBoundingClientRect().x)
+
         await renderPage(page, canvas, div)
       }
     }
@@ -117,25 +121,22 @@ const Preview = () => {
           const canvas = newActive.querySelector('canvas')
           if (canvas) canvas.classList.add('preview-bar-active-page')
           const container = document.getElementById('previewBar')
-          const position = newActive.getBoundingClientRect().x
-          const posWidth = newActive.getBoundingClientRect().width
 
           // scroll
-          if (container) {
-            // scroll
-            const containerBounding = container.getBoundingClientRect()
-            const start = containerBounding.x
-            const end = containerBounding.width - start
+          if (container && canvas) {
+            const containerRect = container.getBoundingClientRect()
 
-            if (container && end && start) {
-              if (position! + posWidth > end || position! < start) {
-                console.log(position)
-                container.scrollTo({
-                  left: position,
-                  behavior: 'smooth',
-                })
-              }
-            }
+            // Calculate the target scroll position to center the picture in the container
+            const targetScrollPosition =
+              positions[activePage - 1] -
+              containerRect.x -
+              containerRect.width / 2 // Center the picture
+
+            // Scroll to the target position smoothly
+            container.scrollTo({
+              left: targetScrollPosition,
+              behavior: 'smooth',
+            })
           }
         }
       }

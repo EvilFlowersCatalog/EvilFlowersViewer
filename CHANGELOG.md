@@ -2,6 +2,7 @@
 
 ## 0.4.9 : 2023-10-06
 
+- **Added**: auto scroll to active page in preview
 - **Fixed**: better printing in scroll view
 - **Fixed**: better printing in preview
 - **Changed**: design
