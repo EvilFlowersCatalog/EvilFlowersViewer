@@ -18,6 +18,7 @@ const PaginatorPage = () => {
     rerender,
     setPaginatorPageRender,
     setDesiredScale,
+    screenWidth,
   } = useDocumentContext()
 
   /**
@@ -75,7 +76,7 @@ const PaginatorPage = () => {
         })
       })
     },
-    [activePage, pdf, scale]
+    [activePage, pdf, scale, window.outerHeight]
   )
 
   useEffect(() => {
@@ -93,7 +94,7 @@ const PaginatorPage = () => {
     loadPage().then(() => {
       setPaginatorPageRender(RENDERING_STATES.RENDERED)
     })
-  }, [activePage, pdf, scale, rerender])
+  }, [activePage, pdf, scale, rerender, window.outerHeight, screenWidth])
 
   return <div id={'evilFlowersPaginatorContent'}></div>
 }

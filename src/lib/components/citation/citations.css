@@ -17,6 +17,7 @@
   overflow: hidden;
   font-size: 15px;
   padding: 5px 20px 5px 5px;
+  background-color: var(--viewer-background-color);
   white-space: pre-wrap;
   color: var(--text-color);
 }
