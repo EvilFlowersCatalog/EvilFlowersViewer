@@ -87,14 +87,25 @@ const SideMenu = () => {
     // SEARCH
     {
       name: t('search'),
-      icon: <BiSearch className={'viewer-button-icon'} />,
-      tooltipText: t('fullTextSearch'),
+      icon: (
+        <BiSearch
+          className={
+            pdfViewing === 'paginator'
+              ? 'viewer-button-icon'
+              : 'viewer-button-icon-deactive'
+          }
+        />
+      ),
+      tooltipText:
+        pdfViewing === 'paginator' ? t('fullTextSearch') : t('searchScroll'),
       onClick: () => {
-        setActiveSidebar(
-          activeSidebar === SIDEBAR_TABS.SEARCH
-            ? SIDEBAR_TABS.NULL
-            : SIDEBAR_TABS.SEARCH
-        )
+        pdfViewing === 'paginator'
+          ? setActiveSidebar(
+              activeSidebar === SIDEBAR_TABS.SEARCH
+                ? SIDEBAR_TABS.NULL
+                : SIDEBAR_TABS.SEARCH
+            )
+          : null
       },
     },
     // TOC
@@ -290,22 +301,24 @@ const SideMenu = () => {
             </Tooltip>
           </div>
         )}
-        <div className="side-menu-zoom-buttons-container">
-          {SidebarItems.slice(SidebarItems.length - 2).map((item, i) => (
-            <div className={'side-menu-buttons-container'} key={i}>
-              <Tooltip title={item.tooltipText} placement="right">
-                <div
-                  id={item.name}
-                  onClick={item.onClick}
-                  className={'viewer-button'}
-                >
-                  {item.icon}
-                </div>
-              </Tooltip>
-            </div>
-          ))}
-          <span className={'side-menu-scale-percentage'}>{scale * 100}%</span>
-        </div>
+        {pdfViewing === 'paginator' && (
+          <div className="side-menu-zoom-buttons-container">
+            {SidebarItems.slice(SidebarItems.length - 2).map((item, i) => (
+              <div className={'side-menu-buttons-container'} key={i}>
+                <Tooltip title={item.tooltipText} placement="right">
+                  <div
+                    id={item.name}
+                    onClick={item.onClick}
+                    className={'viewer-button'}
+                  >
+                    {item.icon}
+                  </div>
+                </Tooltip>
+              </div>
+            ))}
+            <span className={'side-menu-scale-percentage'}>{scale * 100}%</span>
+          </div>
+        )}
       </div>
       {citationVisibile && (
         <Citations setCitationVisible={setCitationVisible} />

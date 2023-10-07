@@ -19,7 +19,6 @@ export const SIDEBAR_TAB_NAMES = () => ({
 })
 
 export enum RENDERING_STATES {
-  LOADING,
   RENDERING,
   RENDERED,
 }
@@ -28,11 +27,6 @@ export enum SEARCH_STATES {
   LOADING,
   DONE,
   ERROR,
-}
-
-export enum BOTTOMBAR_STATES {
-  RENDERING,
-  RENDERED,
 }
 
 export const DEBOUNCE_TIMEOUT = 300

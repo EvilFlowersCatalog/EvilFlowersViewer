@@ -1,7 +1,7 @@
 import { PDFDocumentProxy } from 'pdfjs-dist'
 import { createContext, useContext } from 'react'
 
-import { BOTTOMBAR_STATES, RENDERING_STATES } from '../../../utils/enums'
+import { RENDERING_STATES } from '../../../utils/enums'
 
 /**
  * Document context
@@ -16,7 +16,8 @@ interface TOCItemDoc {
 interface IDocumentContext {
   pdf?: PDFDocumentProxy
   activePage: number
-  screenWidth: number
+  prevActivePage: number
+  setPage: (page: number) => void
   menu: boolean
   setMenu: (visibility: boolean) => void
   pdfCitation: { citation: string; type: string; format: string } | null
@@ -26,8 +27,6 @@ interface IDocumentContext {
   changeCitationFormat: (format: string, type: string) => void
   nextPage: () => void
   prevPage: () => void
-  setPage: (e: React.ChangeEvent<HTMLInputElement>) => void
-  setActivePage: (page: number) => void
   searchPage: (n: number) => void
   scale: number
   desiredScale: number
@@ -35,19 +34,16 @@ interface IDocumentContext {
   zoomIn: () => void
   zoomOut: () => void
   rerender: Object
-  isRendering: RENDERING_STATES | null
-  setRendering: (state: RENDERING_STATES) => void
-  isBottomBarRendering: BOTTOMBAR_STATES | null
-  setBottomBarRendering: (state: BOTTOMBAR_STATES) => void
+  paginatorPageRender: RENDERING_STATES
+  setPaginatorPageRender: (state: RENDERING_STATES) => void
   totalPages: number
   TOC: TOCItemDoc[] | undefined
   setTOC: (outline: TOCItemDoc[] | undefined) => void
-  tocSetPage: (num: number) => void
   pdfViewing: 'paginator' | 'scroll'
   setPdfViewing: (type: 'paginator' | 'scroll') => void
-  pagePreviews: number
-  nextPreviewPage: number
-  setNextPreviewPage: (preview: number) => void
+  previewRender: RENDERING_STATES
+  setPreviewRender: (state: RENDERING_STATES) => void
+  screenWidth: number
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)

@@ -56,14 +56,14 @@
   padding: 5px 10px;
   border-radius: 10px;
   border: none;
-  background-color: #0080fe;
+  background-color: #0099ff;
   color: white;
   gap: 5px;
   cursor: pointer;
 }
 
 .modal-button:hover {
-  background-color: #1134a6;
+  background-color: #0065a8;
 }
 
 .modal-close-button:hover {

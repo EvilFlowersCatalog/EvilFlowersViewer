@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.9 : 2023-10-06
+
+- **Added**: auto scroll to active page in preview
+- **Fixed**: better printing in scroll view
+- **Fixed**: better printing in preview
+- **Changed**: design
+- **Changed**: scale only to 1 in scroll view
+- **Changed**: few more things...
+
 ## 0.4.8 : 2023-10-05
 
 - **Fixed**: preview in bottom bar printing

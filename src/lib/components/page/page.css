@@ -9,19 +9,25 @@
   box-sizing: border-box;
   flex-direction: column;
   padding: 10px;
-  padding-bottom: 0;
+  padding-bottom: 5px;
 }
 
 .page-loader-container {
   position: absolute;
   display: flex;
-  height: 90%;
+  height: 100%;
   width: 100%;
   justify-content: center;
   align-items: center;
 }
 
-.pdf-container {
+#evilFlowersPaginatorContent {
+  position: relative;
+  margin: auto auto;
+  width: fit-content;
+}
+
+#evilFlowersScrollContent {
   position: relative;
   margin: auto auto;
   width: fit-content;
@@ -36,14 +42,20 @@
 }
 
 .pdf-canvas-container {
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+  transition: all;
+  margin-bottom: 10px;
+}
+
+.pdf-canvas-container-paginator {
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   transition: all;
 }
 
 .page-scroll-page-container {
-  position: absolute;
-  width: 100%;
+  position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  min-height: 200px;
 }

@@ -22,7 +22,7 @@
   font-size: 15px;
   border: 1px solid var(--text-color);
   border-radius: 10px;
-  background-color: var(--button-background-color);
+  background-color: transparent;
   outline: none;
   color: var(--text-color);
 }
@@ -89,12 +89,12 @@
   justify-content: center;
   align-items: center;
   padding: 10px 0;
-  background-color: #0080fe;
+  background-color: #0099ff;
   cursor: pointer;
 }
 
 .share-button:hover {
-  background-color: #1134a6;
+  background-color: #0065a8;
 }
 
 .share-qr-title {
@@ -119,6 +119,7 @@
 
 .share-qr-code-container {
   width: 100%;
+  min-height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;

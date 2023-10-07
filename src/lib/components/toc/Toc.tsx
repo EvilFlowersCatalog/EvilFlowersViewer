@@ -19,7 +19,7 @@ interface IOutlineProps {
 const Toc = ({ setTocVisibility }: IOutlineProps) => {
   const { t } = useTranslation()
   const [isDropdownShown, setIsDropdownShown] = useState(false)
-  const { pdf, TOC, tocSetPage } = useDocumentContext()
+  const { pdf, TOC, setPage } = useDocumentContext()
   const [toc, setToc] = useState(() => {
     // Add isExpanded property to each item in outline
     const newOutline = TOC?.map((item) => ({
@@ -31,7 +31,7 @@ const Toc = ({ setTocVisibility }: IOutlineProps) => {
   const [isOpen, setIsOpen] = useState(true)
 
   const handleItemClick = (pageNumber: number) => {
-    tocSetPage(pageNumber)
+    setPage(pageNumber)
     setTocVisibility(false)
     setIsOpen(false)
   }

@@ -120,6 +120,7 @@ const Share = (params: IShareParams) => {
         <input
           className={'share-input'}
           placeholder={t('shareSearch')}
+          name="share-input"
           value={input}
           onChange={handleInput}
           onKeyDown={(e) => {
@@ -128,10 +129,10 @@ const Share = (params: IShareParams) => {
         />
         <div className="share-info-button-container">
           <Tooltip placement="left" title={t('shareSearchInfoToolTip')}>
-            <div className="viewer-button" style={{ cursor: 'default' }}>
+            <div className="viewer-button">
               <BiInfoCircle
                 className={'viewer-button-icon'}
-                style={{ width: '20px', height: '20px', color: 'lightblue' }}
+                style={{ width: '20px', height: '20px', color: '#0099ff' }}
               />
             </div>
           </Tooltip>

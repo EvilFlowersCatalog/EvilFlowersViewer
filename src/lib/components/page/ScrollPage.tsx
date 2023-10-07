@@ -1,100 +1,110 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
-import { RENDERING_STATES } from '../../../utils/enums'
 
-interface IScrollPageProps {
-  pageNumber: number
-}
+const ScrollPage = () => {
+  const { pdf, totalPages, setDesiredScale, screenWidth } = useDocumentContext()
+  // when scroll to 3/5 page, load next pages
+  const handleScroll = (event: any) => {
+    const scrollY = event.target.scrollTop
+    const height = event.target.scrollHeight
+    if (scrollY >= height * (3 / 5)) {
+      console.log('ahoj')
+    }
+  }
 
-const ScrollPage = ({ pageNumber }: IScrollPageProps) => {
-  const {
-    pdf,
-    totalPages,
-    scale,
-    screenWidth,
-    setDesiredScale,
-    setRendering,
-    rerender,
-  } = useDocumentContext()
-  const canvas = document.createElement('canvas')
+  // Render one page
+  const renderPage = useCallback(
+    async (givenPage: number, canvas: HTMLCanvasElement, div: HTMLElement) => {
+      await new Promise((resolve) => {
+        // get page
+        pdf?.getPage(givenPage).then(async (page) => {
+          let viewport = page.getViewport({ scale: 1 })
+          // get width of container
+          const width = document
+            .getElementById('evilFlowersContent')!
+            .getBoundingClientRect().width
 
-  /**
-   * Renders the page preview on a canvas, append to the div element
-   *
-   * @returns A promise that resolves when the page is rendered
-   */
-  const renderPage = useCallback(async () => {
-    setRendering(RENDERING_STATES.RENDERING)
+          // calculate desired scale
+          const calcScreenWidth = screenWidth > 599 ? width * 0.5 : width * 0.9
+          const desiredWidth = calcScreenWidth * viewport.scale
+          const viewportWidth = viewport.width / viewport.scale
+          const desiredScale = desiredWidth / viewportWidth
+          setDesiredScale(desiredScale)
+          viewport = page.getViewport({ scale: desiredScale })
 
-    return await new Promise((resolve) => {
-      pdf?.getPage(pageNumber).then((page) => {
-        // create textlayer
-        const container = document.createElement('textLayer')
-        container.setAttribute('id', 'textLayer')
-        container.setAttribute('class', 'pdf-canvas-textLayer')
+          // create text layer
+          const container = document.createElement('textLayer')
+          container.setAttribute('id', 'textLayer')
+          container.setAttribute('class', 'pdf-canvas-textLayer')
+          page.getTextContent().then((textContent) => {
+            pdfjs.renderTextLayer({
+              textContent,
+              container,
+              viewport,
+              textDivs: [],
+            })
+          })
 
-        // set vieweport to wanted scale
-        let viewport = page.getViewport({ scale })
-        const calcScreenWidth =
-          screenWidth > 959 ? screenWidth * 0.5 : screenWidth * 0.75
-        const desiredWidth = calcScreenWidth * viewport.scale
-        const viewportWidth = viewport.width / viewport.scale
-        const desiredScale = desiredWidth / viewportWidth
-        setDesiredScale(desiredScale)
-        viewport = page.getViewport({ scale: desiredScale })
+          // update canvas
+          canvas.height = viewport.height
+          canvas.width = viewport.width
+          const renderTask = page.render({
+            canvasContext: canvas.getContext('2d') as Object,
+            viewport: viewport,
+          })
 
-        // set textlyer
-        page.getTextContent().then((textContent) => {
-          pdfjs.renderTextLayer({
-            textContent,
-            container,
-            viewport,
-            textDivs: [],
+          // when rendered, update div by replacing all with ew canvas and container
+          await renderTask.promise.then(() => {
+            div.replaceChildren(canvas, container)
+
+            resolve('') // return
           })
         })
+      })
+    },
+    [pdf, totalPages]
+  )
+  useEffect(() => {
+    // create loader
+    const loader = document.createElement('div')
+    loader.setAttribute('class', 'viewer-loader-small')
 
-        // style canvas
-        canvas.setAttribute('style', 'margin-bottom: 5px;')
-        canvas.setAttribute('id', 'evilFlowersCanvas' + pageNumber)
-        canvas.width = viewport.width
-        canvas.height = viewport.height
-        canvas.style.width = viewport.width + 'px'
-        canvas.style.height = viewport.height + 'px'
-        const context = canvas.getContext('2d')
-        const renderContext = {
-          canvasContext: context as Object,
-          viewport: viewport,
+    // render func for all pages
+    const startRender = async () => {
+      const viewer = document.getElementById('evilFlowersScrollContent')! // get container
+      viewer.replaceChildren() // delete all
+
+      for (let page = 1; page <= totalPages; page++) {
+        // create canvas adn style it
+        const canvas = document.createElement('canvas')
+        canvas.setAttribute('id', 'evilFlowersCanvas' + page)
+        canvas.setAttribute('class', 'pdf-canvas-container')
+
+        // get div
+        let div: HTMLElement | null = document.getElementById(
+          'scrollPage' + page
+        )
+
+        // if does not exist, create it
+        if (!div) {
+          div = document.createElement('div')
+          div.setAttribute('id', 'scrollPage' + page)
+          div.setAttribute('class', 'page-scroll-page-container')
+          div.appendChild(loader) // append loader
+          viewer.appendChild(div) // append div
+        } else {
+          div.replaceChildren() // delete all
+          div.appendChild(loader) // append loader
         }
 
-        // render dask
-        const renderTask = page.render(renderContext)
-        renderTask.promise.then(() => {
-          document
-            .getElementById('evilFlowersContent' + pageNumber)
-            ?.replaceChildren(container, canvas)
-
-          resolve(RENDERING_STATES.RENDERED) // resolve
-        })
-      })
-    })
-  }, [pdf, scale])
-
-  useEffect(() => {
-    if (pageNumber > 0 && pageNumber <= totalPages) {
-      renderPage().then((resolve) => {
-        setRendering(RENDERING_STATES.RENDERED)
-      })
+        // generate page for div
+        await renderPage(page, canvas, div)
+      }
     }
-  }, [pdf, scale, rerender])
-
-  return (
-    <div
-      id={'evilFlowersContent' + pageNumber}
-      key={'evilFlowersContent' + pageNumber}
-      className={'pdf-container'}
-    ></div>
-  )
+    startRender()
+  }, [pdf, totalPages])
+  return <div id={'evilFlowersScrollContent'} onScroll={handleScroll}></div>
 }
 
 export default ScrollPage
