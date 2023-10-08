@@ -25,7 +25,11 @@ const Preview = () => {
     const scrollWidth = target.clientWidth
     const scrollX = target.scrollLeft + scrollWidth
 
-    if (scrollX >= (9 / 10) * width && end < totalPages) {
+    if (
+      scrollX >= (9 / 10) * width &&
+      end < totalPages &&
+      previewRender === RENDERING_STATES.RENDERED
+    ) {
       setStart(end + 1)
       setEnd(Math.min(end + NEXT_PREVIEW, totalPages))
     }
@@ -81,6 +85,7 @@ const Preview = () => {
       const previewBar = document.getElementById('previewBarContainer')! // get container
 
       // for each page
+      console.log(start, end)
       for (let page = start; page <= Math.min(end, totalPages); page++) {
         // create canvas
         const canvas = document.createElement('canvas')
