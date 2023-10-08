@@ -22,8 +22,11 @@
   font-size: 15px;
   border: 1px solid var(--text-color);
   border-radius: 10px;
-  background-color: transparent;
+  background-color: var(--viewer-background-color);
   outline: none;
+  color: var(--text-color);
+}
+.share-input::placeholder {
   color: var(--text-color);
 }
 
@@ -40,7 +43,7 @@
 }
 
 .share-lifespan-title {
-  color: var(--main-text-color);
+  color: var(--text-color);
   font-size: 15px;
   width: 100%;
   display: flex;
@@ -69,15 +72,15 @@
 }
 
 .share-lifespan-button:hover {
-  background-color: var(--share-active-button-background-color);
+  background-color: var(--share-button-background-color);
 }
 
 .share-lifespan-button-active {
-  background-color: var(--share-active-button-background-color);
+  background-color: var(--share-button-background-color);
 }
 
 .share-lifespan-button-no-active {
-  background-color: var(--share-button-background-color);
+  background-color: var(--share-active-button-background-color);
 }
 
 .share-button {

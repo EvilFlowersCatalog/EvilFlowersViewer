@@ -5,11 +5,11 @@
   justify-content: flex-start;
   align-items: center;
   padding: 5px 10px;
-  border: 0.01rem solid var(--text-color);
   border-radius: 10px;
+  border: 1px solid black;
   pointer-events: none;
   overflow: hidden;
-  background-color: var(--component-background-color);
+  background-color: var(--tool-tip-background);
   z-index: 9999;
   user-select: none;
 }
@@ -45,5 +45,5 @@
   text-align: start;
   max-width: 100px;
   white-space: pre-wrap;
-  color: var(--main-text-color);
+  color: var(--tool-tip-text);
 }

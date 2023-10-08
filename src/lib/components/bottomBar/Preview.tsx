@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import { RENDERING_STATES } from '../../../utils/enums'
-
-let positions: { x: number; width: number }[] = []
 
 const Preview = () => {
   const {
@@ -14,6 +12,24 @@ const Preview = () => {
     previewRender,
     setPage,
   } = useDocumentContext()
+  const NEXT_PREVIEW = 50
+
+  const [start, setStart] = useState<number>(1)
+  const [end, setEnd] = useState<number>(NEXT_PREVIEW)
+  const [positions] = useState<{ x: number; width: number }[]>([])
+
+  // added new ones when scroll near end
+  const handleScroll = (e: any) => {
+    const target = e.target
+    const width = target.scrollWidth
+    const scrollWidth = target.clientWidth
+    const scrollX = target.scrollLeft + scrollWidth
+
+    if (scrollX >= (9 / 10) * width && end < totalPages) {
+      setStart(end + 1)
+      setEnd(Math.min(end + NEXT_PREVIEW, totalPages))
+    }
+  }
 
   // use call back func to generate one page
   const renderPage = useCallback(
@@ -23,7 +39,7 @@ const Preview = () => {
         pdf?.getPage(givenPage).then(async (page) => {
           // create desired scale
           let viewport = page.getViewport({ scale: 1 })
-          const desiredHeight = 130
+          const desiredHeight = 145
           const desiredScale = desiredHeight / viewport.height
           viewport = page.getViewport({ scale: desiredScale })
 
@@ -36,9 +52,13 @@ const Preview = () => {
             viewport: viewport,
           })
 
+          const paragraph = document.createElement('span')
+          paragraph.setAttribute('class', 'preview-paragraph')
+          paragraph.textContent = givenPage.toString()
+
           // redner and replace everything in div with created canvas
           await renderTask.promise.then(() => {
-            div.replaceChildren(canvas)
+            div.replaceChildren(canvas, paragraph)
             resolve('') // return
           })
         })
@@ -48,7 +68,6 @@ const Preview = () => {
   )
 
   useEffect(() => {
-    positions = [] // reset
     setPreviewRender(RENDERING_STATES.RENDERING)
 
     // create loader (spinning wheel)
@@ -60,7 +79,7 @@ const Preview = () => {
       const previewBar = document.getElementById('previewBarContainer')! // get container
 
       // for each page
-      for (let page = 1; page <= totalPages; page++) {
+      for (let page = start; page <= Math.min(end, totalPages); page++) {
         // create canvas
         const canvas = document.createElement('canvas')
         canvas.setAttribute('class', 'preview-bar-page') // give it style
@@ -89,8 +108,10 @@ const Preview = () => {
 
         // when page renders get psitions of the div
         await renderPage(page, canvas, div).then(() => {
-          const divBounding = div!.getBoundingClientRect()
-          positions.push({ x: divBounding.x, width: divBounding.width })
+          positions[page - 1] = {
+            x: div!.offsetLeft,
+            width: div!.getBoundingClientRect().width,
+          }
         })
       }
     }
@@ -99,7 +120,7 @@ const Preview = () => {
     startRender().then(() => {
       setPreviewRender(RENDERING_STATES.RENDERED)
     })
-  }, [pdf, totalPages])
+  }, [pdf, totalPages, start])
 
   useEffect(() => {
     if (previewRender === RENDERING_STATES.RENDERED) {
@@ -141,24 +162,35 @@ const Preview = () => {
             positions[activePage - 1].width = temp
 
             // Calculate the target scroll position to center the picture in the container
-            const targetScrollPosition =
+            const scrollToPosition =
               positions[activePage - 1].x -
               containerRect.x -
               (containerRect.width - positions[activePage - 1].width) / 2
 
             // Scroll to the target position smoothly
             container.scrollTo({
-              left: targetScrollPosition,
+              left: scrollToPosition,
               behavior: 'smooth',
             })
           }
         }
       }
     }
-  }, [activePage, previewRender])
+  }, [activePage, previewRender, positions])
+
+  useEffect(() => {
+    if (activePage > end) {
+      setStart(end + 1)
+      setEnd(Math.min(activePage + 1, totalPages))
+    }
+  }, [activePage])
 
   return (
-    <div id={'previewBar'} className="prievew-bar-pages-container">
+    <div
+      id={'previewBar'}
+      className="prievew-bar-pages-container"
+      onScroll={handleScroll}
+    >
       <div id="previewBarContainer" className="preview-bar-pages"></div>
     </div>
   )

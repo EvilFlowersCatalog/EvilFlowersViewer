@@ -8,13 +8,16 @@
 
 .search-input {
   box-sizing: border-box;
-  flex: 1;
+  width: 100%;
   padding: 5px;
   font-size: 15px;
   border: 1px solid var(--text-color);
   border-radius: 10px;
-  background-color: transparent;
+  background-color: var(--viewer-background-color);
   outline: none;
+  color: var(--text-color);
+}
+.search-input::placeholder {
   color: var(--text-color);
 }
 

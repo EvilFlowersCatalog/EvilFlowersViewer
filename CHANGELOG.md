@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.10 : 2023-10-08
+
+- **Changed**: viewer design (colors)
+- **Fixed**: few little things
+- **Fixed**: search input for safari
+- **Fixed**: performance for preview bar
+- **Fixed**: performance for scroll page
+
 ## 0.4.9 : 2023-10-06
 
 - **Added**: auto scroll to active page in preview

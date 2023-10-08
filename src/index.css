@@ -20,17 +20,19 @@
 @tailwind utilities;
 
 :root {
-  --viewer-background-color: rgb(235, 235, 235);
+  --viewer-background-color: rgb(240, 240, 240);
   --text-color: black;
   --main-text-color: rgb(40, 40, 40);
-  --component-background-color: rgb(255, 255, 255);
+  --component-background-color: rgb(210, 210, 210);
   --button-background-color: rgb(225, 225, 225);
   --button-text-color-active: rgb(30, 30, 30);
-  --button-text-color-deactive: rgb(190, 190, 190);
+  --button-text-color-deactive: rgb(150, 150, 150);
   --share-button-background-color: rgb(240, 240, 240);
-  --share-active-button-background-color: rgb(190, 190, 190);
-  --search-button-background-color: rgb(230, 230, 230);
-  --search-hover-button-background-color: rgb(200, 200, 200);
+  --share-active-button-background-color: rgb(180, 180, 180);
+  --search-button-background-color: rgb(220, 220, 220);
+  --search-hover-button-background-color: rgb(230, 230, 230);
+  --tool-tip-text: white;
+  --tool-tip-background: black;
 }
 
 [data-theme='dark'] {
@@ -41,10 +43,12 @@
   --button-background-color: rgb(50, 50, 50);
   --button-text-color-active: rgb(220, 220, 220);
   --button-text-color-deactive: rgb(100, 100, 100);
-  --share-button-background-color: rgb(70, 70, 70);
-  --share-active-button-background-color: rgb(120, 120, 120);
-  --search-button-background-color: rgb(60, 60, 60);
-  --search-hover-button-background-color: rgb(40, 40, 40);
+  --share-button-background-color: rgb(120, 120, 120);
+  --share-active-button-background-color: rgb(70, 70, 70);
+  --search-button-background-color: rgb(40, 40, 40);
+  --search-hover-button-background-color: rgb(60, 60, 60);
+  --tool-tip-text: black;
+  --tool-tip-background: white;
 }
 
 body {

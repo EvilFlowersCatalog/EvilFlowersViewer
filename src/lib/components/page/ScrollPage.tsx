@@ -1,15 +1,25 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useDocumentContext } from '../document/DocumentContext'
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 
 const ScrollPage = () => {
   const { pdf, totalPages, setDesiredScale, screenWidth } = useDocumentContext()
-  // when scroll to 3/5 page, load next pages
+
+  const NEXT_PAGES = 50
+  const [start, setStart] = useState<number>(1)
+  const [end, setEnd] = useState<number>(NEXT_PAGES)
+
+  // when scroll to 3/4 page, load next pages
   const handleScroll = (event: any) => {
-    const scrollY = event.target.scrollTop
-    const height = event.target.scrollHeight
-    if (scrollY >= height * (3 / 5)) {
-      console.log('ahoj')
+    const target = event.target
+
+    const height = target.scrollHeight
+    const scrollHeight = target.clientHeight
+    const scrollY = target.scrollTop + scrollHeight
+
+    if (scrollY >= height * (3 / 4) && end < totalPages) {
+      setStart(end + 1)
+      setEnd(Math.min(end + NEXT_PAGES, totalPages))
     }
   }
 
@@ -63,7 +73,7 @@ const ScrollPage = () => {
         })
       })
     },
-    [pdf, totalPages]
+    [pdf, totalPages, start]
   )
   useEffect(() => {
     // create loader
@@ -73,9 +83,8 @@ const ScrollPage = () => {
     // render func for all pages
     const startRender = async () => {
       const viewer = document.getElementById('evilFlowersScrollContent')! // get container
-      viewer.replaceChildren() // delete all
 
-      for (let page = 1; page <= totalPages; page++) {
+      for (let page = start; page <= Math.min(end, totalPages); page++) {
         // create canvas adn style it
         const canvas = document.createElement('canvas')
         canvas.setAttribute('id', 'evilFlowersCanvas' + page)
@@ -103,7 +112,8 @@ const ScrollPage = () => {
       }
     }
     startRender()
-  }, [pdf, totalPages])
+  }, [pdf, totalPages, start])
+
   return <div id={'evilFlowersScrollContent'} onScroll={handleScroll}></div>
 }
 
