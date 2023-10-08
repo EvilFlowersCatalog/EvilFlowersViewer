@@ -1,5 +1,4 @@
 import { Viewer } from './lib/components/Viewer'
-//import { pdf_data } from './examples/pdf/samplePDF'
 import { pdf_data } from './examples/pdf/latexSamplePDF'
 import { exampleShareFunction } from './examples/function/sharedFunction'
 import { exampleCitation } from './examples/citation/citation'

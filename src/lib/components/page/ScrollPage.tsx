@@ -114,7 +114,11 @@ const ScrollPage = () => {
     startRender()
   }, [pdf, totalPages, start])
 
-  return <div id={'evilFlowersScrollContent'} onScroll={handleScroll}></div>
+  return (
+    <div className="pdf-scroll-container" onScroll={handleScroll}>
+      <div id={'evilFlowersScrollContent'}></div>
+    </div>
+  )
 }
 
 export default ScrollPage
