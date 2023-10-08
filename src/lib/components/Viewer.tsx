@@ -10,9 +10,9 @@ import { ViewerContext } from './ViewerContext'
 import Introduction from './helpers/introduction/Introduction'
 import { useTranslation } from 'react-i18next'
 
-pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
-// pdfjs.GlobalWorkerOptions.workerSrc =
-//   '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
+// pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
+pdfjs.GlobalWorkerOptions.workerSrc =
+  '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
 
 interface IViewerOptions {
   theme?: 'dark' | 'light'

@@ -2,8 +2,7 @@
   box-sizing: border-box;
   position: absolute;
   top: 5px;
-  left: 56px;
-  height: 70vh;
+  height: calc(100vh - 260px);
   width: 255px;
   background-color: var(--component-background-color);
   border-radius: 10px;
@@ -23,7 +22,7 @@
 }
 
 .sidebar-container-visible {
-  left: 56px;
+  left: 55px;
 }
 
 .sidebat-title-container {

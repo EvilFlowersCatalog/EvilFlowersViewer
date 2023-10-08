@@ -138,6 +138,8 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         })
 
         setPdf(doc)
+        setPrevActivePage(1)
+        setActivePage(1)
         setTotalPages(doc.numPages)
       })
   }

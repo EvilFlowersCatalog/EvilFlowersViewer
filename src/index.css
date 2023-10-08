@@ -13,7 +13,6 @@
 @import '../src/lib/components/bottomBar/bottomBar.css';
 @import '../src/lib/components/toc/toc.css';
 @import '../src/lib/components/helpers/introduction/introduction.css';
-@import '../src/lib/components/helpers/previewHover/previewHover.css';
 
 @tailwind base;
 @tailwind components;
