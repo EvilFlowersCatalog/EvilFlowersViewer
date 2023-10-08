@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.11 : 2023-10-09
+
+- **Changed**: little design for sidebar
+- **Fixed**: preview bug, with scrolling
+- **Fixed**: scroll page bug, text was off
+- **Removed**: previewHover
+
 ## 0.4.10 : 2023-10-08
 
 - **Changed**: viewer design (colors)

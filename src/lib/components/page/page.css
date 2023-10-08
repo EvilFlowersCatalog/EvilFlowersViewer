@@ -28,6 +28,11 @@
 
 #evilFlowersScrollContent {
   position: relative;
+  margin: auto auto;
+  width: fit-content;
+}
+
+.pdf-scroll-container {
   width: 100%;
   overflow: auto;
 }

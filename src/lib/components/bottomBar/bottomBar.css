@@ -72,7 +72,7 @@
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
   cursor: pointer;
   transition: all;
-  transition: border-bottom 0.2s ease;
+  transition-duration: 0.2s;
 }
 
 .preview-bar-active-page {
@@ -86,4 +86,10 @@
   font-size: 10px;
   font-weight: bold;
   color: var(--text-color);
+}
+
+.preview-loader-container {
+  display: flex;
+  height: 80%;
+  align-items: center;
 }

@@ -16,7 +16,7 @@ const Preview = () => {
 
   const [start, setStart] = useState<number>(1)
   const [end, setEnd] = useState<number>(NEXT_PREVIEW)
-  const [positions] = useState<{ x: number; width: number }[]>([])
+  const [positions, setPositions] = useState<{ x: number; width: number }[]>([])
 
   // added new ones when scroll near end
   const handleScroll = (e: any) => {
@@ -25,7 +25,11 @@ const Preview = () => {
     const scrollWidth = target.clientWidth
     const scrollX = target.scrollLeft + scrollWidth
 
-    if (scrollX >= (9 / 10) * width && end < totalPages) {
+    if (
+      scrollX >= (9 / 10) * width &&
+      end < totalPages &&
+      previewRender === RENDERING_STATES.RENDERED
+    ) {
       setStart(end + 1)
       setEnd(Math.min(end + NEXT_PREVIEW, totalPages))
     }
@@ -58,7 +62,9 @@ const Preview = () => {
 
           // redner and replace everything in div with created canvas
           await renderTask.promise.then(() => {
+            div.classList.remove('preview-loader-container') // remove loader container
             div.replaceChildren(canvas, paragraph)
+
             resolve('') // return
           })
         })
@@ -79,6 +85,7 @@ const Preview = () => {
       const previewBar = document.getElementById('previewBarContainer')! // get container
 
       // for each page
+      console.log(start, end)
       for (let page = start; page <= Math.min(end, totalPages); page++) {
         // create canvas
         const canvas = document.createElement('canvas')
@@ -96,12 +103,14 @@ const Preview = () => {
           div = document.createElement('div')
           div.setAttribute('id', 'previewPage' + page)
           div.setAttribute('key', 'previewKey' + page)
+          div.classList.add('preview-loader-container')
           div.onclick = () => {
             setPage(page)
           }
           div.appendChild(loader) // append loader
           previewBar.appendChild(div) // append to container
         } else {
+          div.classList.add('preview-loader-container')
           div.replaceChildren() // delete everything
           div.appendChild(loader) // append loader
         }
@@ -120,7 +129,16 @@ const Preview = () => {
     startRender().then(() => {
       setPreviewRender(RENDERING_STATES.RENDERED)
     })
-  }, [pdf, totalPages, start])
+  }, [pdf, totalPages, start, end, positions])
+
+  useEffect(() => {
+    // Reset when pdf changes
+    const previewBar = document.getElementById('previewBarContainer')! // get container
+    previewBar.replaceChildren()
+    setPositions([])
+    setStart(1)
+    setEnd(Math.min(NEXT_PREVIEW, totalPages))
+  }, [pdf, totalPages])
 
   useEffect(() => {
     if (previewRender === RENDERING_STATES.RENDERED) {
@@ -168,6 +186,7 @@ const Preview = () => {
               (containerRect.width - positions[activePage - 1].width) / 2
 
             // Scroll to the target position smoothly
+            // does not work on safari cuz safari sucks (does not support, idk why)
             container.scrollTo({
               left: scrollToPosition,
               behavior: 'smooth',
@@ -181,7 +200,7 @@ const Preview = () => {
   useEffect(() => {
     if (activePage > end) {
       setStart(end + 1)
-      setEnd(Math.min(activePage + 1, totalPages))
+      setEnd(Math.min(activePage + NEXT_PREVIEW, totalPages))
     }
   }, [activePage])
 

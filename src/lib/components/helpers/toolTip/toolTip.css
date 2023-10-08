@@ -6,7 +6,7 @@
   align-items: center;
   padding: 5px 10px;
   border-radius: 10px;
-  border: 1px solid black;
+  border: 1px solid var(--tool-tip-text);
   pointer-events: none;
   overflow: hidden;
   background-color: var(--tool-tip-background);
