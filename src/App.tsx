@@ -22,6 +22,7 @@ const inputOptions: IExample = {
   shareFunction: exampleShareFunction,
   homeFunction: homeFunction,
   // theme: 'light',
+  lang: 'sk',
 }
 
 /**

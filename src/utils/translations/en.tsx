@@ -34,6 +34,7 @@ export const en = {
     citations: 'Citations',
     citationsToolTip: 'Citate',
     citationNoneToolTip: 'Citation is not available',
+    citationPagesInput: 'Pages: 1,4-8...',
     share: 'Share',
     shareToolTip: 'Share document',
     notShareToolTip: 'Share is not available',

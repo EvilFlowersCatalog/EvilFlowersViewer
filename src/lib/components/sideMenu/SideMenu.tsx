@@ -11,7 +11,7 @@ import {
   BiSearch,
   BiSun,
 } from 'react-icons/bi'
-import { AiOutlinePlus, AiOutlineMinus } from 'react-icons/ai'
+import { AiOutlinePlus, AiOutlineMinus, AiOutlineEdit } from 'react-icons/ai'
 import { PiCaretUpDownBold } from 'react-icons/pi'
 import { LuChevronsLeftRight } from 'react-icons/lu'
 import { useViewerContext } from '../ViewerContext'
@@ -25,17 +25,13 @@ import Sidebar from '../sidebar/Sidebar'
 import Search from '../search/Search'
 import Info from '../info/Info'
 import Share from '../share/Share'
+import Pen from '../pen/Pen'
 
 const SideMenu = () => {
-  const [activeSidebar, setActiveSidebar] = useState<SIDEBAR_TABS>(
-    SIDEBAR_TABS.NULL
-  )
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [citationVisibile, setCitationVisible] = useState<boolean>(false)
-  const [shareQRVisibility, setShareQRVisibility] = useState<boolean>(false)
-  const [tocVisibility, setTocVisibility] = useState<boolean>(false)
   const [link, setLink] = useState<string>('')
   const sidebarNames = SIDEBAR_TAB_NAMES()
+  const [shareQRVisibility, setShareQRVisibility] = useState<boolean>(false)
 
   const { t } = useTranslation()
   const {
@@ -48,19 +44,17 @@ const SideMenu = () => {
     setPdfViewing,
     TOC,
     screenWidth,
+    screenHeight,
+    activeSidebar,
+    setActiveSidebar,
+    citationVisibile,
+    setCitationVisible,
+    tocVisibility,
+    setTocVisibility,
+    handleModeChange,
   } = useDocumentContext()
-  const { theme, setTheme, shareFunction, homeFunction, setShowIntro } =
+  const { theme, shareFunction, homeFunction, setShowIntro } =
     useViewerContext()
-
-  const handleModeChange = () => {
-    if (theme === 'light') {
-      setTheme('dark')
-      document.getElementById('evilFlowersViewer')?.classList.add('dark')
-    } else {
-      setTheme('light')
-      document.getElementById('evilFlowersViewer')?.classList.remove('dark')
-    }
-  }
 
   useEffect(() => {
     if (activeSidebar === SIDEBAR_TABS.NULL) {
@@ -120,20 +114,17 @@ const SideMenu = () => {
           }
         />
       ),
-      tooltipText: TOC && TOC.length ? t('tocToolTip') : t('tocNoneToolTip'),
+      tooltipText:
+        TOC && TOC.length > 0 ? t('tocToolTip') : t('tocNoneToolTip'),
       onClick: () => {
-        TOC && TOC.length ? setTocVisibility(true) : null
+        TOC && TOC.length > 0 ? setTocVisibility(true) : null
         setActiveSidebar(SIDEBAR_TABS.NULL)
       },
     },
     // PEN
     // {
     //   name: t('pen'),
-    //   icon: (
-    //     <BiPencil
-    //       className={'w-[24px] h-[24px] text-gray-500 dark:text-gray-300'}
-    //     />
-    //   ),
+    //   icon: <AiOutlineEdit className={'viewer-button-icon'} />,
     //   tooltipText: t('penToolTip'),
     //   onClick: () =>
     //     setActiveSidebar(
@@ -254,6 +245,7 @@ const SideMenu = () => {
         title={sidebarNames[activeSidebar]}
       >
         {activeSidebar === SIDEBAR_TABS.SEARCH && <Search />}
+        {activeSidebar === SIDEBAR_TABS.PEN && <Pen />}
         {activeSidebar === SIDEBAR_TABS.INFO && <Info />}
         {activeSidebar === SIDEBAR_TABS.SHARE && (
           <Share
@@ -276,7 +268,7 @@ const SideMenu = () => {
             </Tooltip>
           </div>
         ))}
-        {screenWidth > 599 && (
+        {screenWidth > 599 && screenHeight > 700 && (
           <div className="side-menu-pdf-viewing-button-container">
             <Tooltip
               title={
@@ -316,7 +308,9 @@ const SideMenu = () => {
                 </Tooltip>
               </div>
             ))}
-            <span className={'side-menu-scale-percentage'}>{scale * 100}%</span>
+            <span className={'side-menu-scale-percentage'}>
+              {parseInt((scale * 100).toString())}%
+            </span>
           </div>
         )}
       </div>

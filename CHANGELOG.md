@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.12 : 2023-10-13
+
+- **Changed**: viewer working with variables
+- **Changed**: scroll viewing changed when height is small
+- **Changed**: introduction
+- **Added**: bind for citation
+- **Added**: bind for toc
+- **Added**: bind for share
+- **Added**: bind for search
+- **Added**: bind for pen
+- **Added**: bind for info
+- **Added**: touchepad zooming
+
 ## 0.4.11 : 2023-10-09
 
 - **Changed**: little design for sidebar

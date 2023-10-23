@@ -13,8 +13,9 @@
   position: relative;
   border-radius: 10px;
   max-height: 400px;
+  min-height: 100px;
+  overflow: auto;
   width: 100%;
-  overflow: hidden;
   font-size: 15px;
   padding: 5px 20px 5px 5px;
   background-color: var(--viewer-background-color);
@@ -55,6 +56,39 @@
   justify-content: flex-start;
   margin-top: 20px;
   gap: 5px;
+}
+
+.citation-active-button {
+  display: flex;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background-color: var(--viewer-background-color);
+  color: var(--text-color);
+  cursor: pointer;
+  transition-duration: 0.2s;
+}
+
+.citation-input-container {
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.citation-input {
+  width: 130px;
+  outline: none;
+  background-color: var(--viewer-background-color);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  box-sizing: border-box;
+  padding: 5px 10px;
+  color: var(--text-color);
+}
+
+.citation-input-active {
+  border: 1px solid var(--text-color);
 }
 
 @keyframes blink-border {

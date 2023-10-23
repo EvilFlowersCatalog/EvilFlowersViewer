@@ -5,8 +5,7 @@ export const exampleCitation: string = `@article {exmaple-citation,
   journal = {Napal rytmausa},
   keywords = {citation},
   number = {6},
-  pages = {666},
   title = {Toto je testovacia citácia testovaného pdfka},
   volume = {0},
   year = {1950}
-}`;
+}`

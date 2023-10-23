@@ -1,17 +1,11 @@
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
-
-import React, {
-  KeyboardEvent,
-  MouseEvent,
-  useEffect,
-  useRef,
-  useState,
-} from 'react'
+import { useGesture } from 'react-use-gesture'
+import { KeyboardEvent, MouseEvent, useEffect, useRef, useState } from 'react'
 // @ts-ignore
 import Cite from 'citation-js'
 import { DocumentContext } from './DocumentContext'
 import Page from '../page/Page'
-import { RENDERING_STATES } from '../../../utils/enums'
+import { RENDERING_STATES, SIDEBAR_TABS } from '../../../utils/enums'
 import BottomBar from '../bottomBar/BottomBar'
 import {
   GetDocumentParameters,
@@ -62,11 +56,17 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [activePage, setActivePage] = useState(1)
   const [prevActivePage, setPrevActivePage] = useState<number>(activePage)
   const [scale, setScale] = useState(1)
+  const [waiter, setWaiter] = useState(50)
   const [desiredScale, setDesiredScale] = useState(1)
   const [menu, setMenu] = useState(false)
   const [pdf, setPdf] = useState<PDFDocumentProxy>()
-  const [screenWidth, setScreenWidth] = useState(window.outerWidth)
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth)
+  const [screenHeight, setScreenHeight] = useState(window.innerHeight)
   const [rerender, setRerender] = useState<Object>({})
+  const [actualFormat, setActualFormat] = useState<{
+    format: string
+    type: string
+  }>({ format: 'bibtex', type: 'bib' })
   const [paginatorPageRender, setPaginatorPageRender] =
     useState<RENDERING_STATES>(RENDERING_STATES.RENDERING)
   const [previewRender, setPreviewRender] = useState<RENDERING_STATES>(
@@ -78,26 +78,36 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [pdfViewing, setPdfViewing] = useState<'paginator' | 'scroll'>(
     'paginator'
   )
-  const [basedPdfCitation] = useState<string | null | undefined>(citationBibTeX)
+  const [activeSidebar, setActiveSidebar] = useState<SIDEBAR_TABS>(
+    SIDEBAR_TABS.NULL
+  )
+  const [basedPdfCitation, setBasedPdfCitation] = useState<
+    string | null | undefined
+  >(citationBibTeX)
   const [pdfCitation, setPdfCitation] = useState<{
     citation: string
     type: string
     format: string
   } | null>(null)
+  const [citationVisibile, setCitationVisible] = useState<boolean>(false)
+  const [tocVisibility, setTocVisibility] = useState<boolean>(false)
+  const [pinchZoom, setPinchZoom] = useState<number>(0)
 
-  const { setShowIntro, showIntro } = useViewerContext()
+  const { setShowIntro, showIntro, theme, setTheme, shareFunction } =
+    useViewerContext()
 
-  // Set citation on start
   useEffect(() => {
+    // Set base citation
     if (basedPdfCitation) {
-      changeCitationFormat('bibtex', 'bib')
+      changeCitationFormat(actualFormat.format, actualFormat.type)
     }
-  }, [])
 
-  useEffect(() => {
+    // handle resizeing window and set height/width
     const handleResize = () => {
       const newScreenWidth = window.innerWidth
+      const newScreenHeight = window.innerHeight
       setScreenWidth(newScreenWidth)
+      setScreenHeight(newScreenHeight)
     }
 
     // Attach the event listener when the component mounts
@@ -110,10 +120,21 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   }, [])
 
   useEffect(() => {
-    if (screenWidth <= 599) {
+    // Set base citation
+    if (basedPdfCitation) {
+      changeCitationFormat(actualFormat.format, actualFormat.type)
+    }
+  }, [basedPdfCitation])
+
+  useEffect(() => {
+    if (screenWidth <= 599 || screenHeight <= 700) {
       setPdfViewing('scroll')
     }
-  }, [screenWidth])
+  }, [screenWidth, screenHeight])
+
+  useEffect(() => {
+    setActiveSidebar(SIDEBAR_TABS.NULL)
+  }, [pdfViewing])
 
   /**
    * Load document on mount
@@ -316,6 +337,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         'ô'
       )
       setPdfCitation(formattedCitation)
+      setActualFormat({ format, type })
     } catch (err) {
       console.log(err)
     }
@@ -422,6 +444,60 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         event.preventDefault()
         setShowIntro(!showIntro)
         break
+      case 's':
+        event.preventDefault()
+        shareFunction &&
+          setActiveSidebar((activity) =>
+            activity === SIDEBAR_TABS.SHARE
+              ? SIDEBAR_TABS.NULL
+              : SIDEBAR_TABS.SHARE
+          )
+        break
+      // case 'p':
+      //   event.preventDefault()
+      //   shareFunction &&
+      //     setActiveSidebar((activity) =>
+      //       activity === SIDEBAR_TABS.PEN ? SIDEBAR_TABS.NULL : SIDEBAR_TABS.PEN
+      //     )
+      //   break
+      case 'f':
+        event.preventDefault()
+        setActiveSidebar((activity) =>
+          pdfViewing === 'paginator'
+            ? activity === SIDEBAR_TABS.SEARCH
+              ? SIDEBAR_TABS.NULL
+              : SIDEBAR_TABS.SEARCH
+            : activity
+        )
+        break
+      case 'i':
+        event.preventDefault()
+        setActiveSidebar((activity) =>
+          activity === SIDEBAR_TABS.INFO ? SIDEBAR_TABS.NULL : SIDEBAR_TABS.INFO
+        )
+        break
+      case 't':
+        event.preventDefault()
+        TOC && TOC.length > 0 && setTocVisibility(!tocVisibility)
+        break
+      case 'c':
+        event.preventDefault()
+        pdfCitation && setCitationVisible(!citationVisibile)
+        break
+      case 'm':
+        event.preventDefault()
+        handleModeChange()
+        break
+    }
+  }
+
+  const handleModeChange = () => {
+    if (theme === 'light') {
+      setTheme('dark')
+      document.getElementById('evilFlowersViewer')?.classList.add('dark')
+    } else {
+      setTheme('light')
+      document.getElementById('evilFlowersViewer')?.classList.remove('dark')
     }
   }
 
@@ -431,6 +507,36 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
       prevScale > 1.5 ? 1.5 : prevScale < 1 ? 1 : prevScale === 1.5 ? 1 : 1.5
     )
   }
+
+  useGesture(
+    {
+      onPinch: ({ offset: [d] }) => {
+        if (pdfViewing === 'paginator') {
+          setPinchZoom(d)
+          if (pinchZoom < d) {
+            setWaiter(waiter + 5)
+          } else {
+            setWaiter(waiter - 5)
+          }
+          if (waiter > 100) {
+            setWaiter(50)
+            setScale((prevScale) =>
+              prevScale < 3 ? prevScale + 0.25 : prevScale
+            )
+          } else if (waiter < 0) {
+            setScale((prevScale) =>
+              prevScale > 0.25 ? prevScale - 0.25 : prevScale
+            )
+            setWaiter(50)
+          }
+        }
+      },
+    },
+    {
+      domTarget: ref,
+      eventOptions: { passive: false },
+    }
+  )
 
   return (
     <DocumentContext.Provider
@@ -465,6 +571,16 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         previewRender,
         setPreviewRender,
         screenWidth,
+        screenHeight,
+        setActiveSidebar,
+        activeSidebar,
+        citationVisibile,
+        setCitationVisible,
+        tocVisibility,
+        setTocVisibility,
+        handleModeChange,
+        basedPdfCitation,
+        setBasedPdfCitation,
       }}
     >
       {data && (
