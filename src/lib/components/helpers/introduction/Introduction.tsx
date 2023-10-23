@@ -20,15 +20,25 @@ const Introduction = ({
   const [isChecked, setIsChecked] = useState(true)
 
   return (
-    <div className="introdaction-container" onClick={() => setShow(false)}>
+    <div className="introdaction-container">
       <img
         className="introdaction-image"
         src={lang === 'sk' ? introSK : introEN}
       />
+      <div
+        style={{ flex: '1', width: '100%' }}
+        onClick={() => setShow(false)}
+        className="intro-bc-close-click"
+      ></div>
       <div className="introdaction-buttons-container">
         {visible && (
           <div className="introdaction-dont-show-button-container">
-            <input type="checkbox" checked={isChecked} onChange={() => {}} />
+            <input
+              type="checkbox"
+              style={{ cursor: 'pointer' }}
+              onClick={() => setIsChecked(!isChecked)}
+              checked={isChecked}
+            />
             <label
               className="introdaction-button"
               onClick={() => setIsChecked(!isChecked)}

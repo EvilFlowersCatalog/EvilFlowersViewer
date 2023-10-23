@@ -32,7 +32,9 @@ const Sidebar = ({
       })}
     >
       <div className="sidebat-title-container">
-        <span className={'sidebar-title'}>{title}</span>
+        <span className={'sidebar-title'}>
+          {(title as string).toLocaleLowerCase() === 'null' ? '' : title}
+        </span>
         <div className={'sidebar-button-container'}>
           <Tooltip title={t('hidePanel')} placement={'left'}>
             <div

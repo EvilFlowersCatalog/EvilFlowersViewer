@@ -65,12 +65,16 @@ const BottomBar = () => {
     <div className="preview-bar-container">
       <div className="preview-bar-paginator-container">
         <PaginationButton
-          tooltipText={activePage !== 1 ? t('prevPage') : ''}
+          tooltipText={
+            activePage !== 1 && previewRender !== RENDERING_STATES.RENDERING
+              ? t('prevPage')
+              : ''
+          }
           onClick={prevPage}
           icon={
             <AiOutlineLeft
               className={
-                activePage !== 1
+                activePage !== 1 && previewRender !== RENDERING_STATES.RENDERING
                   ? 'viewer-button-icon'
                   : 'viewer-button-icon-deactive'
               }
@@ -78,27 +82,39 @@ const BottomBar = () => {
             />
           }
         />
-        <span className={'preview-bar-pagination-pages-text'}>
-          {t('pagination')}
-          <input
-            placeholder={activePage.toString()}
-            value={inputValue}
-            disabled={previewRender === RENDERING_STATES.RENDERING}
-            name="page-input"
-            className="preview-bar-pagination-input"
-            onChange={handleInputChange}
-            onKeyDown={handleInputKey}
-          />
-          {t('of')}
-          {totalPages}
-        </span>
+        {previewRender !== RENDERING_STATES.RENDERING ? (
+          <span className={'preview-bar-pagination-pages-text'}>
+            {t('pagination')}
+            <input
+              placeholder={activePage.toString()}
+              value={inputValue}
+              name="page-input"
+              className="preview-bar-pagination-input"
+              onChange={handleInputChange}
+              onKeyDown={handleInputKey}
+            />
+            {t('of')}
+            {totalPages}
+          </span>
+        ) : (
+          <div
+            className="viewer-loader-small"
+            style={{ width: '20px', height: '20px' }}
+          ></div>
+        )}
         <PaginationButton
-          tooltipText={activePage !== totalPages ? t('nextPage') : ''}
+          tooltipText={
+            activePage !== totalPages &&
+            previewRender !== RENDERING_STATES.RENDERING
+              ? t('nextPage')
+              : ''
+          }
           onClick={nextPage}
           icon={
             <AiOutlineRight
               className={
-                activePage !== totalPages
+                activePage !== totalPages &&
+                previewRender !== RENDERING_STATES.RENDERING
                   ? 'viewer-button-icon'
                   : 'viewer-button-icon-deactive'
               }

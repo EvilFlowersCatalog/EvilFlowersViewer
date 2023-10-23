@@ -46,6 +46,9 @@ const Preview = () => {
           const desiredHeight = 145
           const desiredScale = desiredHeight / viewport.height
           viewport = page.getViewport({ scale: desiredScale })
+          const paragraph = document.createElement('span')
+          paragraph.setAttribute('class', 'preview-paragraph')
+          paragraph.textContent = givenPage.toString()
 
           // create canvas
           canvas.height = viewport.height
@@ -55,10 +58,6 @@ const Preview = () => {
             canvasContext: context as Object,
             viewport: viewport,
           })
-
-          const paragraph = document.createElement('span')
-          paragraph.setAttribute('class', 'preview-paragraph')
-          paragraph.textContent = givenPage.toString()
 
           // redner and replace everything in div with created canvas
           await renderTask.promise.then(() => {
@@ -85,7 +84,6 @@ const Preview = () => {
       const previewBar = document.getElementById('previewBarContainer')! // get container
 
       // for each page
-      console.log(start, end)
       for (let page = start; page <= Math.min(end, totalPages); page++) {
         // create canvas
         const canvas = document.createElement('canvas')

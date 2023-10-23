@@ -14,7 +14,7 @@
   padding: 20px;
   white-space: pre-wrap;
   z-index: 10;
-  transition-duration: 0.2s;
+  transition-duration: 0.5s;
 }
 
 .sidebar-container-hidden {

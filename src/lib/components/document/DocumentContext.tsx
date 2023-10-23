@@ -1,7 +1,7 @@
 import { PDFDocumentProxy } from 'pdfjs-dist'
 import { createContext, useContext } from 'react'
 
-import { RENDERING_STATES } from '../../../utils/enums'
+import { RENDERING_STATES, SIDEBAR_TABS } from '../../../utils/enums'
 
 /**
  * Document context
@@ -44,6 +44,16 @@ interface IDocumentContext {
   previewRender: RENDERING_STATES
   setPreviewRender: (state: RENDERING_STATES) => void
   screenWidth: number
+  screenHeight: number
+  setActiveSidebar: (activity: SIDEBAR_TABS) => void
+  activeSidebar: SIDEBAR_TABS
+  citationVisibile: boolean
+  setCitationVisible: (state: boolean) => void
+  tocVisibility: boolean
+  setTocVisibility: (state: boolean) => void
+  handleModeChange: () => void
+  basedPdfCitation: string | undefined | null
+  setBasedPdfCitation: (citation: string | undefined) => void
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)
