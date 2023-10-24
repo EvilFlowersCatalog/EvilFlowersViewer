@@ -4,6 +4,7 @@
 
 - **Fixed**: citation page style
 - **Fixed**: translation in citation
+- **Changed**: translation in citation search
 
 ## 0.4.12 : 2023-10-13
 
