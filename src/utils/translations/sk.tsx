@@ -34,7 +34,7 @@ export const sk = {
     citations: 'Citácie',
     citationsToolTip: 'Citovať',
     citationNoneToolTip: 'Citácie niesu k dispozícií',
-    citationPagesInput: 'SStrany: 1,4-8...',
+    citationPagesInput: 'Strana',
     share: 'Zdielať',
     shareToolTip: 'Zdielať dokument',
     notShareToolTip: 'Share nieje k dispozíci',

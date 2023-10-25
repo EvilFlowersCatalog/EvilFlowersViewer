@@ -84,6 +84,7 @@
   border-radius: 10px;
   box-sizing: border-box;
   padding: 5px 10px;
+  font-size: 13px;
   color: var(--text-color);
 }
 
