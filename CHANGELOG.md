@@ -76,7 +76,7 @@
 ## 0.4.3 : 2023-09-28
 
 - **Changed**: Scroll pages viewing
-- **Changed**: Image in introdaction width change
+- **Changed**: Image in introduction width change
 
 ## 0.4.2 : 2023-09-28
 
