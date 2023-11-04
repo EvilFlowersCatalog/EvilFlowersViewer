@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.15 : 2023-10-25
+## 0.4.15 : 2023-11-04
 
 - **Fixed**: pdfjs gloabl worker
 
