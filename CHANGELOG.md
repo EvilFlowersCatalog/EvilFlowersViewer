@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.15 : 2023-11-04
+
+- **Fixed**: pdfjs gloabl worker
+
 ## 0.4.14 : 2023-10-25
 
 - **Added**: debounc in every scroll handle
