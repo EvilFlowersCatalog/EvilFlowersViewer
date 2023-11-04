@@ -1,7 +1,5 @@
 export const en = {
   translations: {
-    pagination: 'Page',
-    of: 'of ',
     prevPage: 'Previous page',
     nextPage: 'Next page',
     zoomIn: 'Zoom in',
@@ -14,7 +12,6 @@ export const en = {
     foundResults: 'Found {{count}} results',
     hidePanel: 'Hide panel',
     fullTextSearch: 'Full text search',
-    searchScroll: 'Search is not available for scroll',
     title: 'Title',
     creationDate: 'Creation date',
     author: 'Author',
@@ -29,8 +26,8 @@ export const en = {
     menuToolTip: 'Open menu',
     menuCloseToolTip: 'Close menu',
     homeNoneToolTip: 'Home is not available',
-    pen: 'Pen',
-    penToolTip: 'Document editing',
+    edit: 'Edit',
+    editToolTip: 'Document editing',
     citations: 'Citations',
     citationsToolTip: 'Citate',
     citationNoneToolTip: 'Citation is not available',
@@ -70,5 +67,50 @@ export const en = {
     PDFFormatVersion: 'PDF-Formater version',
     introShow: `Don't show again`,
     help: 'Help',
+    helpNext: 'Next',
+    helpSkip: 'Skip',
+    helpDone: 'Done',
+    homeTitle: 'Home button',
+    homeDescription:
+      "When <span class='highlight'>home button</span> is pressed, it will return you to the main home page.",
+    editTitle: 'Edit button',
+    editDescription:
+      "When the <span class='highlight'>edit button</span> or the keyboard key <span class='keyboard-key'>E</span> is pressed, it will allow you to edit the current page you are on. It's possible to change the page in edit mode.",
+    searchTitle: 'Search button',
+    searchDescription:
+      "If you are looking for any text pattern, just press the <span class='highlight'>search button</span> or the keyboard key <span class='keyboard-key'>F</span> .",
+    citationTitle: 'Citations button',
+    citationDescription:
+      "Press the <span class='highlight'>citations button</span> or the keyboard key <span class='keyboard-key'>C</span> to citate this document. Available options are <span class='highlight'>BibTeX</span>, <span class='highlight'>BibLaTeX</span>, <span class='highlight'>RIS</span>, and <span class='highlight'>Plain-Text</span>.",
+    tocTitle: 'TOC button',
+    tocDescription:
+      "Press the <span class='highlight'>TOC button</span> or keyboard key <span class='keyboard-key'>T</span> and it will show you the document's table of context where when you click on the section, you will be moved to the page where the section is located.",
+    shareTitle: 'Share button',
+    shareDescription:
+      "When the <span class='highlight'>Share button</span> or the keyboard key <span class='keyboard-key'>S</span> is pressed, it will allow you to share document, where you can choose what pages you want to share with you students/friends.",
+    infoTitle: 'Info button',
+    infoDescription:
+      "If you want to see document's informations, just press the <span class='highlight'>info button</span> or the keyboard key <span class='keyboard-key'>I</span> .",
+    helpTitle: 'Help button',
+    helpDescription:
+      "If you at any time need some help with this viewer, just press the <span class='highlight'>help button</span> or the keyboard key <span class='keyboard-key'>H</span> to see steps with description how and what to do.",
+    themeTitle: 'Theme button',
+    themeDescription:
+      "To change theme (dark/light) press the <span class='highlight'>mode button</span> or the keyboard key <span class='keyboard-key'>M</span> .",
+    downloadTitle: 'Download button',
+    downloadDescription:
+      "To download document press the <span class='highlight'>download button</span>.",
+    zoomInTitle: 'Zoom in button',
+    zoomInDescription:
+      "To zoom in the document press the <span class='highlight'>zoom in button</span> or the keyboard key <span class='keyboard-key'>+</span> . You can also pinch out the touchepad <span class='keyboard-key'>< ></span> or <span class='highlight'>double click</span> on the document.",
+    zoomOutTitle: 'Zoom out button',
+    zoomOutDescription:
+      "To zoom out the document press the <span class='highlight'>zoom out button</span> or the keyboard key <span class='keyboard-key'>-</span> . You can also pinch in the touchepad <span class='keyboard-key'>> <</span> or <span class='highlight'>double click</span> on the document.",
+    previousTitle: 'Previous button',
+    previousDescription:
+      "Press the <span class='highlight'>previous button</span> or the keyboard key <span class='keyboard-key'><</span> (Left Arrow) to see the previous page of this document.",
+    nextTitle: 'Next button',
+    nextDescription:
+      "Press the <span class='highlight'>next button</span> or the keyboard key <span class='keyboard-key'>></span> (Right Arrow) to see the next page of this document.",
   },
 }

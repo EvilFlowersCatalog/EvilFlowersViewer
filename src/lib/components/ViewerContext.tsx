@@ -7,8 +7,8 @@ interface IViewerContext {
     | ((pages: string | null, expaireDate: string) => Promise<string>)
     | null
   homeFunction?: (() => void) | null
-  setShowIntro: (show: boolean) => void
-  showIntro: boolean
+  setShowHelp: (show: boolean) => void
+  showHelp: boolean
 }
 
 export const ViewerContext = createContext<IViewerContext | null>(null)

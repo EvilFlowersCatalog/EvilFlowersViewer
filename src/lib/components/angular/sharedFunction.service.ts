@@ -1,34 +1,28 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http'
 
-@Injectable({
-  providedIn: 'root',
+@Component({
+  selector: 'app-my-component',
+  template: `<div [id]="rootId"></div>`,
 })
-export class AuthService {
-  constructor(
-    private readonly httpClient: HttpClient,
-  ) { }
+export class YourComponent {
+  constructor(private readonly httpClient: HttpClient) {}
 
   /**
-   * 
+   *
    * @param pages -> selcted pages -> example: 1,3-5,10
    * @param expairedDate -> expaire date in ISO string format
    * @returns has to be string -> url to something
    */
-  login(pages: string, expairedDate: string) {
+  yourFunction(pages: string, expairedDate: string) {
     const yourObject = {
       firstParam: pages,
       secondParam: expairedDate,
-      something: "...."
-    };
+      something: '....',
+    }
 
     // get yout url somehow
-    const link = this.httpClient.post(
-      "your url to BE",
-      yourObject
-    );
+    const link = this.httpClient.post('your url to BE', yourObject)
 
-    return link;
+    return link
   }
 }
