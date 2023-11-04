@@ -135,6 +135,7 @@ body {
 
 .keyboard-key {
   font-weight: bold;
+  white-space: nowrap;
   padding: 0 8px;
   border: 1px solid white;
 }
