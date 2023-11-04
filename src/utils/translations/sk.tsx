@@ -1,7 +1,5 @@
 export const sk = {
   translations: {
-    pagination: 'Strana',
-    of: 'z ',
     prevPage: 'Predošlá strana',
     nextPage: 'Ďalšia strana',
     zoomIn: 'Priblížiť',
@@ -14,7 +12,6 @@ export const sk = {
     foundResults: 'Našlo sa {{count}} zhôd',
     hidePanel: 'Hide panel',
     fullTextSearch: 'Full text vyhľadávanie',
-    searchScroll: 'Vyhľadávanie nieje prístupné pre scroll',
     title: 'Title',
     creationDate: 'Creation date',
     author: 'Author',
@@ -29,8 +26,8 @@ export const sk = {
     homeNoneToolTip: 'Domov nieje k dispozícií',
     menuToolTip: 'Otvoriť menu',
     menuCloseToolTip: 'Zavrieť menu',
-    pen: 'Pero',
-    penToolTip: 'Úprava dokumentu',
+    edit: 'Pero',
+    editToolTip: 'Úprava dokumentu',
     citations: 'Citácie',
     citationsToolTip: 'Citovať',
     citationNoneToolTip: 'Citácie niesu k dispozícií',
@@ -70,5 +67,50 @@ export const sk = {
     PDFFormatVersion: 'PDF-Formater verzia',
     introShow: `Neukázať znova`,
     help: 'Pomoc',
+    helpNext: 'Ďalej',
+    helpSkip: 'Preskočiť',
+    helpDone: 'Ukončiť',
+    homeTitle: 'Tlačítko domov',
+    homeDescription:
+      "Keď je <span class='highlight'>tlačítko domov</span> stlačené, vráti vás na hlavnú domovskú stránku.",
+    editTitle: 'Tlačítko upraviť',
+    editDescription:
+      "Keď je stlačené <span class='highlight'>tlačítko upraviť</span> alebo klávesa <span class='keyboard-key'>E</span> , bude vám umožnené upravovať aktuálnu stranu, na ktorej sa nachádzate. Je možné zmeniť stranu v režime úpravy.",
+    searchTitle: 'Tlačítko hľadať',
+    searchDescription:
+      "Ak hľadáte akýkoľvek textový vzor, jednoducho stlačte <span class='highlight'>tlačítko hľadať</span> alebo klávesu <span class='keyboard-key'>F</span> .",
+    citationTitle: 'Tlačítko citácie',
+    citationDescription:
+      "Stlačte <span class='highlight'>tlačítko citácie</span> alebo klávesu <span class='keyboard-key'>C</span> na citovanie tohto dokumentu. K dispozícii sú možnosti <span class='highlight'>BibTeX</span>, <span class='highlight'>BibLaTeX</span>, <span class='highlight'>RIS</span> a <span class='highlight'>Plain-Text</span>.",
+    tocTitle: 'Tlačítko obsah',
+    tocDescription:
+      "Stlačte <span class='highlight'>tlačítko obsah</span> alebo klávesu <span class='keyboard-key'>T</span> a zobrazí sa vám obsah dokumentu. Keď kliknete na sekciu, budete presmerovaní na stranu, na ktorej sa daná sekcia nachádza.",
+    shareTitle: 'Tlačítko zdielať',
+    shareDescription:
+      "Keď je stlačené <span class='highlight'>tlačítko zdieľať</span> alebo klávesa <span class='keyboard-key'>S</span> , umožní sa vám zdieľať dokument, kde môžete vybrať, ktoré strany chcete zdieľať so svojimi študentmi/priateľmi.",
+    infoTitle: 'Tlačítko info',
+    infoDescription:
+      "Ak chcete vidieť informácie o dokumente, stačí stlačiť <span class='highlight'>tlačítko info</span> alebo klávesu <span class='keyboard-key'>I</span> .",
+    helpTitle: 'Tlačítko pomoc',
+    helpDescription:
+      "Ak kedykoľvek potrebujete pomocť s týmto viewerom, stačí stlačiť <span class='highlight'>tlačítko pomoc</span> alebo klávesu <span class='keyboard-key'>H</span> , aby ste videli kroky s popisom, ako a čo robiť.",
+    themeTitle: 'Tlačítko režim',
+    themeDescription:
+      "Pre zmenu režimu (tmavý/svetlý) stlačte <span class='highlight'>tlačítko režim</span> alebo klávesu <span class='keyboard-key'>M</span> .",
+    downloadTitle: 'Tlačítko stiahnúť',
+    downloadDescription:
+      "Pre stiahnutie dokumentu stlačte <span class='highlight'>tlačítko stiahnúť</span>.",
+    zoomInTitle: 'Tlačítko priblížiť',
+    zoomInDescription:
+      "Pre priblíženie dokumentu stlačte <span class='highlight'>tlačítko priblížiť</span> alebo klávesu <span class='keyboard-key'>+</span> . Môžete tiež roztiahnuť dva prsty odseba na touchepade <span class='keyboard-key'>< ></span> alebo <span class='highlight'>dvojkliknúť</span> na dokument.",
+    zoomOutTitle: 'Tlačítko oddialiť',
+    zoomOutDescription:
+      "Pre oddialenie dokumentu stlačte <span class='highlight'>tlačítko oddialiť</span> alebo klávesu <span class='keyboard-key'>-</span> . Môžete tiež potiahnúť dva prsty k sebe na touchepade <span class='keyboard-key'>> <</span> alebo <span class='highlight'>dvojkliknúť</span> na dokument.",
+    previousTitle: 'Tlačítko predchádzajúca',
+    previousDescription:
+      "Stlačte <span class='highlight'>tlačítko predchádzajúca</span> alebo klávesu <span class='keyboard-key'><</span> (šípka vľavo) pre zobrazenie predchádzajúcej strany tohto dokumentu.",
+    nextTitle: 'Tlačítko ďaľšia',
+    nextDescription:
+      "Stlačte <span class='highlight'>tlačítko ďalšia</span> alebo klávesu <span class='keyboard-key'>></span> (šípka vpravo) pre zobrazenie ďalšej strany tohto dokumentu.",
   },
 }

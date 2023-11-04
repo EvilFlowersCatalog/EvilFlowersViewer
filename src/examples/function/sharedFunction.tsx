@@ -20,5 +20,5 @@ export const exampleShareFunction = async (
 
   // returned url for entry
   // return ''
-  return 'https://evilflowers.jakubdubec.me/data/v1/acquisitions/d9445797-42d0-499a-a158-82c08b4dc511'
+  return 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley'
 }

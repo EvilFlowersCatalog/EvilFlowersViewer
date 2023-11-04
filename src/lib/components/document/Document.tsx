@@ -4,15 +4,16 @@ import { KeyboardEvent, MouseEvent, useEffect, useRef, useState } from 'react'
 // @ts-ignore
 import Cite from 'citation-js'
 import { DocumentContext } from './DocumentContext'
-import Page from '../page/Page'
 import { RENDERING_STATES, SIDEBAR_TABS } from '../../../utils/enums'
-import BottomBar from '../bottomBar/BottomBar'
+import BottomBar from './bottom-bar/BottomBar'
 import {
-  GetDocumentParameters,
+  DocumentInitParameters,
   PDFDocumentProxy,
 } from 'pdfjs-dist/types/src/display/api'
-import SideMenu from '../sideMenu/SideMenu'
+import Menu from '../side-menu/menu/Menu'
 import { useViewerContext } from '../ViewerContext'
+import SinglePage from './single-page/SinglePage'
+import Help from '../helpers/help/Help'
 
 /**
  * Document component
@@ -75,9 +76,6 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [totalPages, setTotalPages] = useState(0)
   const ref: any = useRef(null)
   const [TOC, setTOC] = useState<TOCItemDoc[] | undefined>()
-  const [pdfViewing, setPdfViewing] = useState<'paginator' | 'scroll'>(
-    'paginator'
-  )
   const [activeSidebar, setActiveSidebar] = useState<SIDEBAR_TABS>(
     SIDEBAR_TABS.NULL
   )
@@ -92,8 +90,9 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [citationVisibile, setCitationVisible] = useState<boolean>(false)
   const [tocVisibility, setTocVisibility] = useState<boolean>(false)
   const [pinchZoom, setPinchZoom] = useState<number>(0)
+  const [controlKey, setControlKey] = useState<boolean>(false)
 
-  const { setShowIntro, showIntro, theme, setTheme, shareFunction } =
+  const { setShowHelp, showHelp, theme, setTheme, shareFunction } =
     useViewerContext()
 
   useEffect(() => {
@@ -126,23 +125,13 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
     }
   }, [basedPdfCitation])
 
-  useEffect(() => {
-    if (screenWidth <= 599 || screenHeight <= 700) {
-      setPdfViewing('scroll')
-    }
-  }, [screenWidth, screenHeight])
-
-  useEffect(() => {
-    setActiveSidebar(SIDEBAR_TABS.NULL)
-  }, [pdfViewing])
-
   /**
    * Load document on mount
    *
    */
   const loadDocument = async () => {
     await pdfjs
-      .getDocument({ data } as GetDocumentParameters)
+      .getDocument({ data } as DocumentInitParameters)
       .promise.then(async (doc: PDFDocumentProxy) => {
         // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
         // https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFDocumentProxy.html#getDestination
@@ -215,8 +204,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const downloadDocument = () => {
     const link = document.createElement('a')
     pdf?.getMetadata().then((meta: any) => {
-      // @ts-ignore
-      var fileName = meta.info?.Title || 'document.pdf'
+      var fileName = meta.info?.Title || 'document'
 
       pdf?.getData().then((data: any) => {
         const blob = new Blob([data], { type: 'application/pdf' })
@@ -423,72 +411,86 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   }, [data])
 
   const keyDownHandler = (event: KeyboardEvent<HTMLDivElement>) => {
-    switch (event.key) {
-      case 'ArrowLeft':
-        event.preventDefault()
-        prevPage()
-        break
-      case 'ArrowRight':
-        event.preventDefault()
-        nextPage()
-        break
-      case '+':
-        event.preventDefault()
-        zoomIn()
-        break
-      case '-':
-        event.preventDefault()
-        zoomOut()
-        break
-      case 'h':
-        event.preventDefault()
-        setShowIntro(!showIntro)
-        break
-      case 's':
-        event.preventDefault()
-        shareFunction &&
+    if (!controlKey) {
+      switch (event.key.toLocaleLowerCase()) {
+        case 'arrowleft':
+          event.preventDefault()
+          prevPage()
+          break
+        case 'arrowright':
+          event.preventDefault()
+          nextPage()
+          break
+        case '+':
+          event.preventDefault()
+          zoomIn()
+          break
+        case '-':
+          event.preventDefault()
+          zoomOut()
+          break
+        case 'h':
+          event.preventDefault()
+          setShowHelp(!showHelp)
+          break
+        case 's':
+          event.preventDefault()
+          shareFunction &&
+            setActiveSidebar((activity) =>
+              activity === SIDEBAR_TABS.SHARE
+                ? SIDEBAR_TABS.NULL
+                : SIDEBAR_TABS.SHARE
+            )
+          break
+        // case 'e':
+        //   event.preventDefault()
+        //   shareFunction &&
+        //     setActiveSidebar((activity) =>
+        //       activity === SIDEBAR_TABS.EDIT
+        //         ? SIDEBAR_TABS.NULL
+        //         : SIDEBAR_TABS.EDIT
+        //     )
+        //   break
+        case 'f':
+          event.preventDefault()
           setActiveSidebar((activity) =>
-            activity === SIDEBAR_TABS.SHARE
-              ? SIDEBAR_TABS.NULL
-              : SIDEBAR_TABS.SHARE
-          )
-        break
-      // case 'p':
-      //   event.preventDefault()
-      //   shareFunction &&
-      //     setActiveSidebar((activity) =>
-      //       activity === SIDEBAR_TABS.PEN ? SIDEBAR_TABS.NULL : SIDEBAR_TABS.PEN
-      //     )
-      //   break
-      case 'f':
-        event.preventDefault()
-        setActiveSidebar((activity) =>
-          pdfViewing === 'paginator'
-            ? activity === SIDEBAR_TABS.SEARCH
+            activity === SIDEBAR_TABS.SEARCH
               ? SIDEBAR_TABS.NULL
               : SIDEBAR_TABS.SEARCH
-            : activity
-        )
-        break
-      case 'i':
-        event.preventDefault()
-        setActiveSidebar((activity) =>
-          activity === SIDEBAR_TABS.INFO ? SIDEBAR_TABS.NULL : SIDEBAR_TABS.INFO
-        )
-        break
-      case 't':
-        event.preventDefault()
-        TOC && TOC.length > 0 && setTocVisibility(!tocVisibility)
-        break
-      case 'c':
-        event.preventDefault()
-        pdfCitation && setCitationVisible(!citationVisibile)
-        break
-      case 'm':
-        event.preventDefault()
-        handleModeChange()
-        break
+          )
+          break
+        case 'i':
+          event.preventDefault()
+          setActiveSidebar((activity) =>
+            activity === SIDEBAR_TABS.INFO
+              ? SIDEBAR_TABS.NULL
+              : SIDEBAR_TABS.INFO
+          )
+          break
+        case 't':
+          event.preventDefault()
+          TOC && TOC.length > 0 && setTocVisibility(!tocVisibility)
+          break
+        case 'c':
+          event.preventDefault()
+          pdfCitation && setCitationVisible(!citationVisibile)
+          break
+        case 'm':
+          event.preventDefault()
+          handleModeChange()
+          break
+        case 'meta':
+          setControlKey(true)
+          break
+        case 'control':
+          setControlKey(true)
+          break
+      }
     }
+  }
+
+  const keyUpHandler = (event: KeyboardEvent<HTMLDivElement>) => {
+    setControlKey(false)
   }
 
   const handleModeChange = () => {
@@ -511,24 +513,22 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   useGesture(
     {
       onPinch: ({ offset: [d] }) => {
-        if (pdfViewing === 'paginator') {
-          setPinchZoom(d)
-          if (pinchZoom < d) {
-            setWaiter(waiter + 5)
-          } else {
-            setWaiter(waiter - 5)
-          }
-          if (waiter > 100) {
-            setWaiter(50)
-            setScale((prevScale) =>
-              prevScale < 3 ? prevScale + 0.25 : prevScale
-            )
-          } else if (waiter < 0) {
-            setScale((prevScale) =>
-              prevScale > 0.25 ? prevScale - 0.25 : prevScale
-            )
-            setWaiter(50)
-          }
+        setPinchZoom(d)
+        if (pinchZoom < d) {
+          setWaiter(waiter + 5)
+        } else {
+          setWaiter(waiter - 5)
+        }
+        if (waiter > 100) {
+          setWaiter(50)
+          setScale((prevScale) =>
+            prevScale < 3 ? prevScale + 0.25 : prevScale
+          )
+        } else if (waiter < 0) {
+          setScale((prevScale) =>
+            prevScale > 0.25 ? prevScale - 0.25 : prevScale
+          )
+          setWaiter(50)
         }
       },
     },
@@ -566,8 +566,6 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         paginatorPageRender,
         setPaginatorPageRender,
         totalPages,
-        pdfViewing,
-        setPdfViewing,
         previewRender,
         setPreviewRender,
         screenWidth,
@@ -587,15 +585,18 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         <div
           ref={ref}
           onKeyDown={keyDownHandler}
+          onKeyUp={keyUpHandler}
           tabIndex={-1}
           className={'document-container'}
           onMouseEnter={() => ref.current?.focus()}
         >
+          {showHelp && <Help />}
           <div className="document-upper-row-container">
-            <SideMenu />
-            <Page onDoubleClick={handleDoubleClick} />
+            <Menu />
+            <SinglePage onDoubleClick={handleDoubleClick} />
           </div>
-          {pdfViewing === 'paginator' && <BottomBar />}
+
+          <BottomBar />
         </div>
       )}
     </DocumentContext.Provider>

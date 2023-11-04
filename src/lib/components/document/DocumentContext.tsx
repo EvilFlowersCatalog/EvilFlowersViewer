@@ -39,8 +39,6 @@ interface IDocumentContext {
   totalPages: number
   TOC: TOCItemDoc[] | undefined
   setTOC: (outline: TOCItemDoc[] | undefined) => void
-  pdfViewing: 'paginator' | 'scroll'
-  setPdfViewing: (type: 'paginator' | 'scroll') => void
   previewRender: RENDERING_STATES
   setPreviewRender: (state: RENDERING_STATES) => void
   screenWidth: number

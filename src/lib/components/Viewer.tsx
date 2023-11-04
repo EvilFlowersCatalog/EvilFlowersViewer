@@ -1,4 +1,4 @@
-import { createElement, useEffect, useState, useTransition } from 'react'
+import { createElement, useEffect, useState } from 'react'
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 // @ts-ignore
 import * as PDFJSWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry'
@@ -7,12 +7,14 @@ import Document from './document/Document'
 import { createRoot } from 'react-dom/client'
 import i18n from '../../utils/i18n'
 import { ViewerContext } from './ViewerContext'
-import Introduction from './helpers/introduction/Introduction'
 import { useTranslation } from 'react-i18next'
+import { ImExit } from 'react-icons/im'
 
-pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
-// pdfjs.GlobalWorkerOptions.workerSrc =
+pdfjs.GlobalWorkerOptions.workerPort = new Worker(PDFJSWorker)
+// Odkomentovať pri local používaní
+// pdfjs.GlobalWorkerOptions.workerPort = new Worker(
 //   '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
+// )
 
 interface IViewerOptions {
   theme?: 'dark' | 'light'
@@ -36,16 +38,16 @@ interface IViewerProps {
  * @returns - The Viewer component
  */
 export const Viewer = (viewerProps: IViewerProps) => {
-  const localShow = localStorage.getItem('show-intro')
-  const [showIntro, setShowIntro] = useState<boolean>(
-    localShow === 'false' ? false : true
-  )
+  const helpShown = localStorage.getItem('show-help')
+  const [showHelp, setShowHelp] = useState<boolean>(false)
+
+  // if does not exist, show for the first time
+  if (!helpShown) {
+    localStorage.setItem('show-help', JSON.stringify('shown'))
+    setShowHelp(true)
+  }
   const [documentData, setDocumentData] = useState<string | null>('null')
   const { t } = useTranslation()
-
-  const stayHidden = () => {
-    localStorage.setItem('show-intro', JSON.stringify(false))
-  }
 
   // Based options, cuz options are not required
   let basedOptions: IViewerOptions = {
@@ -107,22 +109,24 @@ export const Viewer = (viewerProps: IViewerProps) => {
         setTheme,
         shareFunction: basedOptions.shareFunction,
         homeFunction: basedOptions.homeFunction,
-        setShowIntro,
-        showIntro,
+        setShowHelp,
+        showHelp,
       }}
     >
-      {showIntro && (
-        <Introduction
-          setShow={setShowIntro}
-          stayHidden={stayHidden}
-          lang={basedOptions.lang}
-          visible={localShow === 'false' ? false : true}
-        />
-      )}
       <div id={'evilFlowersViewer'} className={'viewer-container'}>
         <div className={'viewer-inner-container'}>
           {documentData === null && (
-            <h1 className="document-load-error">{t('loadPDFerror')}</h1>
+            <>
+              <h1 className="document-load-error">{t('loadPDFerror')}</h1>
+              {basedOptions.homeFunction && (
+                <div
+                  onClick={() => basedOptions.homeFunction!()}
+                  className={'viewer-back-button'}
+                >
+                  <ImExit className={'viewer-button-icon'} />
+                </div>
+              )}
+            </>
           )}
           {documentData === 'null' && (
             <div className="viewer-loader-small"></div>

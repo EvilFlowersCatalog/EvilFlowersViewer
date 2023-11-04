@@ -43,7 +43,6 @@
   font-size: 12px;
   width: max-content;
   text-align: start;
-  max-width: 100px;
-  white-space: pre-wrap;
+  max-width: 160px;
   color: var(--tool-tip-text);
 }

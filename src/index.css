@@ -1,19 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800;900&display=swap');
 @import '../src/lib/components/viewer.css';
 @import '../src/lib/components/document/document.css';
-@import '../src/lib/components/sideMenu/sideMenu.css';
-@import '../src/lib/components/sidebar/sidebar.css';
-@import '../src/lib/components/info/info.css';
-@import '../src/lib/components/helpers/toolTip/toolTip.css';
-@import '../src/lib/components/share/share.css';
+@import '../src/lib/components/document/bottom-bar/bottomBar.css';
+@import '../src/lib/components/document/single-page/singlePage.css';
+@import '../src/lib/components/document/bottom-bar/preview/preview.css';
+@import '../src/lib/components/side-menu/menu/menu.css';
+@import '../src/lib/components/side-menu/bar/bar.css';
+@import '../src/lib/components/side-menu/items/info/info.css';
+@import '../src/lib/components/side-menu/items/share/share.css';
+@import '../src/lib/components/side-menu/items/edit/edit.css';
+@import '../src/lib/components/side-menu/items/citation/citations.css';
+@import '../src/lib/components/side-menu/items/search/search.css';
+@import '../src/lib/components/side-menu/items/toc/toc.css';
 @import '../src/lib/components/modal/modal.css';
-@import '../src/lib/components/citation/citations.css';
-@import '../src/lib/components/search/search.css';
-@import '../src/lib/components/page/page.css';
-@import '../src/lib/components/bottomBar/bottomBar.css';
-@import '../src/lib/components/toc/toc.css';
-@import '../src/lib/components/helpers/introduction/introduction.css';
-@import '../src/lib/components/pen/pen.css';
+@import '../src/lib/components/helpers/help/help.css';
+@import '../src/lib/components/helpers/toolTip/toolTip.css';
 
 @tailwind base;
 @tailwind components;
@@ -23,7 +24,7 @@
   --viewer-background-color: rgb(240, 240, 240);
   --text-color: black;
   --main-text-color: rgb(40, 40, 40);
-  --component-background-color: rgb(210, 210, 210);
+  --component-background-color: rgb(200, 200, 200);
   --button-background-color: rgb(225, 225, 225);
   --button-text-color-active: rgb(30, 30, 30);
   --button-text-color-deactive: rgb(150, 150, 150);
@@ -36,7 +37,7 @@
 }
 
 [data-theme='dark'] {
-  --viewer-background-color: rgb(40, 40, 40);
+  --viewer-background-color: rgb(50, 50, 50);
   --text-color: white;
   --main-text-color: rgb(235, 235, 235);
   --component-background-color: rgb(25, 25, 25);
@@ -88,6 +89,14 @@ body {
 
 /* Making text layer elements transparent and position absolute for proper positioning */
 
+#textLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  line-height: 1;
+  color: transparent;
+}
+
 #textLayer span {
   position: absolute;
   white-space: pre;
@@ -122,6 +131,16 @@ body {
   border: none;
   border-top: 1px solid #eee;
   width: 80%;
+}
+
+.keyboard-key {
+  font-weight: bold;
+  padding: 0 8px;
+  border: 1px solid white;
+}
+
+.highlight {
+  font-weight: 700;
 }
 
 @keyframes rotation {

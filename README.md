@@ -135,3 +135,12 @@ these steps:
 3. Make your changes and commit them with a clear commit message
 4. Push your changes to your forked repository
 5. Create a pull request to merge your changes into the main EvilFlowersViewer repository
+
+## Acknowledgment
+
+This open-source project is maintained by students and PhD candidates of the
+[Faculty of Informatics and Information Technologies](https://www.fiit.stuba.sk/) at the Slovak University of
+Technology. The software is utilized by the university, aligning with its educational and research activities. We
+appreciate the faculty's support of our work and their contribution to the open-source community.
+
+![](docs/images/fiit.png)

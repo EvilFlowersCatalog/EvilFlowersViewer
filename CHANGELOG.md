@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.14 : 2023-10-25
+
+- **Added**: debounc in every scroll handle
+- **Added**: new translation senteces
+- **Fixed**: Scroll view (just little)
+- **Fixed**: bug in preview with changing pdf viewing
+- **Changed**: pdf rendering code
+- **Changed**: helper design and whole functioning
+- **Changed**: code, little cleaner
+- **Changed**: little design
+- **Changed**: project architecture
+- **Removed**: scroll view
+- **Removed**: lot of unused variables
+
 ## 0.4.13 : 2023-10-24
 
 - **Fixed**: citation page style
@@ -76,7 +90,7 @@
 ## 0.4.3 : 2023-09-28
 
 - **Changed**: Scroll pages viewing
-- **Changed**: Image in introdaction width change
+- **Changed**: Image in introduction width change
 
 ## 0.4.2 : 2023-09-28
 
