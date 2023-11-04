@@ -10,11 +10,10 @@ import { ViewerContext } from './ViewerContext'
 import { useTranslation } from 'react-i18next'
 import { ImExit } from 'react-icons/im'
 
-pdfjs.GlobalWorkerOptions.workerPort = new Worker(PDFJSWorker)
+pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
 // Odkomentovať pri local používaní
-// pdfjs.GlobalWorkerOptions.workerPort = new Worker(
+// pdfjs.GlobalWorkerOptions.workerSrc =
 //   '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
-// )
 
 interface IViewerOptions {
   theme?: 'dark' | 'light'
