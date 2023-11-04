@@ -26,7 +26,18 @@ const Help = () => {
   const { setShowHelp, theme } = useViewerContext()
   const { screenWidth, screenHeight } = useDocumentContext()
   const [index, setIndex] = useState(0)
-  const [steps] = useState([
+  const [steps, setSteps] = useState<
+    {
+      icon: any
+      title: string
+      description: string
+      left: boolean
+      positionX: string
+      top: boolean
+      positionY: string
+      class: string
+    }[]
+  >([
     {
       icon: <BiHome className="help-icon" />,
       title: t('homeTitle'),
@@ -222,19 +233,106 @@ const Help = () => {
     },
   ])
 
-  // reset position of last 2 steps
+  // reset position
   useEffect(() => {
-    steps[steps.length - 2].positionX =
+    steps[0].positionY =
+      document.getElementById('menu-home')?.getBoundingClientRect().y + 'px'
+  }, [document.getElementById('menu-home')?.getBoundingClientRect().y])
+
+  // useEffect(() => {
+  //   steps[1].positionY = document.getElementById('menu-edit')?.getBoundingClientRect().y + 'px'
+  // }, [document.getElementById('menu-edit')?.getBoundingClientRect().y]);
+
+  useEffect(() => {
+    steps[1].positionY =
+      document.getElementById('menu-search')?.getBoundingClientRect().y! +
+      10 +
+      'px'
+  }, [document.getElementById('menu-search')?.getBoundingClientRect().y])
+
+  useEffect(() => {
+    steps[2].positionY =
+      document.getElementById('menu-citation')?.getBoundingClientRect().y! +
+      10 +
+      'px'
+  }, [document.getElementById('menu-citation')?.getBoundingClientRect().y])
+
+  useEffect(() => {
+    steps[3].positionY =
+      document.getElementById('menu-toc')?.getBoundingClientRect().y! +
+      10 +
+      'px'
+  }, [document.getElementById('menu-toc')?.getBoundingClientRect().y])
+
+  useEffect(() => {
+    steps[4].positionY =
+      document.getElementById('menu-share')?.getBoundingClientRect().y! +
+      10 +
+      'px'
+  }, [document.getElementById('menu-share')?.getBoundingClientRect().y])
+
+  useEffect(() => {
+    steps[5].positionY =
+      document.getElementById('menu-info')?.getBoundingClientRect().y! +
+      10 +
+      'px'
+  }, [document.getElementById('menu-info')?.getBoundingClientRect().y])
+
+  useEffect(() => {
+    steps[6].positionY =
+      document.getElementById('menu-help')?.getBoundingClientRect().y! +
+      10 +
+      'px'
+  }, [document.getElementById('menu-help')?.getBoundingClientRect().y])
+
+  useEffect(() => {
+    steps[7].positionY =
+      document.getElementById('menu-theme')?.getBoundingClientRect().y! +
+      10 +
+      'px'
+  }, [document.getElementById('menu-theme')?.getBoundingClientRect().y])
+
+  useEffect(() => {
+    steps[8].positionY =
+      document.getElementById('menu-download')?.getBoundingClientRect().y! +
+      10 +
+      'px'
+  }, [document.getElementById('menu-download')?.getBoundingClientRect().y])
+
+  useEffect(() => {
+    steps[9].positionY =
+      screenHeight -
+      document.getElementById('menu-zoom-in')?.getBoundingClientRect().bottom! +
+      10 +
+      'px'
+  }, [document.getElementById('menu-zoom-in')?.getBoundingClientRect().bottom])
+
+  useEffect(() => {
+    steps[10].positionY =
+      screenHeight -
+      document.getElementById('menu-zoom-out')?.getBoundingClientRect()
+        .bottom! +
+      10 +
+      'px'
+  }, [document.getElementById('menu-zoom-out')?.getBoundingClientRect().bottom])
+
+  useEffect(() => {
+    steps[11].positionX =
       document.getElementById('bottom-bar-left')?.getBoundingClientRect().x! +
       8 +
       'px'
-    steps[steps.length - 1].positionX =
+  }, [document.getElementById('bottom-bar-left')?.getBoundingClientRect().x])
+
+  useEffect(() => {
+    steps[12].positionX =
       screenWidth -
       document.getElementById('bottom-bar-right')?.getBoundingClientRect()
         .right! +
       8 +
       'px'
-  }, [screenWidth])
+  }, [
+    document.getElementById('bottom-bar-right')?.getBoundingClientRect().right,
+  ])
 
   return (
     <div className="help-container">
@@ -245,7 +343,10 @@ const Help = () => {
             ? { top: steps[index].positionY, left: steps[index].positionX }
             : steps[index].left
             ? { bottom: steps[index].positionY, left: steps[index].positionX }
-            : { bottom: steps[index].positionY, right: steps[index].positionX }
+            : {
+                bottom: steps[index].positionY,
+                right: steps[index].positionX,
+              }
         }
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

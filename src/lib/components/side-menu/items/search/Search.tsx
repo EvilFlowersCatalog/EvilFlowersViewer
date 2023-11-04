@@ -154,7 +154,7 @@ const Search = () => {
 
       if (canvas) {
         const x: number = matches[selectedMatch]!.transform![4]
-        const y: number = matches[selectedMatch]!.transform![5] - 3
+        const y: number = matches[selectedMatch]!.transform![5]
         const width: number = matches[selectedMatch]!.width
         const height: number = matches[selectedMatch]!.height
         const canvas_height = canvas.getAttribute('height')
