@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.17 : 2023-11-04
+
+- **Fixed**: width and height of the circle in help steps
+
 ## 0.4.16 : 2023-11-04
 
 - **Fixed**: phelp steps positioning
