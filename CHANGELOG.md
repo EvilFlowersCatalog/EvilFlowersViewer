@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.16 : 2023-11-04
+
+- **Fixed**: phelp steps positioning
+
 ## 0.4.15 : 2023-11-04
 
 - **Fixed**: pdfjs gloabl worker
