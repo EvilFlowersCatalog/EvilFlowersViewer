@@ -18,7 +18,7 @@
   top: 0;
   justify-content: center;
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.8);
 }
 
 .modal-main-container {
@@ -26,7 +26,7 @@
   position: relative;
   z-index: 30;
   display: flex;
-  min-width: 300px;
+  min-width: 200px;
   width: 35%;
   max-height: 70%;
   flex-direction: column;
@@ -84,6 +84,7 @@
 
 @media screen and (max-width: 599px) {
   .modal-main-container {
+    width: 90%;
     padding-left: 10px;
     padding-right: 10px;
   }

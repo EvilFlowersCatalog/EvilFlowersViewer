@@ -9,13 +9,17 @@ import { ChangeEvent, ReactNode, useState, KeyboardEvent } from 'react'
 import Tooltip from '../../helpers/toolTip/Tooltip'
 import { RENDERING_STATES, SIDEBAR_TABS } from '../../../../utils/enums'
 
-interface IZoomButtonProps {
+interface IBottomBarButtonsProps {
   onClick: () => void
   icon: ReactNode
   tooltipText: string
 }
 
-const PaginationButton = ({ onClick, icon, tooltipText }: IZoomButtonProps) => {
+const BottomButtons = ({
+  onClick,
+  icon,
+  tooltipText,
+}: IBottomBarButtonsProps) => {
   return (
     <Tooltip title={tooltipText} placement={'top'}>
       <div onClick={onClick} className={'viewer-button'}>
@@ -41,7 +45,7 @@ const BottomBar = () => {
     totalPages,
     setPage,
     previewRender,
-    activeSidebar,
+    isEditMode,
   } = useDocumentContext()
   const { t } = useTranslation()
 
@@ -60,6 +64,7 @@ const BottomBar = () => {
 
   // Handle enter
   const handleInputKey = async (e: KeyboardEvent<HTMLDivElement>) => {
+    e.stopPropagation()
     if (e.code === 'Enter' && inputValue) {
       // if enter adn input has value
       const value = parseInt(inputValue) // to int
@@ -71,10 +76,10 @@ const BottomBar = () => {
   return (
     <div
       className="bottom-bar-container"
-      style={activeSidebar !== SIDEBAR_TABS.EDIT ? {} : { height: '50px' }}
+      style={isEditMode ? { height: '50px' } : {}}
     >
       <div className="bottom-bar-paginator-container">
-        <PaginationButton
+        <BottomButtons
           tooltipText={
             activePage !== 1 && previewRender !== RENDERING_STATES.RENDERING
               ? t('prevPage')
@@ -111,7 +116,7 @@ const BottomBar = () => {
             style={{ width: '20px', height: '20px' }}
           ></div>
         )}
-        <PaginationButton
+        <BottomButtons
           tooltipText={
             activePage !== totalPages &&
             previewRender !== RENDERING_STATES.RENDERING

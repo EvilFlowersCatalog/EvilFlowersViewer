@@ -4,11 +4,15 @@
 @import '../src/lib/components/document/bottom-bar/bottomBar.css';
 @import '../src/lib/components/document/single-page/singlePage.css';
 @import '../src/lib/components/document/bottom-bar/preview/preview.css';
-@import '../src/lib/components/side-menu/menu/menu.css';
+@import '../src/lib/components/document/edit-page/edit-menu/editMenu.css';
+@import '../src/lib/components/document/edit-page/edit-menu/colors/editColors.css';
+@import '../src/lib/components/document/edit-page/edit-menu/tool-option/editToolOptions.css';
+@import '../src/lib/components/document/edit-page/edit-menu/tools/editTools.css';
+@import '../src/lib/components/document/edit-page/editPage.css';
+@import '../src/lib/components/side-menu//sideMenu.css';
 @import '../src/lib/components/side-menu/bar/bar.css';
 @import '../src/lib/components/side-menu/items/info/info.css';
 @import '../src/lib/components/side-menu/items/share/share.css';
-@import '../src/lib/components/side-menu/items/edit/edit.css';
 @import '../src/lib/components/side-menu/items/citation/citations.css';
 @import '../src/lib/components/side-menu/items/search/search.css';
 @import '../src/lib/components/side-menu/items/toc/toc.css';

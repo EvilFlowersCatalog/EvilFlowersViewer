@@ -23,34 +23,37 @@ import { RxQuote, RxShare2 } from 'react-icons/rx'
 
 const Help = () => {
   const { t } = useTranslation()
-  const { setShowHelp, theme } = useViewerContext()
-  const { screenWidth, screenHeight } = useDocumentContext()
-  const [index, setIndex] = useState(0)
-  const [steps, setSteps] = useState<
-    {
-      icon: any
-      title: string
-      description: string
-      left: boolean
-      positionX: string
-      top: boolean
-      positionY: string
-      class: string
-    }[]
-  >([
-    {
-      icon: <BiHome className="help-icon" />,
-      title: t('homeTitle'),
-      description: t('homeDescription'),
-      left: true,
-      positionX: '80px',
-      top: true,
-      positionY:
-        document.getElementById('menu-home')?.getBoundingClientRect().y! +
-        10 +
-        'px',
-      class: 'help-left-step',
-    },
+  const { setShowHelp, theme, homeFunction, shareFunction } = useViewerContext()
+  const { screenWidth, screenHeight, TOC, pdfCitation } = useDocumentContext()
+  const [index, setIndex] = useState(homeFunction ? 0 : 1)
+  const [indexPosition, setIndexPosition] = useState(0)
+  const [yPositions] = useState<string[]>([
+    '22px',
+    '55px',
+    '88px',
+    '123px',
+    '158px',
+    '191px',
+    '225px',
+    '260px',
+    '293px',
+    '326px',
+    '361px',
+    // '395px',
+  ])
+  const [steps] = useState([
+    homeFunction
+      ? {
+          icon: <BiHome className="help-icon" />,
+          title: t('homeTitle'),
+          description: t('homeDescription'),
+          left: true,
+          positionX: '80px',
+          top: true,
+          positionY: '',
+          class: 'help-left-step',
+        }
+      : null,
     // {
     //   icon: <AiOutlineEdit className="help-icon" />,
     //   title: t('editTitle'),
@@ -58,10 +61,7 @@ const Help = () => {
     //   left: true,
     //   positionX: '80px',
     //   top: true,
-    //   positionY:
-    //     document.getElementById('menu-edit')?.getBoundingClientRect().y! +
-    //     10 +
-    //     'px',
+    //   positionY: '',
     //   class: 'help-left-step',
     // },
     {
@@ -71,51 +71,45 @@ const Help = () => {
       left: true,
       positionX: '80px',
       top: true,
-      positionY:
-        document.getElementById('menu-search')?.getBoundingClientRect().y! +
-        10 +
-        'px',
+      positionY: '',
       class: 'help-left-step',
     },
-    {
-      icon: <RxQuote className="help-icon" />,
-      title: t('citationTitle'),
-      description: t('citationDescription'),
-      left: true,
-      positionX: '80px',
-      top: true,
-      positionY:
-        document.getElementById('menu-citation')?.getBoundingClientRect().y! +
-        10 +
-        'px',
-      class: 'help-left-step',
-    },
-    {
-      icon: <BiMenuAltLeft className="help-icon" />,
-      title: t('tocTitle'),
-      description: t('tocDescription'),
-      left: true,
-      positionX: '80px',
-      top: true,
-      positionY:
-        document.getElementById('menu-toc')?.getBoundingClientRect().y! +
-        10 +
-        'px',
-      class: 'help-left-step',
-    },
-    {
-      icon: <RxShare2 className="help-icon" />,
-      title: t('shareTitle'),
-      description: t('shareDescription'),
-      left: true,
-      positionX: '80px',
-      top: true,
-      positionY:
-        document.getElementById('menu-share')?.getBoundingClientRect().y! +
-        10 +
-        'px',
-      class: 'help-left-step',
-    },
+    pdfCitation
+      ? {
+          icon: <RxQuote className="help-icon" />,
+          title: t('citationTitle'),
+          description: t('citationDescription'),
+          left: true,
+          positionX: '80px',
+          top: true,
+          positionY: '',
+          class: 'help-left-step',
+        }
+      : null,
+    TOC && TOC.length > 0
+      ? {
+          icon: <BiMenuAltLeft className="help-icon" />,
+          title: t('tocTitle'),
+          description: t('tocDescription'),
+          left: true,
+          positionX: '80px',
+          top: true,
+          positionY: '',
+          class: 'help-left-step',
+        }
+      : null,
+    shareFunction
+      ? {
+          icon: <RxShare2 className="help-icon" />,
+          title: t('shareTitle'),
+          description: t('shareDescription'),
+          left: true,
+          positionX: '80px',
+          top: true,
+          positionY: '',
+          class: 'help-left-step',
+        }
+      : null,
     {
       icon: <BiInfoCircle className="help-icon" />,
       title: t('infoTitle'),
@@ -123,10 +117,7 @@ const Help = () => {
       left: true,
       positionX: '80px',
       top: true,
-      positionY:
-        document.getElementById('menu-info')?.getBoundingClientRect().y! +
-        10 +
-        'px',
+      positionY: '',
       class: 'help-left-step',
     },
     {
@@ -136,10 +127,7 @@ const Help = () => {
       left: true,
       positionX: '80px',
       top: true,
-      positionY:
-        document.getElementById('menu-help')?.getBoundingClientRect().y! +
-        10 +
-        'px',
+      positionY: '',
       class: 'help-left-step',
     },
     {
@@ -154,10 +142,7 @@ const Help = () => {
       left: true,
       positionX: '80px',
       top: true,
-      positionY:
-        document.getElementById('menu-theme')?.getBoundingClientRect().y! +
-        10 +
-        'px',
+      positionY: '',
       class: 'help-left-step',
     },
     {
@@ -167,10 +152,7 @@ const Help = () => {
       left: true,
       positionX: '80px',
       top: true,
-      positionY:
-        document.getElementById('menu-download')?.getBoundingClientRect().y! +
-        10 +
-        'px',
+      positionY: '',
       class: 'help-left-step',
     },
     {
@@ -179,14 +161,9 @@ const Help = () => {
       description: t('zoomInDescription'),
       left: true,
       positionX: '80px',
-      top: false,
-      positionY:
-        screenHeight -
-        document.getElementById('menu-zoom-in')?.getBoundingClientRect()
-          .bottom! +
-        10 +
-        'px',
-      class: 'help-left-bottom-step',
+      top: true,
+      positionY: '',
+      class: 'help-left-step',
     },
     {
       icon: <AiOutlineMinus className="help-icon" />,
@@ -194,14 +171,9 @@ const Help = () => {
       description: t('zoomOutDescription'),
       left: true,
       positionX: '80px',
-      top: false,
-      positionY:
-        screenHeight -
-        document.getElementById('menu-zoom-out')?.getBoundingClientRect()
-          .bottom! +
-        10 +
-        'px',
-      class: 'help-left-bottom-step',
+      top: true,
+      positionY: '',
+      class: 'help-left-step',
     },
     {
       icon: <AiOutlineLeft className="help-icon" />,
@@ -213,7 +185,12 @@ const Help = () => {
         10 +
         'px',
       top: false,
-      positionY: '225px',
+      positionY:
+        screenHeight -
+        document.getElementById('bottom-bar-left')?.getBoundingClientRect()
+          .bottom! +
+        60 +
+        'px',
       class: 'help-bottom-left-step',
     },
     {
@@ -228,134 +205,63 @@ const Help = () => {
         10 +
         'px',
       top: false,
-      positionY: '225px',
+      positionY:
+        screenHeight -
+        document.getElementById('bottom-bar-right')?.getBoundingClientRect()
+          .bottom! +
+        60 +
+        'px',
       class: 'help-bottom-right-step',
     },
   ])
 
-  // reset position
   useEffect(() => {
-    steps[0].positionY =
-      document.getElementById('menu-home')?.getBoundingClientRect().y + 'px'
-  }, [document.getElementById('menu-home')?.getBoundingClientRect().y])
-
-  // useEffect(() => {
-  //   steps[1].positionY = document.getElementById('menu-edit')?.getBoundingClientRect().y + 'px'
-  // }, [document.getElementById('menu-edit')?.getBoundingClientRect().y]);
-
-  useEffect(() => {
-    steps[1].positionY =
-      document.getElementById('menu-search')?.getBoundingClientRect().y! +
-      10 +
-      'px'
-  }, [document.getElementById('menu-search')?.getBoundingClientRect().y])
+    const bounding = document
+      .getElementById('bottom-bar-left')
+      ?.getBoundingClientRect()!
+    steps[11]!.positionX = bounding.x + 8 + 'px'
+    steps[11]!.positionY = screenHeight - bounding.bottom + 60 + 'px'
+  }, [
+    document.getElementById('bottom-bar-left')?.getBoundingClientRect().x,
+    document.getElementById('bottom-bar-left')?.getBoundingClientRect().bottom,
+  ])
 
   useEffect(() => {
-    steps[2].positionY =
-      document.getElementById('menu-citation')?.getBoundingClientRect().y! +
-      10 +
-      'px'
-  }, [document.getElementById('menu-citation')?.getBoundingClientRect().y])
-
-  useEffect(() => {
-    steps[3].positionY =
-      document.getElementById('menu-toc')?.getBoundingClientRect().y! +
-      10 +
-      'px'
-  }, [document.getElementById('menu-toc')?.getBoundingClientRect().y])
-
-  useEffect(() => {
-    steps[4].positionY =
-      document.getElementById('menu-share')?.getBoundingClientRect().y! +
-      10 +
-      'px'
-  }, [document.getElementById('menu-share')?.getBoundingClientRect().y])
-
-  useEffect(() => {
-    steps[5].positionY =
-      document.getElementById('menu-info')?.getBoundingClientRect().y! +
-      10 +
-      'px'
-  }, [document.getElementById('menu-info')?.getBoundingClientRect().y])
-
-  useEffect(() => {
-    steps[6].positionY =
-      document.getElementById('menu-help')?.getBoundingClientRect().y! +
-      10 +
-      'px'
-  }, [document.getElementById('menu-help')?.getBoundingClientRect().y])
-
-  useEffect(() => {
-    steps[7].positionY =
-      document.getElementById('menu-theme')?.getBoundingClientRect().y! +
-      10 +
-      'px'
-  }, [document.getElementById('menu-theme')?.getBoundingClientRect().y])
-
-  useEffect(() => {
-    steps[8].positionY =
-      document.getElementById('menu-download')?.getBoundingClientRect().y! +
-      10 +
-      'px'
-  }, [document.getElementById('menu-download')?.getBoundingClientRect().y])
-
-  useEffect(() => {
-    steps[9].positionY =
-      screenHeight -
-      document.getElementById('menu-zoom-in')?.getBoundingClientRect().bottom! +
-      10 +
-      'px'
-  }, [document.getElementById('menu-zoom-in')?.getBoundingClientRect().bottom])
-
-  useEffect(() => {
-    steps[10].positionY =
-      screenHeight -
-      document.getElementById('menu-zoom-out')?.getBoundingClientRect()
-        .bottom! +
-      10 +
-      'px'
-  }, [document.getElementById('menu-zoom-out')?.getBoundingClientRect().bottom])
-
-  useEffect(() => {
-    steps[11].positionX =
-      document.getElementById('bottom-bar-left')?.getBoundingClientRect().x! +
-      8 +
-      'px'
-  }, [document.getElementById('bottom-bar-left')?.getBoundingClientRect().x])
-
-  useEffect(() => {
-    steps[12].positionX =
-      screenWidth -
-      document.getElementById('bottom-bar-right')?.getBoundingClientRect()
-        .right! +
-      8 +
-      'px'
+    const bounding = document
+      .getElementById('bottom-bar-right')
+      ?.getBoundingClientRect()!
+    steps[12]!.positionX = screenWidth - bounding.right + 8 + 'px'
+    steps[12]!.positionY = screenHeight - bounding.bottom + 60 + 'px'
   }, [
     document.getElementById('bottom-bar-right')?.getBoundingClientRect().right,
+    document.getElementById('bottom-bar-right')?.getBoundingClientRect().bottom,
   ])
 
   return (
     <div className="help-container">
       <div
-        className={steps[index].class}
+        className={steps[index]!.class}
         style={
-          steps[index].top
-            ? { top: steps[index].positionY, left: steps[index].positionX }
-            : steps[index].left
-            ? { bottom: steps[index].positionY, left: steps[index].positionX }
+          steps[index]!.top
+            ? { top: yPositions[indexPosition], left: steps[index]!.positionX }
+            : steps[index]!.left
+            ? {
+                bottom: steps[index]!.positionY,
+                left: steps[index]!.positionX,
+              }
             : {
-                bottom: steps[index].positionY,
-                right: steps[index].positionX,
+                bottom: steps[index]!.positionY,
+                right: steps[index]!.positionX,
               }
         }
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {steps[index].icon}
-          <span className="help-title">{steps[index].title}</span>
+          {steps[index]!.icon}
+          <span className="help-title">{steps[index]!.title}</span>
         </div>
         <p
           className="help-description"
-          dangerouslySetInnerHTML={{ __html: steps[index].description }}
+          dangerouslySetInnerHTML={{ __html: steps[index]!.description }}
         ></p>
         <div className="help-buttons-container">
           {index < steps.length - 1 && (
@@ -369,9 +275,16 @@ const Help = () => {
           <button
             className="help-next-button"
             onClick={() => {
-              index + 1 > steps.length - 1
-                ? setShowHelp(false)
-                : setIndex(Math.min(index + 1, steps.length - 1))
+              let nextIndex = index
+              do {
+                nextIndex += 1
+              } while (
+                steps[nextIndex] === null &&
+                nextIndex < steps.length - 1
+              )
+              steps[nextIndex] === null ? null : setIndex(nextIndex)
+              nextIndex === steps.length ? setShowHelp(false) : null
+              setIndexPosition(indexPosition + 1)
             }}
           >
             {index === steps.length - 1 ? t('helpDone') : t('helpNext')}

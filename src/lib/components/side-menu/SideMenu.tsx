@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import Tooltip from '../../helpers/toolTip/Tooltip'
-import { useDocumentContext } from '../../document/DocumentContext'
+import Tooltip from '../helpers/toolTip/Tooltip'
+import { useDocumentContext } from '../document/DocumentContext'
 import {
   BiDownload,
   BiHelpCircle,
@@ -12,20 +12,19 @@ import {
   BiSun,
 } from 'react-icons/bi'
 import { AiOutlinePlus, AiOutlineMinus, AiOutlineEdit } from 'react-icons/ai'
-import { useViewerContext } from '../../ViewerContext'
-import { SIDEBAR_TABS, SIDEBAR_TAB_NAMES } from '../../../../utils/enums'
+import { useViewerContext } from '../ViewerContext'
+import { SIDEBAR_TABS, SIDEBAR_TAB_NAMES } from '../../../utils/enums'
 import { useEffect, useState } from 'react'
 import { RxQuote, RxShare2 } from 'react-icons/rx'
-import Citations from '../items/citation/Citations'
-import ShareQRCode from '../items/share/ShareQRCode'
-import Toc from '../items/toc/Toc'
-import Bar from '../bar/Bar'
-import Search from '../items/search/Search'
-import Info from '../items/info/Info'
-import Share from '../items/share/Share'
-import Edit from '../items/edit/Edit'
+import Citations from './items/citation/Citations'
+import ShareQRCode from './items/share/ShareQRCode'
+import Toc from './items/toc/Toc'
+import Bar from './bar/Bar'
+import Search from './items/search/Search'
+import Info from './items/info/Info'
+import Share from './items/share/Share'
 
-const Menu = () => {
+const SideMenu = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [link, setLink] = useState<string>('')
   const sidebarNames = SIDEBAR_TAB_NAMES()
@@ -46,6 +45,8 @@ const Menu = () => {
     setTocVisibility,
     handleModeChange,
     scale,
+    isEditMode,
+    setIsEditMode,
   } = useDocumentContext()
   const { theme, shareFunction, homeFunction, setShowHelp } = useViewerContext()
 
@@ -59,31 +60,20 @@ const Menu = () => {
 
   const SidebarItems = [
     // HOME
-    {
-      name: t('home'),
-      icon: (
-        <BiHome
-          id="menu-home"
-          className={
-            homeFunction ? 'viewer-button-icon' : 'viewer-button-icon-deactive'
-          }
-        />
-      ),
-      tooltipText: homeFunction ? t('homeToolTip') : t('homeNoneToolTip'),
-      onClick: () => (homeFunction ? homeFunction() : null),
-    },
+    homeFunction
+      ? {
+          name: t('home'),
+          icon: <BiHome id="menu-home" className={'viewer-button-icon'} />,
+          tooltipText: t('homeToolTip'),
+          onClick: () => homeFunction(),
+        }
+      : null,
     // EDIT
     // {
     //   name: t('edit'),
     //   icon: <AiOutlineEdit id="menu-edit" className={'viewer-button-icon'} />,
-    //   tooltipText: t('editToolTip'), //'NOT WORKING YET',
-    //   onClick: () =>
-    //     //null,
-    //     setActiveSidebar(
-    //       activeSidebar === SIDEBAR_TABS.EDIT
-    //         ? SIDEBAR_TABS.NULL
-    //         : SIDEBAR_TABS.EDIT
-    //     ),
+    //   tooltipText: isEditMode ? t('editCloseToolTip') : t('editToolTip'),
+    //   onClick: () => setIsEditMode(!isEditMode),
     // },
     // SEARCH
     {
@@ -99,65 +89,45 @@ const Menu = () => {
       },
     },
     // CITATION
-    {
-      name: t('citations'),
-      icon: (
-        <RxQuote
-          id="menu-citation"
-          className={
-            pdfCitation ? 'viewer-button-icon' : 'viewer-button-icon-deactive'
-          }
-        />
-      ),
-      tooltipText: pdfCitation
-        ? t('citationsToolTip')
-        : t('citationNoneToolTip'),
-      onClick: () => {
-        pdfCitation ? setCitationVisible(true) : null
-        setActiveSidebar(SIDEBAR_TABS.NULL)
-      },
-    },
+    pdfCitation
+      ? {
+          name: t('citations'),
+          icon: <RxQuote id="menu-citation" className={'viewer-button-icon'} />,
+          tooltipText: t('citationsToolTip'),
+          onClick: () => {
+            setCitationVisible(true)
+            setActiveSidebar(SIDEBAR_TABS.NULL)
+          },
+        }
+      : null,
     // TOC
-    {
-      name: t('toc'),
-      icon: (
-        <BiMenuAltLeft
-          id="menu-toc"
-          className={
-            TOC && TOC.length
-              ? 'viewer-button-icon'
-              : 'viewer-button-icon-deactive'
-          }
-        />
-      ),
-      tooltipText:
-        TOC && TOC.length > 0 ? t('tocToolTip') : t('tocNoneToolTip'),
-      onClick: () => {
-        TOC && TOC.length > 0 ? setTocVisibility(true) : null
-        setActiveSidebar(SIDEBAR_TABS.NULL)
-      },
-    },
+    TOC && TOC.length > 0
+      ? {
+          name: t('toc'),
+          icon: (
+            <BiMenuAltLeft id="menu-toc" className={'viewer-button-icon'} />
+          ),
+          tooltipText: t('tocToolTip'),
+          onClick: () => {
+            setTocVisibility(true)
+            setActiveSidebar(SIDEBAR_TABS.NULL)
+          },
+        }
+      : null,
     // SHARE
-    {
-      name: t('share'),
-      icon: (
-        <RxShare2
-          id="menu-share"
-          className={
-            shareFunction ? 'viewer-button-icon' : 'viewer-button-icon-deactive'
-          }
-        />
-      ),
-      tooltipText: shareFunction ? t('shareToolTip') : t('notShareToolTip'),
-      onClick: () =>
-        shareFunction
-          ? setActiveSidebar(
+    shareFunction
+      ? {
+          name: t('share'),
+          icon: <RxShare2 id="menu-share" className={'viewer-button-icon'} />,
+          tooltipText: t('shareToolTip'),
+          onClick: () =>
+            setActiveSidebar(
               activeSidebar === SIDEBAR_TABS.SHARE
                 ? SIDEBAR_TABS.NULL
                 : SIDEBAR_TABS.SHARE
-            )
-          : null,
-    },
+            ),
+        }
+      : null,
     // INFO
     {
       name: t('info'),
@@ -248,7 +218,6 @@ const Menu = () => {
         title={sidebarNames[activeSidebar]}
       >
         {activeSidebar === SIDEBAR_TABS.SEARCH && <Search />}
-        {activeSidebar === SIDEBAR_TABS.EDIT && <Edit />}
         {activeSidebar === SIDEBAR_TABS.INFO && <Info />}
         {activeSidebar === SIDEBAR_TABS.SHARE && (
           <Share
@@ -257,35 +226,23 @@ const Menu = () => {
           />
         )}
       </Bar>
-      <div className={'side-menu-container'}>
-        {SidebarItems.slice(0, SidebarItems.length - 2).map((item, i) => (
+      <div
+        className={'side-menu-container'}
+        style={isEditMode ? { top: '155px' } : {}}
+      >
+        {SidebarItems.filter((item) => item !== null).map((item, i) => (
           <div className={'side-menu-buttons-container'} key={i}>
-            <Tooltip title={item.tooltipText} placement="right">
+            <Tooltip title={item!.tooltipText} placement="right">
               <div
-                id={item.name}
-                onClick={item.onClick}
+                id={item!.name}
+                onClick={item!.onClick}
                 className={'viewer-button'}
               >
-                {item.icon}
+                {item!.icon}
               </div>
             </Tooltip>
           </div>
         ))}
-        <div className="side-menu-zoom-buttons-container">
-          {SidebarItems.slice(SidebarItems.length - 2).map((item, i) => (
-            <div className={'side-menu-buttons-container'} key={i}>
-              <Tooltip title={item.tooltipText} placement="right">
-                <div
-                  id={item.name}
-                  onClick={item.onClick}
-                  className={'viewer-button'}
-                >
-                  {item.icon}
-                </div>
-              </Tooltip>
-            </div>
-          ))}
-        </div>
       </div>
       {citationVisibile && (
         <Citations setCitationVisible={setCitationVisible} />
@@ -298,4 +255,4 @@ const Menu = () => {
   )
 }
 
-export default Menu
+export default SideMenu

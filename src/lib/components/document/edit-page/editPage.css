@@ -1,0 +1,29 @@
+#evilFlowersEditContent {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  align-items: flex-start;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  padding: 5px;
+  padding-bottom: 0;
+  overflow: auto;
+}
+
+.edit-page-container {
+  position: relative;
+  width: fit-content;
+  margin: auto auto;
+  overflow: auto;
+}
+
+#evilFlowersPaintSVG {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.edit-page-canvas-container-paginator {
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  transition: all;
+}

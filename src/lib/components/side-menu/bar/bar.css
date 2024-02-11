@@ -3,7 +3,7 @@
   position: absolute;
   top: 5px;
   height: calc(100vh - 210px);
-  width: 255px;
+  max-width: 250px;
   background-color: var(--component-background-color);
   border-radius: 10px;
   display: flex;
@@ -22,7 +22,7 @@
 }
 
 .sidebar-container-visible {
-  left: 55px;
+  left: 60px;
 }
 
 .sidebat-title-container {

@@ -1,0 +1,7 @@
+.edit-tools-container {
+  display: flex;
+  width: 160px;
+  height: fit-content;
+  flex-wrap: wrap;
+  gap: 5px;
+}

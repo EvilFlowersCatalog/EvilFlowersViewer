@@ -44,6 +44,7 @@ const Search = () => {
     desiredScale,
     paginatorPageRender,
     setPaginatorPageRender,
+    activePage,
   } = useDocumentContext()
 
   /**
@@ -146,7 +147,8 @@ const Search = () => {
       paginatorPageRender === RENDERING_STATES.RENDERED &&
       matches &&
       matches.length > selectedMatch &&
-      matches[selectedMatch]?.transform
+      matches[selectedMatch]?.transform &&
+      activePage === matches[selectedMatch]?.page
     ) {
       const canvas = document.getElementById(
         'evilFlowersCanvas'
