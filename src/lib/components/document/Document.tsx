@@ -4,16 +4,22 @@ import { KeyboardEvent, MouseEvent, useEffect, useRef, useState } from 'react'
 // @ts-ignore
 import Cite from 'citation-js'
 import { DocumentContext } from './DocumentContext'
-import { RENDERING_STATES, SIDEBAR_TABS } from '../../../utils/enums'
+import {
+  EDIT_TOOLS,
+  RENDERING_STATES,
+  SIDEBAR_TABS,
+} from '../../../utils/enums'
 import BottomBar from './bottom-bar/BottomBar'
 import {
   DocumentInitParameters,
   PDFDocumentProxy,
 } from 'pdfjs-dist/types/src/display/api'
-import Menu from '../side-menu/menu/Menu'
+import SideMenu from '../side-menu/SideMenu'
 import { useViewerContext } from '../ViewerContext'
 import SinglePage from './single-page/SinglePage'
 import Help from '../helpers/help/Help'
+import EditMenu from './edit-page/edit-menu/EditMenu'
+import EditPage from './edit-page/EditPage'
 
 /**
  * Document component
@@ -63,6 +69,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [pdf, setPdf] = useState<PDFDocumentProxy>()
   const [screenWidth, setScreenWidth] = useState(window.innerWidth)
   const [screenHeight, setScreenHeight] = useState(window.innerHeight)
+  const [isEditMode, setIsEditMode] = useState<boolean>(false)
   const [rerender, setRerender] = useState<Object>({})
   const [actualFormat, setActualFormat] = useState<{
     format: string
@@ -91,6 +98,17 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [tocVisibility, setTocVisibility] = useState<boolean>(false)
   const [pinchZoom, setPinchZoom] = useState<number>(0)
   const [controlKey, setControlKey] = useState<boolean>(false)
+  const [activeEditTool, setActiveEditTool] = useState<EDIT_TOOLS>(
+    EDIT_TOOLS.MOUSE
+  )
+  const [editHexColor, setEditHexColor] = useState<string>('#ff0000')
+  const [editLineSize, setEditLineSize] = useState<number>(2)
+  const [editOpacity, setEditOpacity] = useState<number>(1)
+  const [svgWidth, setSvgWidth] = useState(0)
+  const [svgHeight, setSvgHeight] = useState(0)
+  const [elements, setElements] = useState<
+    (SVGLineElement | SVGRectElement | SVGPathElement | null)[]
+  >([])
 
   const { setShowHelp, showHelp, theme, setTheme, shareFunction } =
     useViewerContext()
@@ -430,10 +448,12 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
           zoomOut()
           break
         case 'h':
+          if (isEditMode) break
           event.preventDefault()
           setShowHelp(!showHelp)
           break
         case 's':
+          if (isEditMode) break
           event.preventDefault()
           shareFunction &&
             setActiveSidebar((activity) =>
@@ -444,14 +464,10 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
           break
         // case 'e':
         //   event.preventDefault()
-        //   shareFunction &&
-        //     setActiveSidebar((activity) =>
-        //       activity === SIDEBAR_TABS.EDIT
-        //         ? SIDEBAR_TABS.NULL
-        //         : SIDEBAR_TABS.EDIT
-        //     )
+        //   setIsEditMode(!isEditMode)
         //   break
         case 'f':
+          if (isEditMode) break
           event.preventDefault()
           setActiveSidebar((activity) =>
             activity === SIDEBAR_TABS.SEARCH
@@ -460,6 +476,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
           )
           break
         case 'i':
+          if (isEditMode) break
           event.preventDefault()
           setActiveSidebar((activity) =>
             activity === SIDEBAR_TABS.INFO
@@ -468,10 +485,12 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
           )
           break
         case 't':
+          if (isEditMode) break
           event.preventDefault()
           TOC && TOC.length > 0 && setTocVisibility(!tocVisibility)
           break
         case 'c':
+          if (isEditMode) break
           event.preventDefault()
           pdfCitation && setCitationVisible(!citationVisibile)
           break
@@ -579,6 +598,22 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         handleModeChange,
         basedPdfCitation,
         setBasedPdfCitation,
+        isEditMode,
+        setIsEditMode,
+        activeEditTool,
+        setActiveEditTool,
+        editHexColor,
+        setEditHexColor,
+        editLineSize,
+        setEditLineSize,
+        svgWidth,
+        setSvgWidth,
+        svgHeight,
+        setSvgHeight,
+        elements,
+        setElements,
+        editOpacity,
+        setEditOpacity,
       }}
     >
       {data && (
@@ -591,9 +626,19 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
           onMouseEnter={() => ref.current?.focus()}
         >
           {showHelp && <Help />}
+
           <div className="document-upper-row-container">
-            <Menu />
-            <SinglePage onDoubleClick={handleDoubleClick} />
+            {!isEditMode && <SideMenu />}
+            <div className="document-page-container">
+              {/* {!isEditMode ? ( */}
+              <SinglePage onDoubleClick={handleDoubleClick} />
+              {/* ) : (
+                <>
+                  <EditMenu />
+                  <EditPage onDoubleClick={handleDoubleClick} />
+                </>
+              )} */}
+            </div>
           </div>
 
           <BottomBar />

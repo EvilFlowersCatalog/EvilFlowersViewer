@@ -74,9 +74,9 @@ const ShareQRCode = (props: IShareQRProps) => {
         {props.link ? (
           props.link !== 'error' ? (
             <QRCode
-              style={{ border: '5px solid white' }}
+              style={{ border: '10px solid white' }}
               id="QRCode"
-              size={250}
+              size={200}
               value={props.link}
             />
           ) : (

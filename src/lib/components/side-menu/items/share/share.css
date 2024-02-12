@@ -119,7 +119,7 @@
 
 .share-qr-code-container {
   width: 100%;
-  min-height: 250px;
+  min-height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -23,6 +23,8 @@ interface IViewerOptions {
     | ((pages: string | null, expaireDate: string) => Promise<string>)
     | null
   homeFunction?: (() => void) | null
+  saveFunction?: ((svg: HTMLElement, name: string) => void) | null
+  layersFunction?: ((page: number) => void) | null
 }
 
 interface IViewerProps {
@@ -108,6 +110,8 @@ export const Viewer = (viewerProps: IViewerProps) => {
         setTheme,
         shareFunction: basedOptions.shareFunction,
         homeFunction: basedOptions.homeFunction,
+        saveFunction: basedOptions.saveFunction,
+        layersFunction: basedOptions.layersFunction,
         setShowHelp,
         showHelp,
       }}

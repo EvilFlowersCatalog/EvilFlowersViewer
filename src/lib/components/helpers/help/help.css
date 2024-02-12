@@ -22,7 +22,7 @@
   min-width: 180px;
   height: fit-content;
   background-color: rgb(0, 140, 255);
-  border: 5px solid white;
+  border: 2px solid white;
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
   border-bottom-left-radius: 10px;
@@ -45,95 +45,37 @@
 .help-left-step::before {
   content: '';
   position: absolute;
-  top: -5px;
+  top: -2px;
   left: -42px;
   width: 40px;
-  border-bottom: 5px solid rgb(0, 140, 255);
-}
-
-.help-left-step::after {
-  content: '';
-  position: absolute;
-  top: -23px;
-  left: -80px;
-  width: 40px;
-  height: 40px;
-  border: 5px solid rgb(0, 140, 255);
-  border-radius: 50%;
-}
-
-.help-left-bottom-step::before {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: -42px;
-  width: 40px;
-  border-bottom: 5px solid rgb(0, 140, 255);
-}
-
-.help-left-bottom-step::after {
-  content: '';
-  position: absolute;
-  bottom: -23px;
-  left: -80px;
-  width: 40px;
-  height: 40px;
-  border: 5px solid rgb(0, 140, 255);
-  border-radius: 50%;
+  border-bottom: 2px solid rgb(0, 140, 255);
 }
 
 .help-bottom-right-step::before {
   content: '';
   position: absolute;
   bottom: -40px;
-  right: -5px;
+  right: -2px;
   height: 40px;
-  border-left: 5px solid rgb(0, 140, 255);
-}
-
-.help-bottom-right-step::after {
-  content: '';
-  position: absolute;
-  bottom: -75px;
-  right: -22px;
-  width: 40px;
-  height: 40px;
-  border: 5px solid rgb(0, 140, 255);
-  border-radius: 50%;
+  border-left: 2px solid rgb(0, 140, 255);
 }
 
 .help-bottom-left-step::before {
   content: '';
   position: absolute;
   bottom: -40px;
-  left: -5px;
+  left: -2px;
   height: 45px;
-  border-left: 5px solid rgb(0, 140, 255);
-}
-
-.help-bottom-left-step::after {
-  content: '';
-  position: absolute;
-  bottom: -75px;
-  left: -22px;
-  width: 40px;
-  height: 40px;
-  border: 5px solid rgb(0, 140, 255);
-  border-radius: 50%;
+  border-left: 2px solid rgb(0, 140, 255);
 }
 
 .help-left-step,
 .help-left-step::before,
-.help-left-step::after,
 .help-left-bottom-step,
-.help-left-bottom-step::before,
-.help-left-bottom-step::after,
 .help-bottom-left-step,
 .help-bottom-left-step::before,
-.help-bottom-right-step::after,
 .help-bottom-right-step,
-.help-bottom-right-step::before,
-.help-bottom-left-step::after {
+.help-bottom-right-step::before {
   animation: blicking 1s linear infinite;
 }
 

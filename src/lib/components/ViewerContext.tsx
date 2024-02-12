@@ -7,6 +7,8 @@ interface IViewerContext {
     | ((pages: string | null, expaireDate: string) => Promise<string>)
     | null
   homeFunction?: (() => void) | null
+  saveFunction?: ((svg: HTMLElement, name: string) => void) | null
+  layersFunction?: ((page: number) => void) | null
   setShowHelp: (show: boolean) => void
   showHelp: boolean
 }

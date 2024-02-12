@@ -1,7 +1,11 @@
 import { PDFDocumentProxy } from 'pdfjs-dist'
 import { createContext, useContext } from 'react'
 
-import { RENDERING_STATES, SIDEBAR_TABS } from '../../../utils/enums'
+import {
+  EDIT_TOOLS,
+  RENDERING_STATES,
+  SIDEBAR_TABS,
+} from '../../../utils/enums'
 
 /**
  * Document context
@@ -52,6 +56,24 @@ interface IDocumentContext {
   handleModeChange: () => void
   basedPdfCitation: string | undefined | null
   setBasedPdfCitation: (citation: string | undefined) => void
+  isEditMode: boolean
+  setIsEditMode: (isEdit: boolean) => void
+  activeEditTool: EDIT_TOOLS
+  setActiveEditTool: (tool: EDIT_TOOLS) => void
+  editHexColor: string
+  setEditHexColor: (hex: string) => void
+  editLineSize: number
+  setEditLineSize: (lineSize: number) => void
+  svgWidth: number
+  setSvgWidth: (width: number) => void
+  svgHeight: number
+  setSvgHeight: (width: number) => void
+  elements: (SVGLineElement | SVGRectElement | SVGPathElement | null)[]
+  setElements: (
+    elements: (SVGLineElement | SVGRectElement | SVGPathElement | null)[]
+  ) => void
+  editOpacity: number
+  setEditOpacity: (opacity: number) => void
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)

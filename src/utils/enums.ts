@@ -2,7 +2,6 @@ import i18next from 'i18next'
 
 export enum SIDEBAR_TABS {
   SEARCH = 'SEARCH',
-  EDIT = 'EDIT',
   SHARE = 'SHARE',
   INFO = 'INFO',
   NULL = 'NULL',
@@ -10,7 +9,6 @@ export enum SIDEBAR_TABS {
 
 export const SIDEBAR_TAB_NAMES = () => ({
   SEARCH: i18next.t('fullTextSearch'),
-  EDIT: i18next.t('edit'),
   CITATIONS: i18next.t('citations'),
   SHARE: i18next.t('share'),
   INFO: i18next.t('info'),
@@ -27,6 +25,15 @@ export enum SEARCH_STATES {
   LOADING,
   DONE,
   ERROR,
+}
+
+export enum EDIT_TOOLS {
+  MOUSE,
+  ERASER,
+  PENCIL,
+  LINE,
+  CIRCLE,
+  SQUARE,
 }
 
 export const DEBOUNCE_TIMEOUT = 300

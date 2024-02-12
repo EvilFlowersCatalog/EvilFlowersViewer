@@ -1,12 +1,19 @@
 # Changelog
 
+## 0.4.18 : 2023-11-04
+
+- **Removed**: circle in help
+- **Changed**: menu design
+- **Changed**: help design
+- **Changed**: few litlle design things
+
 ## 0.4.17 : 2023-11-04
 
 - **Fixed**: width and height of the circle in help steps
 
 ## 0.4.16 : 2023-11-04
 
-- **Fixed**: phelp steps positioning
+- **Fixed**: help steps positioning
 
 ## 0.4.15 : 2023-11-04
 

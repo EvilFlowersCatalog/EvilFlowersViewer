@@ -16,6 +16,15 @@
   overflow: hidden;
 }
 
+.document-page-container {
+  position: relative;
+  display: flex;
+  flex: 1;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .document-load-error {
   font-size: 25px;
   text-align: center;
