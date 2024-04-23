@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.20 : 2024-04-23
+
+- **Changed**: Zotero props
+
 ## 0.4.19 : 2024-04-23
 
 - **Added**: Zotero
