@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.19 : 2024-04-23
+
+- **Added**: Zotero
+
 ## 0.4.18 : 2023-11-04
 
 - **Removed**: circle in help

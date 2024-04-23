@@ -30,6 +30,32 @@ const inputOptions: IExample = {
   lang: 'en',
 }
 
+interface IZoteroExample {
+  title: string
+  year?: number
+  journalTitle: string
+  firstPage?: number
+  lastPage?: number
+  publisher?: string
+  doi?: string
+  isbn?: string
+  abstract?: string
+  authors: string
+  pdfUrl: string
+}
+const zoteroExample: IZoteroExample = {
+  title: 'nieco',
+  year: 2000,
+  journalTitle: 'nieco',
+  doi: '20nieco',
+  abstract: 'Totot je test zotera',
+  authors: 'Jozef, nieco; Ahoj, janko',
+  firstPage: 1,
+  lastPage: 99,
+  publisher: 'Evil flowers',
+  pdfUrl: 'https://nieco.com',
+}
+
 /**
  *
  * @returns The App component that renders the Viewer component
@@ -37,7 +63,7 @@ const inputOptions: IExample = {
 export function App() {
   return (
     <div className="App">
-      <Viewer data={pdf_data} options={inputOptions} />
+      <Viewer data={pdf_data} options={inputOptions} zotero={zoteroExample} />
     </div>
   )
 }
