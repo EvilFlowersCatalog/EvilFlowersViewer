@@ -15,20 +15,6 @@ pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
 // pdfjs.GlobalWorkerOptions.workerSrc =
 //   '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
 
-interface IZotero {
-  title: string
-  year?: string
-  journalTitle?: string
-  firstPage?: number
-  lastPage?: number
-  publisher?: string
-  doi?: string
-  isbn?: string
-  abstract?: string
-  authors: string
-  pdfUrl: string
-}
-
 interface IViewerOptions {
   theme?: 'dark' | 'light'
   lang?: string
@@ -44,7 +30,6 @@ interface IViewerOptions {
 interface IViewerProps {
   data: string | null
   options: IViewerOptions | null
-  zotero: IZotero | null
 }
 
 /**
@@ -103,46 +88,6 @@ export const Viewer = (viewerProps: IViewerProps) => {
       i18n.changeLanguage('en')
     } else {
       i18n.changeLanguage('en')
-    }
-
-    // set viewerProps.zotero
-    if (viewerProps.zotero) {
-      document
-        .querySelector('meta[name="citation_title"]')
-        ?.setAttribute('content', viewerProps.zotero.title)
-      document
-        .querySelector('meta[name="citation_year"]')
-        ?.setAttribute('content', viewerProps.zotero.year ?? '')
-      document
-        .querySelector('meta[name="citation_jurnal_title"]')
-        ?.setAttribute('content', viewerProps.zotero.journalTitle ?? '')
-      document
-        .querySelector('meta[name="citation_first_page"]')
-        ?.setAttribute(
-          'content',
-          viewerProps.zotero.firstPage?.toString() ?? ''
-        )
-      document
-        .querySelector('meta[name="citation_last_page"]')
-        ?.setAttribute('content', viewerProps.zotero.lastPage?.toString() ?? '')
-      document
-        .querySelector('meta[name="citation_publisher"]')
-        ?.setAttribute('content', viewerProps.zotero.publisher ?? '')
-      document
-        .querySelector('meta[name="citation_doi"]')
-        ?.setAttribute('content', viewerProps.zotero.doi ?? '')
-      document
-        .querySelector('meta[name="citation_isbn"]')
-        ?.setAttribute('content', viewerProps.zotero.isbn ?? '')
-      document
-        .querySelector('meta[name="citation_abstract"]')
-        ?.setAttribute('content', viewerProps.zotero.abstract ?? '')
-      document
-        .querySelector('meta[name="citation_authors"]')
-        ?.setAttribute('content', viewerProps.zotero.authors)
-      document
-        .querySelector('meta[name="citation_pdf_url"]')
-        ?.setAttribute('content', viewerProps.zotero.pdfUrl)
     }
   }, [])
 
@@ -204,15 +149,10 @@ export const Viewer = (viewerProps: IViewerProps) => {
 export const renderViewer = (
   rootId: string,
   data: string,
-  options: IViewerOptions | null = null,
-  zotero: IZotero | null = null
+  options: IViewerOptions | null = null
 ) => {
   const root = createRoot(document.getElementById(rootId)!)
 
   // render
-  root.render(
-    createElement(() => (
-      <Viewer data={data} options={options} zotero={zotero} />
-    ))
-  )
+  root.render(createElement(() => <Viewer data={data} options={options} />))
 }
