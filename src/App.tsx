@@ -32,8 +32,8 @@ const inputOptions: IExample = {
 
 interface IZoteroExample {
   title: string
-  year?: number
-  journalTitle: string
+  year?: string
+  journalTitle?: string
   firstPage?: number
   lastPage?: number
   publisher?: string
@@ -45,7 +45,7 @@ interface IZoteroExample {
 }
 const zoteroExample: IZoteroExample = {
   title: 'nieco',
-  year: 2000,
+  year: '2000',
   journalTitle: 'nieco',
   doi: '20nieco',
   abstract: 'Totot je test zotera',

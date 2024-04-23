@@ -15,6 +15,20 @@ pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
 // pdfjs.GlobalWorkerOptions.workerSrc =
 //   '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
 
+interface IZotero {
+  title: string
+  year?: string
+  journalTitle?: string
+  firstPage?: number
+  lastPage?: number
+  publisher?: string
+  doi?: string
+  isbn?: string
+  abstract?: string
+  authors: string
+  pdfUrl: string
+}
+
 interface IViewerOptions {
   theme?: 'dark' | 'light'
   lang?: string
@@ -98,10 +112,10 @@ export const Viewer = (viewerProps: IViewerProps) => {
         ?.setAttribute('content', viewerProps.zotero.title)
       document
         .querySelector('meta[name="citation_year"]')
-        ?.setAttribute('content', viewerProps.zotero.year?.toString() ?? '')
+        ?.setAttribute('content', viewerProps.zotero.year ?? '')
       document
         .querySelector('meta[name="citation_jurnal_title"]')
-        ?.setAttribute('content', viewerProps.zotero.journalTitle)
+        ?.setAttribute('content', viewerProps.zotero.journalTitle ?? '')
       document
         .querySelector('meta[name="citation_first_page"]')
         ?.setAttribute(
@@ -185,20 +199,6 @@ export const Viewer = (viewerProps: IViewerProps) => {
       </div>
     </ViewerContext.Provider>
   )
-}
-
-interface IZotero {
-  title: string
-  year?: number
-  journalTitle: string
-  firstPage?: number
-  lastPage?: number
-  publisher?: string
-  doi?: string
-  isbn?: string
-  abstract?: string
-  authors: string
-  pdfUrl: string
 }
 
 export const renderViewer = (
