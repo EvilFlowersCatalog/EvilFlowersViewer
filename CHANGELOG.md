@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.22 : 2024-04-23
+
+- **Removed**: binary function
+- **Fixed**: Replacing child of null
+
 ## 0.4.21 : 2024-04-23
 
 - **Removed**: Zotero

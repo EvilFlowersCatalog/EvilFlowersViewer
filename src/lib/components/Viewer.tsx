@@ -2,7 +2,6 @@ import { createElement, useEffect, useState } from 'react'
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 // @ts-ignore
 import * as PDFJSWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry'
-import { base64ToBinary } from '../../utils'
 import Document from './document/Document'
 import { createRoot } from 'react-dom/client'
 import i18n from '../../utils/i18n'
@@ -93,10 +92,12 @@ export const Viewer = (viewerProps: IViewerProps) => {
 
   // On every data change, convert it to binary and set it to the documentData state
   useEffect(() => {
-    if (!viewerProps.data) return
+    if (!viewerProps.data) {
+      setDocumentData(null)
+      return
+    }
     try {
-      const binary = base64ToBinary(viewerProps.data!)
-      setDocumentData(binary)
+      setDocumentData(viewerProps.data)
     } catch (error) {
       console.error(error)
       setDocumentData(null)

@@ -31,7 +31,7 @@ const SinglePage = ({ onDoubleClick }: ISinglePage) => {
    * @returns A promise that resolves when the page is rendered
    */
   const renderPage = useCallback(
-    async (view: HTMLElement) => {
+    async (view: HTMLElement | null) => {
       const page = await pdf?.getPage(activePage)
       if (!page) return
 
@@ -78,7 +78,7 @@ const SinglePage = ({ onDoubleClick }: ISinglePage) => {
         })
         .promise.then(() => {
           // replece everything with canvas and text layer
-          view.replaceChildren(canvas, container)
+          view?.replaceChildren(canvas, container)
         })
     },
     [activePage, pdf, scale]
@@ -90,8 +90,8 @@ const SinglePage = ({ onDoubleClick }: ISinglePage) => {
     loader.setAttribute('class', 'viewer-loader-small')
 
     const loadPage = async () => {
-      const view = document.getElementById('evilFlowersSinglePageContent')!
-      view.replaceChildren(loader)
+      const view = document.getElementById('evilFlowersSinglePageContent')
+      view?.replaceChildren(loader)
 
       await renderPage(view)
     }

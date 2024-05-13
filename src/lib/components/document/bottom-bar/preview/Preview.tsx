@@ -84,7 +84,7 @@ const Preview = () => {
 
     // func for creating pages
     const startRender = async () => {
-      const previewBar = document.getElementById('previewBarContainer')! // get container
+      const previewBar = document.getElementById('previewBarContainer') // get container
 
       // for each page
       for (let page = start; page <= Math.min(end, totalPages); page++) {
@@ -106,7 +106,7 @@ const Preview = () => {
           div.setAttribute('key', 'previewKey' + page)
           div.classList.add('preview-loader-container')
           div.appendChild(loader) // append loader
-          previewBar.appendChild(div) // append to container
+          previewBar?.appendChild(div) // append to container
         } else {
           div.classList.add('preview-loader-container')
           div.replaceChildren(loader) // delete everything and replace
@@ -130,8 +130,8 @@ const Preview = () => {
 
   useEffect(() => {
     // Reset when pdf changes
-    const previewBar = document.getElementById('previewBarContainer')! // get container
-    previewBar.replaceChildren()
+    const previewBar = document.getElementById('previewBarContainer') // get container
+    previewBar?.replaceChildren()
     setPositions([])
     setStart(1)
     setEnd(Math.min(NEXT_PREVIEW, totalPages))
