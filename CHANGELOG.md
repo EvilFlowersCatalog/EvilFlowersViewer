@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.4.22 : 2024-04-23
+## 0.4.23 : 2024-05-13
+
+- **Fixed**: Datatpyes from string to TypedArray
+
+## 0.4.22 : 2024-05-13
 
 - **Removed**: binary function
 - **Fixed**: Replacing child of null

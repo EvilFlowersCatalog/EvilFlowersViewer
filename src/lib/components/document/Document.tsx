@@ -13,6 +13,7 @@ import BottomBar from './bottom-bar/BottomBar'
 import {
   DocumentInitParameters,
   PDFDocumentProxy,
+  TypedArray,
 } from 'pdfjs-dist/types/src/display/api'
 import SideMenu from '../side-menu/SideMenu'
 import { useViewerContext } from '../ViewerContext'
@@ -27,7 +28,7 @@ import EditPage from './edit-page/EditPage'
  *
  */
 interface IDocumentProps {
-  data: string | null
+  data: TypedArray
   citationBibTeX: string | null | undefined
 }
 
