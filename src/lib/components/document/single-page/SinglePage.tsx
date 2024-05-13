@@ -35,9 +35,11 @@ const SinglePage = ({ onDoubleClick }: ISinglePage) => {
       const page = await pdf?.getPage(activePage)
       if (!page) return
 
-      const height = document
-        .getElementById('evilFlowersContent')!
-        .getBoundingClientRect().height
+      const viewerContent = document.getElementById('evilFlowersEditContent')
+
+      if (!viewerContent) return
+
+      const height = viewerContent.getBoundingClientRect().height
 
       // Calculate scale
       let viewport = page.getViewport({ scale })

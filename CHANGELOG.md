@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.4.25 : 2024-05-13
+
+- **Fixed**: Error `Cannot read properties of null (reading 'getBoundingClientRect')`
+
 ## 0.4.24 : 2024-05-13
 
-- **Fixed**: Fixed error with export
+- **Fixed**: Error with export
 
 ## 0.4.23 : 2024-05-13
 

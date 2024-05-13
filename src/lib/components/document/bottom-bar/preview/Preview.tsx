@@ -115,8 +115,8 @@ const Preview = () => {
         // when page renders get psitions of the div
         await renderPage(page, canvas, div).then(() => {
           positions[page - 1] = {
-            x: div!.offsetLeft,
-            width: div!.getBoundingClientRect().width,
+            x: div.offsetLeft,
+            width: div.getBoundingClientRect().width,
           }
         })
       }
