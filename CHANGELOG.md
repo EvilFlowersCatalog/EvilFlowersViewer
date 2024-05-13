@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.4.24 : 2024-05-13
+
+- **Fixed**: Fixed error with export
+
 ## 0.4.23 : 2024-05-13
 
-- **Fixed**: Datatpyes from string to TypedArray
+- **Fixed**: Datatypes from string to TypedArray
 
 ## 0.4.22 : 2024-05-13
 
