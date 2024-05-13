@@ -16,6 +16,4 @@ export const debounce = (func: any, timeout = DEBOUNCE_TIMEOUT) => {
     }, timeout)
   }
 }
-
-export * from './base64'
 export * from './i18n'
