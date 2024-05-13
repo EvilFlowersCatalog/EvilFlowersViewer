@@ -8,6 +8,7 @@ import i18n from '../../utils/i18n'
 import { ViewerContext } from './ViewerContext'
 import { useTranslation } from 'react-i18next'
 import { ImExit } from 'react-icons/im'
+import { TypedArray } from 'pdfjs-dist/types/src/display/api'
 
 pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
 // Odkomentovať pri local používaní
@@ -27,7 +28,7 @@ interface IViewerOptions {
 }
 
 interface IViewerProps {
-  data: string | null
+  data: TypedArray | null
   options: IViewerOptions | null
 }
 
@@ -46,7 +47,9 @@ export const Viewer = (viewerProps: IViewerProps) => {
     localStorage.setItem('show-help', JSON.stringify('shown'))
     setShowHelp(true)
   }
-  const [documentData, setDocumentData] = useState<string | null>('null')
+  const [documentData, setDocumentData] = useState<TypedArray | null | 'null'>(
+    'null'
+  )
   const { t } = useTranslation()
 
   // Based options, cuz options are not required
@@ -149,7 +152,7 @@ export const Viewer = (viewerProps: IViewerProps) => {
 
 export const renderViewer = (
   rootId: string,
-  data: string,
+  data: TypedArray,
   options: IViewerOptions | null = null
 ) => {
   const root = createRoot(document.getElementById(rootId)!)

@@ -37,7 +37,7 @@ const inputOptions: IExample = {
 export function App() {
   return (
     <div className="App">
-      <Viewer data={pdf_data} options={inputOptions} />
+      <Viewer data={null} options={inputOptions} />
     </div>
   )
 }
