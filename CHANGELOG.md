@@ -4,8 +4,10 @@
 
 - **Added**: prefix to tailwind
 - **Added**: Responsivness to edit
+- **Added**: Resize when getting layer to adjust given elements
 - **Changed**: edit `save layer` functions
 - **Removed**: elements useState
+- **Fixed**: stroke width responsivness
 
 ## 0.5.0 : 2024-07-16
 
