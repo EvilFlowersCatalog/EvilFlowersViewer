@@ -11,7 +11,7 @@ export const sk = {
     pageNumber: 'Strana {{number}}',
     foundResults: 'Našlo sa {{count}} zhôd',
     hidePanel: 'Hide panel',
-    fullTextSearch: 'Full text vyhľadávanie',
+    fullTextSearch: 'Vyhľadávanie',
     title: 'Title',
     creationDate: 'Creation date',
     author: 'Author',
@@ -36,8 +36,10 @@ export const sk = {
     editWidth: 'Šírka',
     editOpacity: 'Viditeľnosť',
     editSetName: 'Nastav meno vrstvy',
-    save: 'Uložiť',
-    layers: 'Vrstvy',
+    save: 'Uložiť vrstvu',
+    groups: 'Skupiny',
+    delete: 'Vymazať vrstvu',
+    chooseGroups: 'Vyber si skupinu',
     size: 'Veľkosť',
     citations: 'Citácie',
     citationsToolTip: 'Citovať',
@@ -83,45 +85,48 @@ export const sk = {
     helpDone: 'Ukončiť',
     homeTitle: 'Tlačítko domov',
     homeDescription:
-      "Keď je <span class='highlight'>tlačítko domov</span> stlačené, vráti vás na hlavnú domovskú stránku.",
+      "Keď je <span class='font-extrabold'>tlačítko domov</span> stlačené, vráti vás na hlavnú domovskú stránku.",
     editTitle: 'Tlačítko upraviť',
     editDescription:
-      "Keď je stlačené <span class='highlight'>tlačítko upraviť</span> alebo klávesa <span class='keyboard-key'>E</span> , bude vám umožnené upravovať aktuálnu stranu, na ktorej sa nachádzate. Je možné zmeniť stranu v režime úpravy.",
+      "Keď je stlačené <span class='font-extrabold'>tlačítko upraviť</span> alebo klávesa <span class='font-bold whitespace-nowrap px-2 border border-white'>E</span> , bude vám umožnené upravovať aktuálnu stranu, na ktorej sa nachádzate. Je možné zmeniť stranu v režime úpravy.",
     searchTitle: 'Tlačítko hľadať',
     searchDescription:
-      "Ak hľadáte akýkoľvek textový vzor, jednoducho stlačte <span class='highlight'>tlačítko hľadať</span> alebo klávesu <span class='keyboard-key'>F</span> .",
+      "Ak hľadáte akýkoľvek textový vzor, jednoducho stlačte <span class='font-extrabold'>tlačítko hľadať</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>F</span> .",
     citationTitle: 'Tlačítko citácie',
     citationDescription:
-      "Stlačte <span class='highlight'>tlačítko citácie</span> alebo klávesu <span class='keyboard-key'>C</span> na citovanie tohto dokumentu. K dispozícii sú možnosti <span class='highlight'>BibTeX</span>, <span class='highlight'>BibLaTeX</span>, <span class='highlight'>RIS</span> a <span class='highlight'>Plain-Text</span>.",
+      "Stlačte <span class='font-extrabold'>tlačítko citácie</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>C</span> na citovanie tohto dokumentu. K dispozícii sú možnosti <span class='font-extrabold'>BibTeX</span>, <span class='font-extrabold'>BibLaTeX</span>, <span class='font-extrabold'>RIS</span> a <span class='font-extrabold'>Plain-Text</span>.",
     tocTitle: 'Tlačítko obsah',
     tocDescription:
-      "Stlačte <span class='highlight'>tlačítko obsah</span> alebo klávesu <span class='keyboard-key'>T</span> a zobrazí sa vám obsah dokumentu. Keď kliknete na sekciu, budete presmerovaní na stranu, na ktorej sa daná sekcia nachádza.",
+      "Stlačte <span class='font-extrabold'>tlačítko obsah</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>T</span> a zobrazí sa vám obsah dokumentu. Keď kliknete na sekciu, budete presmerovaní na stranu, na ktorej sa daná sekcia nachádza.",
     shareTitle: 'Tlačítko zdielať',
     shareDescription:
-      "Keď je stlačené <span class='highlight'>tlačítko zdieľať</span> alebo klávesa <span class='keyboard-key'>S</span> , umožní sa vám zdieľať dokument, kde môžete vybrať, ktoré strany chcete zdieľať so svojimi študentmi/priateľmi.",
+      "Keď je stlačené <span class='font-extrabold'>tlačítko zdieľať</span> alebo klávesa <span class='font-bold whitespace-nowrap px-2 border border-white'>S</span> , umožní sa vám zdieľať dokument, kde môžete vybrať, ktoré strany chcete zdieľať so svojimi študentmi/priateľmi.",
     infoTitle: 'Tlačítko info',
     infoDescription:
-      "Ak chcete vidieť informácie o dokumente, stačí stlačiť <span class='highlight'>tlačítko info</span> alebo klávesu <span class='keyboard-key'>I</span> .",
+      "Ak chcete vidieť informácie o dokumente, stačí stlačiť <span class='font-extrabold'>tlačítko info</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>I</span> .",
     helpTitle: 'Tlačítko pomoc',
     helpDescription:
-      "Ak kedykoľvek potrebujete pomocť s týmto viewerom, stačí stlačiť <span class='highlight'>tlačítko pomoc</span> alebo klávesu <span class='keyboard-key'>H</span> , aby ste videli kroky s popisom, ako a čo robiť.",
+      "Ak kedykoľvek potrebujete pomocť s týmto viewerom, stačí stlačiť <span class='font-extrabold'>tlačítko pomoc</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>H</span> , aby ste videli kroky s popisom, ako a čo robiť.",
     themeTitle: 'Tlačítko režim',
     themeDescription:
-      "Pre zmenu režimu (tmavý/svetlý) stlačte <span class='highlight'>tlačítko režim</span> alebo klávesu <span class='keyboard-key'>M</span> .",
+      "Pre zmenu režimu (tmavý/svetlý) stlačte <span class='font-extrabold'>tlačítko režim</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>M</span> .",
     downloadTitle: 'Tlačítko stiahnúť',
     downloadDescription:
-      "Pre stiahnutie dokumentu stlačte <span class='highlight'>tlačítko stiahnúť</span>.",
+      "Pre stiahnutie dokumentu stlačte <span class='font-extrabold'>tlačítko stiahnúť</span>.",
     zoomInTitle: 'Tlačítko priblížiť',
     zoomInDescription:
-      "Pre priblíženie dokumentu stlačte <span class='highlight'>tlačítko priblížiť</span> alebo klávesu <span class='keyboard-key'>+</span> . Môžete tiež roztiahnuť dva prsty odseba na touchepade <span class='keyboard-key'>< ></span> alebo <span class='highlight'>dvojkliknúť</span> na dokument.",
+      "Pre priblíženie dokumentu stlačte <span class='font-extrabold'>tlačítko priblížiť</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>+</span> . Môžete tiež roztiahnuť dva prsty odseba na touchepade <span class='font-bold whitespace-nowrap px-2 border border-white'>< ></span> alebo <span class='font-extrabold'>dvojkliknúť</span> na dokument.",
     zoomOutTitle: 'Tlačítko oddialiť',
     zoomOutDescription:
-      "Pre oddialenie dokumentu stlačte <span class='highlight'>tlačítko oddialiť</span> alebo klávesu <span class='keyboard-key'>-</span> . Môžete tiež potiahnúť dva prsty k sebe na touchepade <span class='keyboard-key'>> <</span> alebo <span class='highlight'>dvojkliknúť</span> na dokument.",
+      "Pre oddialenie dokumentu stlačte <span class='font-extrabold'>tlačítko oddialiť</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>-</span> . Môžete tiež potiahnúť dva prsty k sebe na touchepade <span class='font-bold whitespace-nowrap px-2 border border-white'>> <</span> alebo <span class='font-extrabold'>dvojkliknúť</span> na dokument.",
     previousTitle: 'Tlačítko predchádzajúca',
     previousDescription:
-      "Stlačte <span class='highlight'>tlačítko predchádzajúca</span> alebo klávesu <span class='keyboard-key'><</span> (šípka vľavo) pre zobrazenie predchádzajúcej strany tohto dokumentu.",
+      "Stlačte <span class='font-extrabold'>tlačítko predchádzajúca</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'><</span> (šípka vľavo) pre zobrazenie predchádzajúcej strany tohto dokumentu.",
     nextTitle: 'Tlačítko ďaľšia',
     nextDescription:
-      "Stlačte <span class='highlight'>tlačítko ďalšia</span> alebo klávesu <span class='keyboard-key'>></span> (šípka vpravo) pre zobrazenie ďalšej strany tohto dokumentu.",
+      "Stlačte <span class='font-extrabold'>tlačítko ďalšia</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>></span> (šípka vpravo) pre zobrazenie ďalšej strany tohto dokumentu.",
+    groupNew: 'Pridať skupinu',
+    noGroups: 'Neboli nájdené žiadne skupiny',
+    groupName: 'Meno skupiny',
   },
 }

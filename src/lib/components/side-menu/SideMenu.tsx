@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import Tooltip from '../helpers/toolTip/Tooltip'
-import { useDocumentContext } from '../document/DocumentContext'
+import Tooltip from '../helpers/Tooltip'
+import { useDocumentContext } from '../hooks/useDocumentContext'
 import {
   BiDownload,
   BiHelpCircle,
@@ -12,17 +12,18 @@ import {
   BiSun,
 } from 'react-icons/bi'
 import { AiOutlinePlus, AiOutlineMinus, AiOutlineEdit } from 'react-icons/ai'
-import { useViewerContext } from '../ViewerContext'
 import { SIDEBAR_TABS, SIDEBAR_TAB_NAMES } from '../../../utils/enums'
 import { useEffect, useState } from 'react'
 import { RxQuote, RxShare2 } from 'react-icons/rx'
-import Citations from './items/citation/Citations'
+import Citations from './items/Citations'
 import ShareQRCode from './items/share/ShareQRCode'
-import Toc from './items/toc/Toc'
-import Bar from './bar/Bar'
+import Toc from './items/Toc'
+import SideBar from './SideBar'
 import Search from './items/search/Search'
-import Info from './items/info/Info'
+import Info from './items/Info'
 import Share from './items/share/Share'
+import useViewerContext from '../hooks/useViewerContext'
+import Button from '../common/Button'
 
 const SideMenu = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -48,8 +49,10 @@ const SideMenu = () => {
     isEditMode,
     setIsEditMode,
   } = useDocumentContext()
-  const { theme, shareFunction, homeFunction, setShowHelp } = useViewerContext()
+  const { theme, shareFunction, homeFunction, setShowHelp, editPackage } =
+    useViewerContext()
 
+  // When sidebar change
   useEffect(() => {
     if (activeSidebar === SIDEBAR_TABS.NULL) {
       setSidebarOpen(false)
@@ -58,27 +61,29 @@ const SideMenu = () => {
     }
   }, [activeSidebar])
 
-  const SidebarItems = [
+  const SideMenuItems = [
     // HOME
     homeFunction
       ? {
           name: t('home'),
-          icon: <BiHome id="menu-home" className={'viewer-button-icon'} />,
+          icon: <BiHome id="menu-home" size={23} />,
           tooltipText: t('homeToolTip'),
           onClick: () => homeFunction(),
         }
       : null,
     // EDIT
-    // {
-    //   name: t('edit'),
-    //   icon: <AiOutlineEdit id="menu-edit" className={'viewer-button-icon'} />,
-    //   tooltipText: isEditMode ? t('editCloseToolTip') : t('editToolTip'),
-    //   onClick: () => setIsEditMode(!isEditMode),
-    // },
+    editPackage
+      ? {
+          name: t('edit'),
+          icon: <AiOutlineEdit id="menu-edit" size={23} />,
+          tooltipText: isEditMode ? t('editCloseToolTip') : t('editToolTip'),
+          onClick: () => setIsEditMode(!isEditMode),
+        }
+      : null,
     // SEARCH
     {
       name: t('search'),
-      icon: <BiSearch id="menu-search" className={'viewer-button-icon'} />,
+      icon: <BiSearch id="menu-search" size={23} />,
       tooltipText: t('fullTextSearch'),
       onClick: () => {
         setActiveSidebar(
@@ -92,7 +97,7 @@ const SideMenu = () => {
     pdfCitation
       ? {
           name: t('citations'),
-          icon: <RxQuote id="menu-citation" className={'viewer-button-icon'} />,
+          icon: <RxQuote id="menu-citation" size={23} />,
           tooltipText: t('citationsToolTip'),
           onClick: () => {
             setCitationVisible(true)
@@ -104,9 +109,7 @@ const SideMenu = () => {
     TOC && TOC.length > 0
       ? {
           name: t('toc'),
-          icon: (
-            <BiMenuAltLeft id="menu-toc" className={'viewer-button-icon'} />
-          ),
+          icon: <BiMenuAltLeft id="menu-toc" size={23} />,
           tooltipText: t('tocToolTip'),
           onClick: () => {
             setTocVisibility(true)
@@ -118,7 +121,7 @@ const SideMenu = () => {
     shareFunction
       ? {
           name: t('share'),
-          icon: <RxShare2 id="menu-share" className={'viewer-button-icon'} />,
+          icon: <RxShare2 id="menu-share" size={23} />,
           tooltipText: t('shareToolTip'),
           onClick: () =>
             setActiveSidebar(
@@ -131,7 +134,7 @@ const SideMenu = () => {
     // INFO
     {
       name: t('info'),
-      icon: <BiInfoCircle id="menu-info" className={'viewer-button-icon'} />,
+      icon: <BiInfoCircle id="menu-info" size={23} />,
       tooltipText: t('infoToolTip'),
       onClick: () =>
         setActiveSidebar(
@@ -143,7 +146,7 @@ const SideMenu = () => {
     // HELP
     {
       name: t('help'),
-      icon: <BiHelpCircle id="menu-help" className={'viewer-button-icon'} />,
+      icon: <BiHelpCircle id="menu-help" size={23} />,
       tooltipText: t('help'),
       onClick: () => {
         setShowHelp(true)
@@ -154,9 +157,9 @@ const SideMenu = () => {
       name: t(''),
       icon:
         theme === 'light' ? (
-          <BiSun id="menu-theme" className={'viewer-button-icon'} />
+          <BiSun id="menu-theme" size={23} />
         ) : (
-          <BiMoon id="menu-theme" className={'viewer-button-icon'} />
+          <BiMoon id="menu-theme" size={23} />
         ),
       tooltipText: theme === 'light' ? t('lightMode') : t('darkMode'),
       onClick: () => {
@@ -166,7 +169,7 @@ const SideMenu = () => {
     // DOWNLOAD
     {
       name: t('download'),
-      icon: <BiDownload id="menu-download" className={'viewer-button-icon'} />,
+      icon: <BiDownload id="menu-download" size={23} />,
       tooltipText: t('downloadToolTip'),
       onClick: () => {
         downloadDocument()
@@ -176,14 +179,7 @@ const SideMenu = () => {
     // ZOOM IN
     {
       name: t(''),
-      icon: (
-        <AiOutlinePlus
-          id="menu-zoom-in"
-          className={
-            scale === 3 ? 'viewer-button-icon-deactive' : 'viewer-button-icon'
-          }
-        />
-      ),
+      icon: <AiOutlinePlus id="menu-zoom-in" size={23} />,
       tooltipText: t('zoomIn'),
       onClick: () => {
         zoomIn()
@@ -192,16 +188,7 @@ const SideMenu = () => {
     // ZOOM OUT
     {
       name: t(''),
-      icon: (
-        <AiOutlineMinus
-          id="menu-zoom-out"
-          className={
-            scale === 0.25
-              ? 'viewer-button-icon-deactive'
-              : 'viewer-button-icon'
-          }
-        />
-      ),
+      icon: <AiOutlineMinus id="menu-zoom-out" size={23} />,
       tooltipText: t('zoomOut'),
       onClick: () => {
         zoomOut()
@@ -211,7 +198,8 @@ const SideMenu = () => {
 
   return (
     <>
-      <Bar
+      {/* Sidebar container */}
+      <SideBar
         open={sidebarOpen}
         setOpen={setSidebarOpen}
         setSidebar={setActiveSidebar}
@@ -225,31 +213,29 @@ const SideMenu = () => {
             setShareQRVisibility={setShareQRVisibility}
           />
         )}
-      </Bar>
+      </SideBar>
       <div
-        className={'side-menu-container'}
-        style={isEditMode ? { top: '155px' } : {}}
+        className={`relative w-[50px] flex justify-start items-center flex-col py-2 bg-white dark:bg-gray-dark-strong z-10 gap-1`}
       >
-        {SidebarItems.filter((item) => item !== null).map((item, i) => (
-          <div className={'side-menu-buttons-container'} key={i}>
-            <Tooltip title={item!.tooltipText} placement="right">
-              <div
-                id={item!.name}
-                onClick={item!.onClick}
-                className={'viewer-button'}
-              >
-                {item!.icon}
-              </div>
-            </Tooltip>
-          </div>
+        {/* Sidemenu items */}
+        {SideMenuItems.filter((item) => item !== null).map((item, i) => (
+          <Button
+            key={i}
+            onClick={item!.onClick}
+            icon={item!.icon}
+            toolTip={{ text: item!.tooltipText, position: 'right' }}
+          />
         ))}
       </div>
+      {/* Modal for citation */}
       {citationVisibile && (
         <Citations setCitationVisible={setCitationVisible} />
       )}
+      {/* Modal for qrcode share */}
       {shareQRVisibility && (
         <ShareQRCode setShareQRVisibility={setShareQRVisibility} link={link} />
       )}
+      {/* Modal for TOC */}
       {tocVisibility && <Toc setTocVisibility={setTocVisibility} />}
     </>
   )

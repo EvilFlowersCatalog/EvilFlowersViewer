@@ -11,7 +11,7 @@ export const en = {
     pageNumber: 'Page {{number}}',
     foundResults: 'Found {{count}} results',
     hidePanel: 'Hide panel',
-    fullTextSearch: 'Full text search',
+    fullTextSearch: 'Search',
     title: 'Title',
     creationDate: 'Creation date',
     author: 'Author',
@@ -36,8 +36,10 @@ export const en = {
     editWidth: 'Width',
     editOpacity: 'Opacity',
     editSetName: 'Set name for layer',
-    save: 'Save',
-    layers: 'Layers',
+    save: 'Save layer',
+    groups: 'Groups',
+    delete: 'Delete layer',
+    chooseGroups: 'Vyber si skupinu',
     size: 'Size',
     citations: 'Citations',
     citationsToolTip: 'Citate',
@@ -83,45 +85,48 @@ export const en = {
     helpDone: 'Done',
     homeTitle: 'Home button',
     homeDescription:
-      "When <span class='highlight'>home button</span> is pressed, it will return you to the main home page.",
+      "When <span class='font-extrabold'>home button</span> is pressed, it will return you to the main home page.",
     editTitle: 'Edit button',
     editDescription:
-      "When the <span class='highlight'>edit button</span> or the keyboard key <span class='keyboard-key'>E</span> is pressed, it will allow you to edit the current page you are on. It's possible to change the page in edit mode.",
+      "When the <span class='font-extrabold'>edit button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>E</span> is pressed, it will allow you to edit the current page you are on. It's possible to change the page in edit mode.",
     searchTitle: 'Search button',
     searchDescription:
-      "If you are looking for any text pattern, just press the <span class='highlight'>search button</span> or the keyboard key <span class='keyboard-key'>F</span> .",
+      "If you are looking for any text pattern, just press the <span class='font-extrabold'>search button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>F</span> .",
     citationTitle: 'Citations button',
     citationDescription:
-      "Press the <span class='highlight'>citations button</span> or the keyboard key <span class='keyboard-key'>C</span> to citate this document. Available options are <span class='highlight'>BibTeX</span>, <span class='highlight'>BibLaTeX</span>, <span class='highlight'>RIS</span>, and <span class='highlight'>Plain-Text</span>.",
+      "Press the <span class='font-extrabold'>citations button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>C</span> to citate this document. Available options are <span class='font-extrabold'>BibTeX</span>, <span class='font-extrabold'>BibLaTeX</span>, <span class='font-extrabold'>RIS</span>, and <span class='font-extrabold'>Plain-Text</span>.",
     tocTitle: 'TOC button',
     tocDescription:
-      "Press the <span class='highlight'>TOC button</span> or keyboard key <span class='keyboard-key'>T</span> and it will show you the document's table of context where when you click on the section, you will be moved to the page where the section is located.",
+      "Press the <span class='font-extrabold'>TOC button</span> or keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>T</span> and it will show you the document's table of context where when you click on the section, you will be moved to the page where the section is located.",
     shareTitle: 'Share button',
     shareDescription:
-      "When the <span class='highlight'>Share button</span> or the keyboard key <span class='keyboard-key'>S</span> is pressed, it will allow you to share document, where you can choose what pages you want to share with you students/friends.",
+      "When the <span class='font-extrabold'>Share button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>S</span> is pressed, it will allow you to share document, where you can choose what pages you want to share with you students/friends.",
     infoTitle: 'Info button',
     infoDescription:
-      "If you want to see document's informations, just press the <span class='highlight'>info button</span> or the keyboard key <span class='keyboard-key'>I</span> .",
+      "If you want to see document's informations, just press the <span class='font-extrabold'>info button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>I</span> .",
     helpTitle: 'Help button',
     helpDescription:
-      "If you at any time need some help with this viewer, just press the <span class='highlight'>help button</span> or the keyboard key <span class='keyboard-key'>H</span> to see steps with description how and what to do.",
+      "If you at any time need some help with this viewer, just press the <span class='font-extrabold'>help button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>H</span> to see steps with description how and what to do.",
     themeTitle: 'Theme button',
     themeDescription:
-      "To change theme (dark/light) press the <span class='highlight'>mode button</span> or the keyboard key <span class='keyboard-key'>M</span> .",
+      "To change theme (dark/light) press the <span class='font-extrabold'>mode button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>M</span> .",
     downloadTitle: 'Download button',
     downloadDescription:
-      "To download document press the <span class='highlight'>download button</span>.",
+      "To download document press the <span class='font-extrabold'>download button</span>.",
     zoomInTitle: 'Zoom in button',
     zoomInDescription:
-      "To zoom in the document press the <span class='highlight'>zoom in button</span> or the keyboard key <span class='keyboard-key'>+</span> . You can also pinch out the touchepad <span class='keyboard-key'>< ></span> or <span class='highlight'>double click</span> on the document.",
+      "To zoom in the document press the <span class='font-extrabold'>zoom in button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>+</span> . You can also pinch out the touchepad <span class='font-bold whitespace-nowrap px-2 border border-white'>< ></span> or <span class='font-extrabold'>double click</span> on the document.",
     zoomOutTitle: 'Zoom out button',
     zoomOutDescription:
-      "To zoom out the document press the <span class='highlight'>zoom out button</span> or the keyboard key <span class='keyboard-key'>-</span> . You can also pinch in the touchepad <span class='keyboard-key'>> <</span> or <span class='highlight'>double click</span> on the document.",
+      "To zoom out the document press the <span class='font-extrabold'>zoom out button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>-</span> . You can also pinch in the touchepad <span class='font-bold whitespace-nowrap px-2 border border-white'>> <</span> or <span class='font-extrabold'>double click</span> on the document.",
     previousTitle: 'Previous button',
     previousDescription:
-      "Press the <span class='highlight'>previous button</span> or the keyboard key <span class='keyboard-key'><</span> (Left Arrow) to see the previous page of this document.",
+      "Press the <span class='font-extrabold'>previous button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'><</span> (Left Arrow) to see the previous page of this document.",
     nextTitle: 'Next button',
     nextDescription:
-      "Press the <span class='highlight'>next button</span> or the keyboard key <span class='keyboard-key'>></span> (Right Arrow) to see the next page of this document.",
+      "Press the <span class='font-extrabold'>next button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>></span> (Right Arrow) to see the next page of this document.",
+    groupNew: 'Add group',
+    noGroups: 'No groups found',
+    groupName: "Group's name",
   },
 }

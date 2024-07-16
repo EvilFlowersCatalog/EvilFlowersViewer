@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useDocumentContext } from '../../../document/DocumentContext'
+import { useDocumentContext } from '../../../hooks/useDocumentContext'
 import {
   TextItem,
   getTextContentParameters,
@@ -13,6 +13,7 @@ import { RENDERING_STATES } from '../../../../../utils/enums'
 
 // icons
 import { BiSad, BiSmile } from 'react-icons/bi'
+import Loader from '../../../common/Loader'
 
 /**
  *
@@ -37,6 +38,8 @@ const Search = () => {
   const [searching, setSearching] = useState<SEARCH_STATES>(SEARCH_STATES.DONE)
   const [selectedMatch, setSelectedMatch] = useState<number | null>(null)
   let searchWorker: Worker | undefined = undefined
+
+  const ref = useRef<HTMLInputElement | null>(null)
 
   const {
     pdf,
@@ -101,7 +104,7 @@ const Search = () => {
 
           Promise.allSettled(pagesContent).then(() => {
             searchWorker = new Worker(
-              new URL('SearchWorker.ts', import.meta.url)
+              new URL('./SearchWorker.ts', import.meta.url)
             )
             setSelectedMatch(null)
             searchWorker!.postMessage([pattern, textContent])
@@ -156,7 +159,7 @@ const Search = () => {
 
       if (canvas) {
         const x: number = matches[selectedMatch]!.transform![4]
-        const y: number = matches[selectedMatch]!.transform![5]
+        const y: number = matches[selectedMatch]!.transform![5] - 2
         const width: number = matches[selectedMatch]!.width
         const height: number = matches[selectedMatch]!.height
         const canvas_height = canvas.getAttribute('height')
@@ -175,65 +178,81 @@ const Search = () => {
     }
   }, [selectedMatch, paginatorPageRender])
 
+  useEffect(() => {
+    if (ref) ref.current?.focus()
+  }, [ref])
+
   return (
     <>
-      <div className={'search-input-container'}>
+      <div className={'flex w-full items-center justify-center'}>
+        {/* Search input */}
         <input
+          ref={ref}
           type={'text'}
           value={searchPattern}
           onChange={handleSearchChange}
           name="search-input"
-          className={'search-input'}
+          className="w-full p-2 text-sm border-none rounded-md bg-gray-light dark:bg-gray-dark-medium outline-none text-black dark:text-white"
           placeholder={t('search')}
           onKeyDown={(e) => {
             e.stopPropagation()
           }}
         />
       </div>
+      {/* If loading */}
       {searching === SEARCH_STATES.LOADING && (
-        <div className={'search-loader'}>
-          <span className={'viewer-loader-small'}></span>
+        <div className="w-full flex justify-center mt-5">
+          <Loader size={30} />
         </div>
       )}
-      {searchPattern.length === 0 && (
+      {/* If searchPattern is empty and searching is done */}
+      {searchPattern.length === 0 && searching === SEARCH_STATES.DONE && (
         <span
-          className={'search-tips-titles'}
-          style={{ whiteSpace: 'pre-wrap' }}
+          className={
+            'mt-5 w-full text-center text-sm whitespace-pre-wrap flex flex-col justify-center items-center'
+          }
         >
           {t('searchPattern')}
-          <BiSmile className="viewer-button-icon" />
+          <BiSmile className="mt-2" size={30} />
         </span>
       )}
+      {/* if search is done and there are no matches and ther is pattern */}
       {searching === SEARCH_STATES.DONE &&
         matches.length === 0 &&
         searchPattern.length > 0 && (
-          <span className={'search-tips-titles'}>
+          <span
+            className={
+              'mt-5 w-full text-center text-sm whitespace-pre-wrap flex flex-col justify-center items-center'
+            }
+          >
             {t('noMatchesFound')}
-            <BiSad className="viewer-button-icon" />
+            <BiSad className="mt-2" size={30} />
           </span>
         )}
+      {/* if search is done and there are matches */}
       {searching === SEARCH_STATES.DONE &&
         matches.length > 0 &&
         searchPattern.length > 0 && (
-          <div className="search-found-results-container">
-            <span className={'search-found-results'}>
+          <div className="w-full flex flex-col mt-5">
+            <span className={'text-sm font-medium mb-2'}>
               {t('foundResults', { count: matches.length })}
             </span>
-            <div className="search-matches-container">
+            <div className="flex flex-col gap-2.5 w-full">
+              {/* matches */}
               {matches.map((match, i) => {
                 if (!match) return <></>
                 return (
                   <div
                     key={i}
-                    className={'search-mached-text-container'}
+                    className={
+                      'rounded-md bg-gray-light dark:bg-gray-dark-medium hover:bg-opacity-50 dark:hover:bg-opacity-50 cursor-pointer flex flex-col p-2 gap-2'
+                    }
                     onClick={() => {
                       findMatchedText(match.page, i)
                     }}
                   >
-                    <span className={'search-mached-pattern'}>
-                      {match.text}
-                    </span>
-                    <span className={'search-mached-page'}>
+                    <span className={'text-sm text-left'}>{match.text}</span>
+                    <span className={'text-right block text-sm font-bold'}>
                       {t('pageNumber', { number: match.page })}
                     </span>
                   </div>

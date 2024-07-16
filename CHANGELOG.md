@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0 : TBD
+
+- **Added**: Edit mode
+- **Added**: New params to viewer
+- **Added**: Bottom bar hidding possibility
+- **Changed**: css to tailwindcss
+- **Updated**: `pdfjs-dist` library
+
 ## 0.4.25 : 2024-05-13
 
 - **Fixed**: Error `Cannot read properties of null (reading 'getBoundingClientRect')`

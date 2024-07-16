@@ -3,6 +3,7 @@ import ModalWrapper from '../../../modal/Modal'
 import { useTranslation } from 'react-i18next'
 import QRCode from 'qrcode.react'
 import { BiDownload, BiSad } from 'react-icons/bi'
+import Loader from '../../../common/Loader'
 
 interface IShareQRProps {
   link: string
@@ -56,21 +57,14 @@ const ShareQRCode = (props: IShareQRProps) => {
       isOpen={isOpen}
       icon={
         props.link && props.link !== 'error' ? (
-          <BiDownload
-            className="viewer-button-icon"
-            style={{
-              color: 'white',
-              width: '20px',
-              height: '20px',
-            }}
-          />
+          <BiDownload size={20} color="white" />
         ) : null
       }
+      title={props.link && props.link !== 'error' ? t('shareQrCode') : ''}
       onClick={() => handleOnClickClick()}
       onClose={() => handleOnCloseClick()}
     >
-      {props.link && <h4 className={'share-qr-title'}>{t('shareQrCode')}</h4>}
-      <div className={'share-qr-code-container'}>
+      <div className={'w-full min-h-[200px] flex justify-center items-center'}>
         {props.link ? (
           props.link !== 'error' ? (
             <QRCode
@@ -80,16 +74,13 @@ const ShareQRCode = (props: IShareQRProps) => {
               value={props.link}
             />
           ) : (
-            <pre className="share-failed-qr-code-text">
+            <pre className="flex justify-center items-center text-center flex-col uppercase text-sm font-extrabold">
               {t('shareQrCodeFail')}
-              <BiSad
-                className="viewer-button-icon"
-                style={{ marginTop: '20px' }}
-              />
+              <BiSad size={25} className="mt-5" />
             </pre>
           )
         ) : (
-          <div className={'share-qr-loading viewer-loader'}></div>
+          <Loader size={100} />
         )}
       </div>
     </ModalWrapper>

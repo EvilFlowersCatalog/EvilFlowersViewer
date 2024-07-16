@@ -27,7 +27,7 @@ self.onmessage = (e) => {
       content.textItems.map((textItem: any) => {
         const match: RegExpMatchArray | null = textItem.str.match(reg)
         if (match) {
-          match.map((text, index) => {
+          match.map((text) => {
             matches = [
               ...matches,
               {

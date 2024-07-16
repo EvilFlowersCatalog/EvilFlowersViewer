@@ -1,10 +1,9 @@
 import { ChangeEvent, FormEvent, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BiInfoCircle } from 'react-icons/bi'
-import Tooltip from '../../../helpers/toolTip/Tooltip'
 import { RxShare2 } from 'react-icons/rx'
-import { useViewerContext } from '../../../ViewerContext'
-import cx from 'classnames'
+import useViewerContext from '../../../hooks/useViewerContext'
+import Button from '../../../common/Button'
 
 interface IShareParams {
   setLink: (link: string) => void
@@ -114,10 +113,16 @@ const Share = (params: IShareParams) => {
   }
 
   return (
-    <form className={'share-container'} onSubmit={handleSubmit}>
-      <div className={'share-top-row'}>
+    <form
+      className={'w-full h-full flex flex-col justify-start items-center'}
+      onSubmit={handleSubmit}
+    >
+      <div className={'w-full flex justify-between items-center'}>
+        {/* Pages input */}
         <input
-          className={'share-input'}
+          className={
+            'w-4/5 p-2 text-sm border-none rounded-md bg-gray-light dark:bg-gray-dark-medium outline-none text-black dark:text-white'
+          }
           placeholder={t('shareSearch')}
           name="share-input"
           value={input}
@@ -126,27 +131,26 @@ const Share = (params: IShareParams) => {
             e.stopPropagation()
           }}
         />
-        <div className="share-info-button-container">
-          <Tooltip placement="left" title={t('shareSearchInfoToolTip')}>
-            <div className="viewer-button">
-              <BiInfoCircle
-                className={'viewer-button-icon'}
-                style={{ width: '20px', height: '20px', color: '#0099ff' }}
-              />
-            </div>
-          </Tooltip>
-        </div>
+        {/* Info button */}
+        <Button
+          toolTip={{ text: t('shareSearchInfoToolTip'), position: 'left' }}
+          icon={<BiInfoCircle size={20} className="text-blue-light" />}
+        />
       </div>
-      <div className="share-lifespan-container">
-        <span className="share-lifespan-title">{t('shareExpaire')}</span>
-        <div className={'share-lifespan-buttons-container'}>
+      <div className="w-full flex justify-start flex-col mt-2.5">
+        <span className="text-sm w-full flex justify-start flex-col mt-2.5">
+          {t('shareExpaire')}
+        </span>
+        <div className={'flex w-full justify-between items-center mt-2.5'}>
+          {/* Button for exparation */}
           {expaireOptions.map((item, i) => (
             <div
               key={i}
-              className={cx('share-lifespan-button', {
-                'share-lifespan-button-active': item.active,
-                'share-lifespan-button-no-active': !item.active,
-              })}
+              className={` py-1 px-2.5 flex items-center justify-center rounded-md cursor-pointer border-none outline-none hover:bg-gray-light dark:hover:bg-gray-dark-medium ${
+                item.active
+                  ? 'bg-gray-light dark:bg-gray-dark-medium'
+                  : 'bg-transparent'
+              }`}
               onClick={() => handleExpare(item)}
             >
               {item.name}
@@ -154,12 +158,14 @@ const Share = (params: IShareParams) => {
           ))}
         </div>
       </div>
+      <span className="flex-1"></span>
+      {/* Hide button if there is bad input */}
       {!isInappropriate && (
-        <button className="share-button" type="submit">
-          <RxShare2
-            className={'viewer-button-icon'}
-            style={{ color: 'white' }}
-          />
+        <button
+          className="w-full py-2.5 flex border-none rounded-md justify-center items-center bg-blue-dark cursor-pointer hover:bg-blue-light"
+          type="submit"
+        >
+          <RxShare2 size={20} color="white" />
         </button>
       )}
     </form>

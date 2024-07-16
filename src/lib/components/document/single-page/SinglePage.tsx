@@ -1,7 +1,9 @@
-import { useCallback, useEffect, MouseEvent } from 'react'
-import { useDocumentContext } from '../DocumentContext'
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
+import { MouseEvent } from 'react'
+import { useDocumentContext } from '../../hooks/useDocumentContext'
 import { RENDERING_STATES } from '../../../../utils/enums'
+import useCustomEffect from '../../hooks/useCustomEffect'
+import useRenderPage from '../../hooks/useRenderPage'
+import loader from '../../common/RenderLoader'
 
 interface ISinglePage {
   onDoubleClick: (event: MouseEvent<HTMLDivElement>) => void
@@ -13,7 +15,6 @@ interface ISinglePage {
  * @returns Page component
  *
  */
-
 const SinglePage = ({ onDoubleClick }: ISinglePage) => {
   const {
     pdf,
@@ -21,91 +22,34 @@ const SinglePage = ({ onDoubleClick }: ISinglePage) => {
     scale,
     rerender,
     setPaginatorPageRender,
-    setDesiredScale,
     screenHeight,
+    hideBottomBar,
   } = useDocumentContext()
 
-  /**
-   * Renders the page and all its layers
-   *
-   * @returns A promise that resolves when the page is rendered
-   */
-  const renderPage = useCallback(
-    async (view: HTMLElement | null) => {
-      const page = await pdf?.getPage(activePage)
-      if (!page) return
+  const renderPage = useRenderPage()
 
-      const viewerContent = document.getElementById('evilFlowersEditContent')
-
-      if (!viewerContent) return
-
-      const height = viewerContent.getBoundingClientRect().height
-
-      // Calculate scale
-      let viewport = page.getViewport({ scale })
-      const calcScreenHeight = 0.95 * height
-      const desiredHeight = calcScreenHeight * viewport.scale
-      const viewportHeight = viewport.height / viewport.scale
-      const desiredScale = desiredHeight / viewportHeight
-      setDesiredScale(desiredScale)
-      viewport = page.getViewport({ scale: desiredScale })
-
-      const container = document.createElement('textLayer')
-      container.setAttribute('id', 'textLayer')
-
-      // get text content
-      page.getTextContent().then((textContent) => {
-        // render ro container (text-layer)
-        pdfjs.renderTextLayer({
-          textContent,
-          container,
-          viewport,
-          textDivs: [],
-        })
-      })
-
-      // create canvas
-      const canvas = document.createElement('canvas')
-      canvas.setAttribute('id', 'evilFlowersCanvas')
-      canvas.setAttribute('class', 'single-page-canvas-container-paginator')
-      canvas.width = viewport.width
-      canvas.height = viewport.height
-      const canvasContext = canvas.getContext('2d')!
-
-      // render page
-      await page
-        .render({
-          canvasContext,
-          viewport,
-        })
-        .promise.then(() => {
-          // replece everything with canvas and text layer
-          view?.replaceChildren(canvas, container)
-        })
-    },
-    [activePage, pdf, scale]
-  )
-
-  useEffect(() => {
+  useCustomEffect(() => {
     setPaginatorPageRender(RENDERING_STATES.RENDERING)
-    const loader = document.createElement('div')
-    loader.setAttribute('class', 'viewer-loader-small')
 
     const loadPage = async () => {
-      const view = document.getElementById('evilFlowersSinglePageContent')
+      const view = document.getElementById('evilFlowersPageContent')
       view?.replaceChildren(loader)
 
-      await renderPage(view)
+      await renderPage({
+        view,
+        edit: false,
+        renderTextContext: true,
+      })
     }
 
     loadPage().then(() => {
       setPaginatorPageRender(RENDERING_STATES.RENDERED)
     })
-  }, [activePage, pdf, scale, rerender, screenHeight])
+  }, [activePage, pdf, scale, rerender, screenHeight, hideBottomBar])
 
   return (
     <div id={'evilFlowersContent'} onDoubleClick={onDoubleClick}>
-      <div id={'evilFlowersSinglePageContent'}></div>
+      <div id={'evilFlowersPageContent'}></div>
     </div>
   )
 }
