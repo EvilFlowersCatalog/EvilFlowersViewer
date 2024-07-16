@@ -55,7 +55,6 @@ const EditMenu = () => {
     editHexColor,
     activeEditTool,
     setIsEditMode,
-    setElements,
     setActiveEditTool,
     saveLayer,
     layer,
@@ -84,6 +83,7 @@ const EditMenu = () => {
   }
 
   const deleteLayer = async () => {
+    if (editStage !== EDIT_STAGES.DONE) return
     try {
       setEditStage(EDIT_STAGES.WORKING)
       if (layer) {
@@ -100,7 +100,6 @@ const EditMenu = () => {
 
   const handleCloseEditPage = () => {
     if (editStage === EDIT_STAGES.DONE) {
-      setElements([])
       setActiveEditTool(EDIT_TOOLS.MOUSE)
       setIsEditMode(false)
     }
@@ -140,11 +139,7 @@ const EditMenu = () => {
               icon={<LuLayers size={23} />}
             />
             <Button
-              onClick={() => {
-                const svg = document.getElementById('evilFlowersPaintSVG')!
-                if (svg.childNodes.length > 0) saveLayer()
-                else setElements([])
-              }}
+              onClick={saveLayer}
               toolTip={{ position: 'right', text: t('save') }}
               icon={<BiSave size={25} />}
             />

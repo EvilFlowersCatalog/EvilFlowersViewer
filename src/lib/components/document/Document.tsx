@@ -117,9 +117,6 @@ const Document = ({ data }: IDocumentProps) => {
   const [editOpacity, setEditOpacity] = useState<number>(1)
   const [svgWidth, setSvgWidth] = useState(0)
   const [svgHeight, setSvgHeight] = useState(0)
-  const [elements, setElements] = useState<
-    (SVGLineElement | SVGRectElement | SVGPathElement | null)[]
-  >([])
   const [hideBottomBar, setHideBottomBar] = useState<boolean>(false)
   const [groupId, setGroupId] = useState<string>('')
   const [layer, setLayer] = useState<{ id: string; svg: string } | null>(null)
@@ -466,6 +463,7 @@ const Document = ({ data }: IDocumentProps) => {
    * Save svg
    */
   const saveLayer = async () => {
+    if (editStage !== EDIT_STAGES.DONE) return
     setScale(1)
     try {
       setEditStage(EDIT_STAGES.WORKING)
@@ -475,7 +473,6 @@ const Document = ({ data }: IDocumentProps) => {
     } catch {
     } finally {
       setEditStage(EDIT_STAGES.DONE)
-      setElements([])
     }
   }
 
@@ -664,8 +661,6 @@ const Document = ({ data }: IDocumentProps) => {
         setSvgWidth,
         svgHeight,
         setSvgHeight,
-        elements,
-        setElements,
         editOpacity,
         setEditOpacity,
         hideBottomBar,

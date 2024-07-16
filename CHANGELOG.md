@@ -5,6 +5,7 @@
 - **Added**: prefix to tailwind
 - **Added**: Responsivness to edit
 - **Changed**: edit `save layer` functions
+- **Removed**: elements useState
 
 ## 0.5.0 : 2024-07-16
 
