@@ -31,7 +31,7 @@ const SideBar = ({
     >
       <div className="efw-w-full efw-flex efw-justify-between efw-items-center efw-mb-5">
         {/* Title */}
-        <span className={'efw-text-lg efw-font-extrabold efw-uppercase'}>
+        <span className={'efw-text-md efw-font-extrabold efw-uppercase'}>
           {(title as string).toLocaleLowerCase() === 'null' ? '' : title}
         </span>
         {/* Close button */}
