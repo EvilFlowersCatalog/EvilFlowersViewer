@@ -8,7 +8,7 @@ import { TypedArray } from 'pdfjs-dist/types/src/display/api'
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js'
 import { ViewerContext } from './hooks/useViewerContext'
 pdfjsLib.GlobalWorkerOptions.workerSrc = import.meta.env.PROD
-  ? 'pdfjs-dist/legacy/build/pdf.worker.js'
+  ? 'pdfjs-dist/legacy/build/pdf.worker.entry.js'
   : '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
 
 export interface IViewerOptions {
