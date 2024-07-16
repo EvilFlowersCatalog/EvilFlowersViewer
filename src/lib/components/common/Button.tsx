@@ -20,7 +20,7 @@ const Button = ({
       <div
         onClick={onClick}
         className={
-          'py-1 px-2 flex items-center justify-center cursor-pointer outline-none border-none rounded-md bg-transparent hover:bg-gray-light dark:hover:bg-gray-dark-medium'
+          'efw-py-1 efw-px-2 efw-flex efw-items-center efw-justify-center efw-cursor-pointer efw-outline-none efw-border-none efw-rounded-md efw-bg-transparent hover:efw-bg-gray-light dark:hover:efw-bg-gray-dark-medium'
         }
       >
         {icon}

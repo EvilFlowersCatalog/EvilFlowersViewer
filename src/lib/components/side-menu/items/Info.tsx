@@ -23,9 +23,9 @@ interface IInfoRowProps {
 }
 
 const InfoRow = ({ title, value }: IInfoRowProps) => (
-  <div className={'flex flex-col mb-2'}>
-    <span className={'text-[15px] font-bold'}>{title}</span>
-    <span className={'text-sm break-words'}>{value}</span>
+  <div className={'efw-flex efw-flex-col efw-mb-2'}>
+    <span className={'efw-text-[15px] efw-font-bold'}>{title}</span>
+    <span className={'efw-text-sm efw-break-words'}>{value}</span>
   </div>
 )
 

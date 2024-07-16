@@ -473,7 +473,7 @@ const Document = ({ data }: IDocumentProps) => {
       setEditStage(EDIT_STAGES.WORKING)
       const svg = document.getElementById('evilFlowersPaintSVG')!
       if (layer) await editPackage!.updateLayerFunc(layer.id, svg)
-      else await editPackage!.saveLayerFunc(svg)
+      else await editPackage!.saveLayerFunc(svg, groupId, activePage)
     } catch {
     } finally {
       setEditStage(EDIT_STAGES.DONE)
@@ -688,15 +688,15 @@ const Document = ({ data }: IDocumentProps) => {
         onKeyUp={keyUpHandler}
         tabIndex={-1}
         className={
-          'w-full h-full outline-none flex justify-start items-center flex-col overflow-hidden'
+          'efw-w-full efw-h-full efw-outline-none efw-flex efw-justify-start efw-items-center efw-flex-col efw-overflow-hidden'
         }
         onMouseEnter={() => ref.current?.focus()}
       >
         {showHelp && <Help />}
 
-        <div className="flex flex-1 w-full overflow-hidden">
+        <div className="efw-flex efw-flex-1 efw-w-full efw-overflow-hidden">
           {!isEditMode && <SideMenu />}
-          <div className="relative flex flex-1 w-full flex-col overflow-hidden">
+          <div className="efw-relative efw-flex efw-flex-1 efw-w-full efw-flex-col efw-overflow-hidden">
             {!isEditMode ? (
               <SinglePage onDoubleClick={handleDoubleClick} />
             ) : (

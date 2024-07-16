@@ -46,10 +46,10 @@ const Help = () => {
   // css for each type of help step
   const [tailwindcss] = useState<{ [key: string]: string }>({
     container:
-      'fixed w-1/4 min-w-[180px] h-fit bg-blue-dark border-2 border-white rounded-tr-md rounded-b-md p-2.5 flex flex-col justify-between select-none animate-blinking before:animate-blinking',
-    'left-step': `befor:content-[''] before:absolute before:-top-0.5 before:-left-[42px] before:w-10 before:border-b-2 before:border-blue-dark`,
-    'bottom-right-step': `rounded-md rounded-br-none befor:content-[''] before:absolute before:-bottom-10 before:-right-0.5 before:h-[45px] before:border-l-2 before:border-blue-dark`,
-    'bottom-left-step': `rounded-md rounded-bl-none befor:content-[''] before:absolute before:-bottom-10 before:-left-0.5 before:h-[45px] before:border-l-2 before:border-blue-dark`,
+      'efw-fixed efw-w-1/4 efw-min-w-[180px] efw-h-fit efw-bg-blue-dark efw-border-2 efw-border-white efw-rounded-tr-md efw-rounded-b-md efw-p-2.5 efw-flex efw-flex-col efw-justify-between efw-select-none efw-animate-blinking before:efw-animate-blinking',
+    'left-step': `befor:efw-content-[''] before:efw-absolute before:-efw-top-0.5 before:-efw-left-[42px] before:efw-w-10 before:efw-border-b-2 before:efw-border-blue-dark`,
+    'bottom-right-step': `efw-rounded-md efw-rounded-br-none befor:efw-content-[''] before:efw-absolute before:-efw-bottom-10 before:-efw-right-0.5 before:efw-h-[45px] before:efw-border-l-2 before:efw-border-blue-dark`,
+    'bottom-left-step': `efw-rounded-md efw-rounded-bl-none befor:efw-content-[''] before:efw-absolute before:-efw-bottom-10 before:-efw-left-0.5 before:efw-h-[45px] before:efw-border-l-2 before:efw-border-blue-dark`,
   })
   const [steps] = useState([
     // HOME
@@ -263,7 +263,7 @@ const Help = () => {
   ])
 
   return (
-    <div className="absolute h-screen w-screen bg-black bg-opacity-50 z-50 flex justify-between pb-12 items-center flex-col overflow-auto">
+    <div className="efw-absolute efw-h-screen efw-w-screen efw-bg-black efw-bg-opacity-50 efw-z-50 efw-flex efw-justify-between efw-pb-12 efw-items-center efw-flex-col efw-overflow-auto">
       <div
         className={steps[index]!.class}
         style={
@@ -280,21 +280,21 @@ const Help = () => {
               }
         }
       >
-        <div className="flex items-center gap-5 mb-2.5 text-white">
+        <div className="efw-flex efw-items-center efw-gap-5 efw-mb-2.5 efw-text-white">
           {steps[index]!.icon}
-          <span className="text-lg font-extrabold uppercase italic">
+          <span className="efw-text-lg efw-font-extrabold efw-uppercase efw-italic">
             {steps[index]!.title}
           </span>
         </div>
         <p
-          className="text-sm text-white"
+          className="efw-text-sm efw-text-white"
           dangerouslySetInnerHTML={{ __html: steps[index]!.description }}
         ></p>
-        <div className="flex mt-5 justify-evenly items-center">
+        <div className="efw-flex efw-mt-5 efw-justify-evenly efw-items-center">
           {/* SKIP BUTTON */}
           {index < steps.length - 1 && (
             <button
-              className="text-sm font-bold py-1 px-2 text-sky-200 bg-transparent outline-none cursor-pointer border-b-2 border-transparent duration-200 hover:text-white hover:border-white"
+              className="efw-text-sm efw-font-bold efw-py-1 efw-px-2 efw-text-sky-200 efw-bg-transparent efw-outline-none efw-cursor-pointer efw-border-b-2 efw-border-transparent efw-duration-200 hover:efw-text-white hover:efw-border-white"
               onClick={() => setShowHelp(false)}
             >
               {t('helpSkip')}
@@ -302,7 +302,7 @@ const Help = () => {
           )}
           {/* NEXT BUTTON */}
           <button
-            className="text-sm font-bold py-1 px-2 text-white bg-transparent rounded-md outline-none cursor-pointer hover:text-blue-dark hover:bg-white duration-200"
+            className="efw-text-sm efw-font-bold efw-py-1 efw-px-2 efw-text-white efw-bg-transparent efw-rounded-md efw-outline-none efw-cursor-pointer hover:efw-text-blue-dark hover:efw-bg-white efw-duration-200"
             onClick={() => {
               // find next possible step
               let nextIndex = index

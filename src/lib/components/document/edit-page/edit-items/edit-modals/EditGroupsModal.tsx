@@ -22,14 +22,14 @@ const Anotation = ({ group, setVisible, update, remove }: IAnotationParams) => {
 
   return (
     <button
-      className="flex items-center p-4 rounded-md bg-gray-light dark:bg-gray-dark-medium hover:bg-opacity-50 dark:hover:bg-opacity-50"
+      className="efw-flex efw-items-center efw-p-4 efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium hover:efw-bg-opacity-50 dark:hover:efw-bg-opacity-50"
       onClick={() => {
         setGroupId(group.id)
         setVisible(false)
       }}
     >
       <input
-        className="bg-transparent p-1 border-b-2 disabled:border-transparent border-white outline-none"
+        className="efw-bg-transparent efw-p-1 efw-border-b-2 disabled:efw-border-transparent disabled:efw-pointer-events-none efw-border-white efw-outline-none"
         name={group.id}
         onClick={(e) => e.stopPropagation()}
         type="text"
@@ -38,9 +38,9 @@ const Anotation = ({ group, setVisible, update, remove }: IAnotationParams) => {
         onKeyDown={(e) => e.stopPropagation()}
         disabled={disabled}
       />
-      <span className="flex-1"></span>
+      <span className="efw-flex-1"></span>
       <div
-        className="flex h-full items-center gap-2"
+        className="efw-flex efw-h-full efw-items-center efw-gap-2"
         onClick={(e) => e.stopPropagation()}
       >
         {disabled ? (
@@ -135,12 +135,12 @@ const EditGroupsModal = ({
   return (
     <ModalWrapper isOpen={visible} title={t('chooseGroups')}>
       {isLoading && (
-        <div className="flex justify-center">
+        <div className="efw-flex efw-justify-center">
           <Loader size={50} />
         </div>
       )}
       {!isLoading && (
-        <div className="flex flex-col justify-center text-center flex-1 gap-4 overflow-auto">
+        <div className="efw-flex efw-flex-col efw-justify-center efw-text-center efw-flex-1 efw-gap-4 efw-overflow-auto">
           {groups.length > 0
             ? groups.map((group) => (
                 <Anotation
@@ -153,10 +153,10 @@ const EditGroupsModal = ({
               ))
             : t('noGroups')}
           {showInput && (
-            <div className="flex w-full items-center gap-2 cursor-pointer">
+            <div className="efw-flex efw-w-full efw-items-center efw-gap-2 efw-cursor-pointer">
               <input
                 type="text"
-                className="w-full p-2 text-sm border-none rounded-md bg-gray-light dark:bg-gray-dark-medium outline-none text-black dark:text-white"
+                className="efw-w-full efw-p-2 efw-text-sm efw-border-none efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium efw-outline-none efw-text-black dark:efw-text-white"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.stopPropagation()}
@@ -172,7 +172,7 @@ const EditGroupsModal = ({
             </div>
           )}
           <button
-            className="w-full p-4 text-center uppercase border-blue-dark bg-blue-dark hover:bg-opacity-50 rounded-md cursor-pointer"
+            className="efw-w-full efw-p-4 efw-text-center efw-uppercase efw-border-blue-dark efw-bg-blue-dark hover:efw-bg-opacity-50 efw-rounded-md efw-cursor-pointer"
             onClick={() => setShowInput(true)}
           >
             {t('groupNew')}

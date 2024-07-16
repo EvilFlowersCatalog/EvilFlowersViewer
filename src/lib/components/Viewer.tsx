@@ -19,7 +19,11 @@ export interface IViewerOptions {
     | null
   homeFunction?: (() => void) | null
   editPackage?: {
-    saveLayerFunc: (svg: HTMLElement) => Promise<void>
+    saveLayerFunc: (
+      svg: HTMLElement,
+      groupId: string,
+      page: number
+    ) => Promise<void>
     saveGroupFunc: (name: string) => Promise<void>
     updateLayerFunc: (id: string, svg: HTMLElement) => Promise<void>
     updateGroupFunc: (id: string, name: string) => Promise<void>
@@ -66,8 +70,8 @@ export const Viewer = (viewerParams: IViewerParams) => {
 
   // When theme change
   useEffect(() => {
-    document.body.classList.remove('light', 'dark')
-    document.body.classList.add(theme ?? 'dark')
+    document.body.classList.remove('efw-light', 'efw-dark')
+    document.body.classList.add(theme ? `efw-${theme}` : 'efw-dark')
   }, [theme])
 
   // Set languege based on given language
@@ -95,24 +99,26 @@ export const Viewer = (viewerParams: IViewerParams) => {
       <div
         id={'evilFlowersViewer'}
         className={
-          'w-screen h-screen min-h-[660px] overflow-auto text-black dark:text-white'
+          'efw-w-screen efw-h-screen efw-min-h-[660px] efw-overflow-auto efw-text-black dark:efw-text-white'
         }
       >
         <div
           className={
-            'flex w-full h-full flex-col justify-center items-center bg-gray-light dark:bg-gray-dark-medium'
+            'efw-flex efw-w-full efw-h-full efw-flex-col efw-justify-center efw-items-center efw-bg-gray-light dark:efw-bg-gray-dark-medium'
           }
         >
           {/* If data === null show return option */}
           {viewerParams.data === null ? (
             <>
-              <h1 className="uppercase text-lg font-extrabold">
+              <h1 className="efw-uppercase efw-text-lg efw-font-extrabold">
                 {t('loadPDFerror')}
               </h1>
               {options.homeFunction && (
                 <button
                   onClick={() => options.homeFunction!()}
-                  className={'py-1 px-2.5 rounded-md bg-transparent'}
+                  className={
+                    'efw-py-1 efw-px-2.5 efw-rounded-md efw-bg-transparent'
+                  }
                 >
                   <ImExit size={30} />
                 </button>

@@ -34,13 +34,13 @@ const EditMobileButton = ({
 }: IEditMobileButton) => {
   return (
     <div
-      className="flex flex-col h-4/5 w-20 border border-black dark:border-white rounded-md cursor-pointer"
+      className="efw-flex efw-flex-col efw-h-4/5 efw-w-20 efw-border efw-border-black dark:efw-border-white efw-rounded-md efw-cursor-pointer"
       onClick={() => func(true)}
     >
-      <div className="flex flex-col flex-1 justify-center items-center">
+      <div className="efw-flex efw-flex-col efw-flex-1 efw-justify-center efw-items-center">
         {usage}
       </div>
-      <span className="text-sm text-center">{specifier}</span>
+      <span className="efw-text-sm efw-text-center">{specifier}</span>
     </div>
   )
 }
@@ -62,6 +62,7 @@ const EditMenu = () => {
     setLayer,
     setEditStage,
     setGroupId,
+    editStage,
   } = useDocumentContext()
   const { editPackage } = useViewerContext()
   const { deleteLayerFunc } = editPackage!
@@ -74,12 +75,12 @@ const EditMenu = () => {
   const [groupsModalVisibility, setGroupsModalVisibility] =
     useState<boolean>(true)
   const toolIcons = {
-    [EDIT_TOOLS.MOUSE]: <FiMousePointer size={30} className="mt-2.5" />,
-    [EDIT_TOOLS.ERASER]: <LuEraser size={30} className="mt-2.5" />,
-    [EDIT_TOOLS.PENCIL]: <GoPencil size={30} className="mt-2.5" />,
-    [EDIT_TOOLS.LINE]: <HiOutlineMinus size={30} className="mt-2.5" />,
-    [EDIT_TOOLS.CIRCLE]: <FiCircle size={30} className="mt-2.5" />,
-    [EDIT_TOOLS.SQUARE]: <FiSquare size={30} className="mt-2.5" />,
+    [EDIT_TOOLS.MOUSE]: <FiMousePointer size={30} className="efw-mt-2.5" />,
+    [EDIT_TOOLS.ERASER]: <LuEraser size={30} className="efw-mt-2.5" />,
+    [EDIT_TOOLS.PENCIL]: <GoPencil size={30} className="efw-mt-2.5" />,
+    [EDIT_TOOLS.LINE]: <HiOutlineMinus size={30} className="efw-mt-2.5" />,
+    [EDIT_TOOLS.CIRCLE]: <FiCircle size={30} className="efw-mt-2.5" />,
+    [EDIT_TOOLS.SQUARE]: <FiSquare size={30} className="efw-mt-2.5" />,
   }
 
   const deleteLayer = async () => {
@@ -97,6 +98,22 @@ const EditMenu = () => {
     }
   }
 
+  const handleCloseEditPage = () => {
+    if (editStage === EDIT_STAGES.DONE) {
+      setElements([])
+      setActiveEditTool(EDIT_TOOLS.MOUSE)
+      setIsEditMode(false)
+    }
+  }
+
+  const handleOpenGroups = () => {
+    if (editStage === EDIT_STAGES.DONE) {
+      setEditStage(EDIT_STAGES.NULL)
+      setGroupId('')
+      setGroupsModalVisibility(true)
+    }
+  }
+
   useEffect(() => {
     if (screenWidth > 699) {
       setToolChangerVisibility(false)
@@ -108,25 +125,17 @@ const EditMenu = () => {
     <>
       <div
         className={
-          'w-full overflow-hidden flex gap-2.5 bg-white dark:bg-gray-dark-strong h-[150px] p-2'
+          'efw-w-full efw-overflow-hidden efw-flex efw-gap-2.5 efw-bg-white dark:efw-bg-gray-dark-strong efw-h-[150px] efw-p-2'
         }
       >
-        <div className="relative flex items-center">
+        <div className="efw-relative efw-flex efw-items-center">
           <Button
-            onClick={() => {
-              setElements([])
-              setActiveEditTool(EDIT_TOOLS.MOUSE)
-              setIsEditMode(false)
-            }}
+            onClick={handleCloseEditPage}
             icon={<MdCancel size={25} color="red" />}
           />
-          <div className="relative flex flex-col gap-3.5 justify-center h-full border-r border-black dark:border-white pr-2.5">
+          <div className="efw-relative efw-flex efw-flex-col efw-gap-3.5 efw-justify-center efw-h-full efw-border-r efw-border-black dark:efw-border-white efw-pr-2.5">
             <Button
-              onClick={() => {
-                setEditStage(EDIT_STAGES.NULL)
-                setGroupId('')
-                setGroupsModalVisibility(true)
-              }}
+              onClick={handleOpenGroups}
               toolTip={{ position: 'right', text: t('groups') }}
               icon={<LuLayers size={23} />}
             />
@@ -147,15 +156,15 @@ const EditMenu = () => {
           </div>
         </div>
         {screenWidth > 699 ? (
-          <div className="w-full h-full flex justify-between items-center gap-4">
-            <div className="flex items-start h-full gap-4 py-1.5">
+          <div className="efw-w-full efw-h-full efw-flex efw-justify-between efw-items-center efw-gap-4">
+            <div className="efw-flex efw-items-start efw-h-full efw-gap-4 efw-py-1.5">
               <EditTools />
               <EditToolOption />
             </div>
             <EditColors />
           </div>
         ) : (
-          <div className="flex w-full min-w-[100px] h-full justify-end items-center gap-4">
+          <div className="efw-flex efw-w-full efw-min-w-[100px] efw-h-full efw-justify-end efw-items-center efw-gap-4">
             <EditMobileButton
               usage={toolIcons[activeEditTool]}
               specifier={t('editTool')}
@@ -165,7 +174,7 @@ const EditMenu = () => {
             <EditMobileButton
               usage={
                 <div
-                  className="w-full h-full rounded-t-md"
+                  className="efw-w-full efw-h-full efw-rounded-t-md"
                   style={{ backgroundColor: editHexColor }}
                 ></div>
               }

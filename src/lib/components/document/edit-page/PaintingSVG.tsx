@@ -252,7 +252,7 @@ const PaintingSVG = () => {
     <svg
       xmlns="http://www.w3.org/2000/svg"
       id="evilFlowersPaintSVG"
-      className="absolute top-0 left-0 w-full h-full border border-red"
+      className="efw-absolute efw-top-0 efw-left-0 efw-w-full efw-h-full efw-border efw-border-red"
       onMouseDown={
         EDIT_TOOLS.MOUSE === activeEditTool ? undefined : startDrawing
       }

@@ -7,7 +7,6 @@ import { BiCopyAlt } from 'react-icons/bi'
 
 import ModalWrapper from '../../modal/Modal'
 import { useDocumentContext } from '../../hooks/useDocumentContext'
-import cx from 'classnames'
 import { Checkbox } from '@mui/material'
 
 interface ICitationsProps {
@@ -155,10 +154,10 @@ const Citations = ({ setCitationVisible }: ICitationsProps) => {
         title={title}
       >
         <span
-          className={`relative rounded-md max-h-[400px] min-h-[100px] overflow-auto w-full border-2 text-sm p-2 pr-5 bg-gray-light dark:bg-gray-dark-medium whitespace-pre-wrap border-white dark:border-gray-dark-medium ${
+          className={`efw-relative efw-rounded-md efw-max-h-[400px] efw-min-h-[100px] efw-overflow-auto efw-w-full efw-border-2 efw-text-sm efw-p-2 efw-pr-5 efw-bg-gray-light dark:efw-bg-gray-dark-medium efw-whitespace-pre-wrap efw-border-white dark:efw-border-gray-dark-medium ${
             isCopied
-              ? 'cursor-default animate-blink-border'
-              : 'cursor-pointer animate-none'
+              ? 'efw-cursor-default efw-animate-blink-border'
+              : 'efw-cursor-pointer efw-animate-none'
           }`}
           onClick={() => {
             setIsCopied(true)
@@ -167,40 +166,43 @@ const Citations = ({ setCitationVisible }: ICitationsProps) => {
         >
           {pdfCitation?.citation}
           {!isCopied ? (
-            <BiCopyAlt className="absolute top-1 right-1" size={20} />
+            <BiCopyAlt
+              className="efw-absolute efw-top-1 efw-right-1"
+              size={20}
+            />
           ) : (
             <BiCheck
-              className="absolute top-1 right-1 opacity-0 animate-blink-icon"
+              className="efw-absolute efw-top-1 efw-right-1 efw-opacity-0 efw-animate-blink-icon"
               size={20}
             />
           )}
         </span>
-        <div className="w-full flex justify-start mt-2.5 gap-2.5">
+        <div className="efw-w-full efw-flex efw-justify-start efw-mt-2.5 efw-gap-2.5">
           {citationFormaters.map((item, i) => (
             <div
               key={i}
-              className={`py-1 px-2 flex items-center justify-center cursor-pointer outline-none border-none rounded-md
+              className={`efw-py-1 efw-px-2 efw-flex efw-items-center efw-justify-center efw-cursor-pointer efw-outline-none efw-border-none efw-rounded-md
                 ${
                   item.active
-                    ? 'bg-gray-light dark:bg-gray-dark-medium'
-                    : 'bg-transparent'
-                } hover:bg-gray-light dark:hover:bg-gray-dark-medium`}
+                    ? 'efw-bg-gray-light dark:efw-bg-gray-dark-medium'
+                    : 'efw-bg-transparent'
+                } hover:efw-bg-gray-light dark:hover:efw-bg-gray-dark-medium`}
               onClick={() => {
                 setTitle(item.name)
                 handleFormatClick(item.format, item.type)
               }}
             >
-              <span className="text-sm">{item.name}</span>
+              <span className="efw-text-sm">{item.name}</span>
             </div>
           ))}
         </div>
-        <div className="w-full mt-5 flex gap-2.5 items-center">
+        <div className="efw-w-full efw-mt-5 efw-flex efw-gap-2.5 efw-items-center">
           <input
-            className={`w-32 outline-none bg-gray-light dark:bg-gray-dark-medium border rounded-md py-1 px-2 text-sm text-black dark:text-white
+            className={`efw-w-32 efw-outline-none efw-bg-gray-light dark:efw-bg-gray-dark-medium efw-border efw-rounded-md efw-py-1 efw-px-2 efw-text-sm efw-text-black dark:efw-text-white
               ${
                 pagesChacked
-                  ? 'border-black dark:border-white'
-                  : 'border-transparent'
+                  ? 'efw-border-black dark:efw-border-white'
+                  : 'efw-border-transparent'
               }`}
             value={pagesInput}
             type="text"

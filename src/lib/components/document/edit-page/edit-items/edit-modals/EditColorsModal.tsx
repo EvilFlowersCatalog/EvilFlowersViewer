@@ -9,7 +9,7 @@ interface IEditColorsModalParams {
 const EditColorsModal = ({ visible, setVisible }: IEditColorsModalParams) => {
   return (
     <ModalWrapper isOpen={visible} onClose={() => setVisible(false)} title="">
-      <div className="flex justify-center items-center pl-4">
+      <div className="efw-flex efw-justify-center efw-items-center efw-pl-4">
         <EditColors />
       </div>
     </ModalWrapper>

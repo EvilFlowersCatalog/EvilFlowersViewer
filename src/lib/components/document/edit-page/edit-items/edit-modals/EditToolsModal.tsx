@@ -10,7 +10,7 @@ interface IEditToolsModalParams {
 const EditToolsModal = ({ visible, setVisible }: IEditToolsModalParams) => {
   return (
     <ModalWrapper isOpen={visible} onClose={() => setVisible(false)} title="">
-      <div className="flex flex-col justify-center items-center gap-4">
+      <div className="efw-flex efw-flex-col efw-justify-center efw-items-center efw-gap-4">
         <EditTools />
         <EditToolOption />
       </div>

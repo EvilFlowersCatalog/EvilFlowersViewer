@@ -10,8 +10,7 @@ import {
 } from 'react-icons/ai'
 
 import Preview from './Preview'
-import { ChangeEvent, ReactNode, useState, KeyboardEvent } from 'react'
-import Tooltip from '../../helpers/Tooltip'
+import { ChangeEvent, useState, KeyboardEvent } from 'react'
 import { RENDERING_STATES } from '../../../../utils/enums'
 import Button from '../../common/Button'
 import Loader from '../../common/Loader'
@@ -64,12 +63,12 @@ const BottomBar = () => {
 
   return (
     <div
-      className={`flex py-2 w-full h-[230px] flex-col bg-white dark:bg-gray-dark-strong ${
-        isEditMode ? 'h-[52px]' : hideBottomBar ? 'h-[75px]' : ''
+      className={`efw-flex efw-py-2 efw-w-full efw-h-[230px] efw-flex-col efw-bg-white dark:efw-bg-gray-dark-strong ${
+        isEditMode ? 'efw-h-[52px]' : hideBottomBar ? 'efw-h-[75px]' : ''
       }`}
     >
       {!isEditMode && (
-        <div className="relative flex justify-center">
+        <div className="efw-relative efw-flex efw-justify-center">
           <Button
             toolTip={{ text: '', position: 'top' }}
             onClick={() => setHideBottomBar(!hideBottomBar)}
@@ -83,7 +82,7 @@ const BottomBar = () => {
           />
         </div>
       )}
-      <div className="relative w-full flex justify-center items-center gap-0.5 select-none mt-1.5">
+      <div className="efw-relative efw-w-full efw-flex efw-justify-center efw-items-center efw-gap-0.5 efw-select-none efw-mt-1.5">
         <Button
           toolTip={{
             text:
@@ -98,21 +97,21 @@ const BottomBar = () => {
         {previewRender === RENDERING_STATES.RENDERED ? (
           <span
             className={
-              'text-sm flex items-center gap-0.5 text-black dark:text-white'
+              'efw-text-sm efw-flex efw-items-center efw-gap-0.5 efw-text-black dark:efw-text-white'
             }
           >
             <input
               placeholder={activePage.toString()}
               value={inputValue}
               name="page-input"
-              className="w-[60px] py-0.5 p-1 mx-1 text-sm text-center outline-none border-none rounded-md bg-gray-light dark:bg-gray-dark-medium text-black dark:text-white"
+              className="efw-w-[60px] efw-py-0.5 efw-p-1 efw-mx-1 efw-text-sm efw-text-center efw-outline-none efw-border-none efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium efw-text-black dark:efw-text-white"
               onChange={handleInputChange}
               onKeyDown={handleInputKey}
             />
-            /<span className="mx-1">{totalPages}</span>
+            /<span className="efw-mx-1">{totalPages}</span>
           </span>
         ) : (
-          <div className="w-14 flex justify-center">
+          <div className="efw-w-14 efw-flex efw-justify-center">
             <Loader size={20} />
           </div>
         )}

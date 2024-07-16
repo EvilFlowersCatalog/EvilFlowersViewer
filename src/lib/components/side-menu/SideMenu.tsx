@@ -215,7 +215,7 @@ const SideMenu = () => {
         )}
       </SideBar>
       <div
-        className={`relative w-[50px] flex justify-start items-center flex-col py-2 bg-white dark:bg-gray-dark-strong z-10 gap-1`}
+        className={`efw-relative efw-w-[50px] efw-flex efw-justify-start efw-items-center efw-flex-col efw-py-2 efw-bg-white dark:efw-bg-gray-dark-strong efw-z-10 efw-gap-1`}
       >
         {/* Sidemenu items */}
         {SideMenuItems.filter((item) => item !== null).map((item, i) => (

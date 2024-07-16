@@ -6,7 +6,11 @@ let nieco =
 let nieco1 =
   '<svg xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" /></svg>'
 
-export const saveLayerFunc = async (svg: HTMLElement) => {
+export const saveLayerFunc = async (
+  svg: HTMLElement,
+  groupId: string,
+  page: number
+) => {
   await delay(2000)
   console.log(svg, 'saved')
 }

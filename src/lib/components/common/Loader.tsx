@@ -5,7 +5,7 @@ interface ILoaderProps {
 const Loader = ({ size }: ILoaderProps) => {
   return (
     <div style={{ height: size + 'px', width: size + 'px' }}>
-      <div className="w-full h-full border-4 border-black dark:border-white border-t-4 border-t-blue-dark dark:border-t-blue-dark rounded-full animate-spin"></div>
+      <div className="efw-w-full efw-h-full efw-border-4 efw-border-black dark:efw-border-white efw-border-t-4 efw-border-t-blue-dark dark:efw-border-t-blue-dark efw-rounded-full efw-animate-spin"></div>
     </div>
   )
 }

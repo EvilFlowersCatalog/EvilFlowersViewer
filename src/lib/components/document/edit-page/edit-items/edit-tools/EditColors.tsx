@@ -29,13 +29,13 @@ const EditColors = () => {
   const { theme } = useViewerContext()
 
   return (
-    <div className="flex flex-col md:flex-row items-center gap-4">
+    <div className="efw-flex efw-flex-col md:efw-flex-row efw-items-center efw-gap-4">
       <div
-        className={`rounded-md h-10 w-10 border-2 border-black dark:border-white border-opacity-50`}
+        className={`efw-rounded-md efw-h-10 efw-w-10 efw-border-2 efw-border-black dark:efw-border-white efw-border-opacity-50`}
         style={{ backgroundColor: editHexColor }}
       ></div>
       <Circle
-        className="flex mt-4 w-60"
+        className="efw-flex efw-mt-4 efw-w-60"
         colors={colors}
         color={editHexColor}
         pointProps={{
