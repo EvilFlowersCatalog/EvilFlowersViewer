@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.2 : 2024-07-16
+
+- **Changed**: worker src for prod
+
 ## 0.5.1 : 2024-07-16
 
 - **Added**: prefix to tailwind
