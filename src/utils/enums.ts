@@ -16,6 +16,13 @@ export const SIDEBAR_TAB_NAMES = () => ({
   NULL: i18next.t('null'),
 })
 
+export enum EDIT_STAGES {
+  LOADING,
+  WORKING,
+  NULL,
+  DONE,
+}
+
 export enum RENDERING_STATES {
   RENDERING,
   RENDERED,

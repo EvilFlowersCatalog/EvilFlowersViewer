@@ -1,98 +1,45 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800;900&display=swap');
-@import '../src/lib/components/viewer.css';
-@import '../src/lib/components/document/document.css';
-@import '../src/lib/components/document/bottom-bar/bottomBar.css';
-@import '../src/lib/components/document/single-page/singlePage.css';
-@import '../src/lib/components/document/bottom-bar/preview/preview.css';
-@import '../src/lib/components/document/edit-page/edit-menu/editMenu.css';
-@import '../src/lib/components/document/edit-page/edit-menu/colors/editColors.css';
-@import '../src/lib/components/document/edit-page/edit-menu/tool-option/editToolOptions.css';
-@import '../src/lib/components/document/edit-page/edit-menu/tools/editTools.css';
-@import '../src/lib/components/document/edit-page/editPage.css';
-@import '../src/lib/components/side-menu//sideMenu.css';
-@import '../src/lib/components/side-menu/bar/bar.css';
-@import '../src/lib/components/side-menu/items/info/info.css';
-@import '../src/lib/components/side-menu/items/share/share.css';
-@import '../src/lib/components/side-menu/items/citation/citations.css';
-@import '../src/lib/components/side-menu/items/search/search.css';
-@import '../src/lib/components/side-menu/items/toc/toc.css';
-@import '../src/lib/components/modal/modal.css';
-@import '../src/lib/components/helpers/help/help.css';
-@import '../src/lib/components/helpers/toolTip/toolTip.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@tailwind variants;
 
-:root {
-  --viewer-background-color: rgb(240, 240, 240);
-  --text-color: black;
-  --main-text-color: rgb(40, 40, 40);
-  --component-background-color: rgb(200, 200, 200);
-  --button-background-color: rgb(225, 225, 225);
-  --button-text-color-active: rgb(30, 30, 30);
-  --button-text-color-deactive: rgb(150, 150, 150);
-  --share-button-background-color: rgb(240, 240, 240);
-  --share-active-button-background-color: rgb(180, 180, 180);
-  --search-button-background-color: rgb(220, 220, 220);
-  --search-hover-button-background-color: rgb(230, 230, 230);
-  --tool-tip-text: white;
-  --tool-tip-background: black;
-}
-
-[data-theme='dark'] {
-  --viewer-background-color: rgb(50, 50, 50);
-  --text-color: white;
-  --main-text-color: rgb(235, 235, 235);
-  --component-background-color: rgb(25, 25, 25);
-  --button-background-color: rgb(50, 50, 50);
-  --button-text-color-active: rgb(220, 220, 220);
-  --button-text-color-deactive: rgb(100, 100, 100);
-  --share-button-background-color: rgb(120, 120, 120);
-  --share-active-button-background-color: rgb(70, 70, 70);
-  --search-button-background-color: rgb(40, 40, 40);
-  --search-hover-button-background-color: rgb(60, 60, 60);
-  --tool-tip-text: black;
-  --tool-tip-background: white;
-}
-
-body {
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+  padding: 0;
   margin: 0;
-  background-color: theme('colors.gray.100');
-}
-
-* {
   font-family: 'Poppins', sans-serif;
 }
 
-.viewer-button {
+html,
+body,
+#root {
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Page IDs */
+#evilFlowersContent {
   display: flex;
-  padding: 5px 10px;
-  border-radius: 10px;
-  background-color: transparent;
-  color: var(--text-color);
-  cursor: pointer;
-  transition-duration: 0.2s;
+  flex: 1;
+  height: 100%;
+  align-items: flex-start;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  padding: 15px;
+  overflow: auto;
 }
 
-.viewer-button:hover {
-  background-color: var(--button-background-color);
-}
-
-.viewer-button-icon {
-  width: 24px;
-  height: 24px;
-  color: var(--button-text-color-active);
-}
-
-.viewer-button-icon-deactive {
-  width: 24px;
-  height: 24px;
-  color: var(--button-text-color-deactive);
+#evilFlowersPageContent {
+  position: relative;
+  margin: auto auto;
+  width: fit-content;
 }
 
 /* Making text layer elements transparent and position absolute for proper positioning */
-
 #textLayer {
   position: absolute;
   top: 0;
@@ -113,49 +60,13 @@ body {
   background: #8f8fe352;
 }
 
-.viewer-loader {
-  border: 4px solid var(--main-text-color);
-  border-top: 4px solid #00b7ff;
-  border-radius: 50%;
-  width: 100px;
-  height: 100px;
-  animation: spin 1s linear infinite;
-}
-
 .viewer-loader-small {
-  border: 2px solid var(--main-text-color);
+  border: 2px solid gray;
   border-top: 2px solid #00b7ff;
   border-radius: 50%;
   width: 30px;
   height: 30px;
   animation: spin 1s linear infinite;
-}
-
-.divider {
-  border: none;
-  border-top: 1px solid #eee;
-  width: 80%;
-}
-
-.keyboard-key {
-  font-weight: bold;
-  white-space: nowrap;
-  padding: 0 8px;
-  border: 1px solid white;
-}
-
-.highlight {
-  font-weight: 700;
-}
-
-@keyframes rotation {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 @keyframes spin {

@@ -1,21 +1,16 @@
 import { createElement, useEffect, useState } from 'react'
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
-// @ts-ignore
-import * as PDFJSWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry'
 import Document from './document/Document'
 import { createRoot } from 'react-dom/client'
 import i18n from '../../utils/i18n'
-import { ViewerContext } from './ViewerContext'
 import { useTranslation } from 'react-i18next'
 import { ImExit } from 'react-icons/im'
 import { TypedArray } from 'pdfjs-dist/types/src/display/api'
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js'
+import { ViewerContext } from './hooks/useViewerContext'
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
 
-pdfjs.GlobalWorkerOptions.workerSrc = PDFJSWorker
-// Odkomentovať pri local používaní
-// pdfjs.GlobalWorkerOptions.workerSrc =
-//   '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
-
-interface IViewerOptions {
+export interface IViewerOptions {
   theme?: 'dark' | 'light'
   lang?: string
   citationBib?: string | null
@@ -23,126 +18,109 @@ interface IViewerOptions {
     | ((pages: string | null, expaireDate: string) => Promise<string>)
     | null
   homeFunction?: (() => void) | null
-  saveFunction?: ((svg: HTMLElement, name: string) => void) | null
-  layersFunction?: ((page: number) => void) | null
+  editPackage?: {
+    saveLayerFunc: (svg: HTMLElement) => Promise<void>
+    saveGroupFunc: (name: string) => Promise<void>
+    updateLayerFunc: (id: string, svg: HTMLElement) => Promise<void>
+    updateGroupFunc: (id: string, name: string) => Promise<void>
+    deleteLayerFunc: (id: string) => Promise<void>
+    deleteGroupFunc: (id: string) => Promise<void>
+    getLayerFunc: (
+      page: number,
+      groupId: string
+    ) => Promise<{ id: string; svg: string } | null> | null
+    getGroupsFunc: () => Promise<{ id: string; name: string }[]>
+  } | null
 }
 
-interface IViewerProps {
+interface IViewerParams {
   data: TypedArray | null
   options: IViewerOptions | null
 }
 
 /**
- * The Viewer component. It takes a base64 encoded string of the PDF file and renders it.
+ * The Viewer component. It takes a typedArray arr of the PDF file and renders it.
  *
- * @param viewerProps IViewerProps, data -> base64, options -> IViewerOptions
+ * @param viewerParams IViewerParams, data -> typedArray | null, options -> IViewerOptions | null
  * @returns - The Viewer component
  */
-export const Viewer = (viewerProps: IViewerProps) => {
-  const helpShown = localStorage.getItem('show-help')
+export const Viewer = (viewerParams: IViewerParams) => {
   const [showHelp, setShowHelp] = useState<boolean>(false)
-
-  // if does not exist, show for the first time
-  if (!helpShown) {
-    localStorage.setItem('show-help', JSON.stringify('shown'))
-    setShowHelp(true)
-  }
-  const [documentData, setDocumentData] = useState<TypedArray | null | 'null'>(
-    'null'
-  )
   const { t } = useTranslation()
-
-  // Based options, cuz options are not required
-  let basedOptions: IViewerOptions = {
-    theme: 'dark',
-    lang: 'en',
-    citationBib: null,
-    shareFunction: null,
-    homeFunction: null,
+  const options: IViewerOptions = {
+    //base
+    ...{
+      theme: 'dark',
+      lang: 'en',
+      citationBib: null,
+      shareFunction: null,
+      homeFunction: null,
+      editPackage: null,
+    },
+    //given
+    ...viewerParams.options,
   }
-
-  // Update basedOptions with values from inputed options
-  basedOptions = {
-    ...basedOptions, // Spread the current values of basedOptions
-    ...viewerProps.options, // Spread the values from inputed options, which will overwrite existing properties if they exist in both objects
-  }
-
   const [theme, setTheme] = useState<'dark' | 'light' | undefined>(
-    basedOptions.theme
+    options.theme
   )
 
+  // When theme change
   useEffect(() => {
-    // set given theme
-    if (theme === 'dark') {
-      setTheme('dark')
-      document.querySelector('body')?.setAttribute('data-theme', 'dark')
-    } else {
-      setTheme('light')
-      document.querySelector('body')?.setAttribute('data-theme', 'light')
-    }
+    document.body.classList.remove('light', 'dark')
+    document.body.classList.add(theme ?? 'dark')
   }, [theme])
 
+  // Set languege based on given language
   useEffect(() => {
-    // Set languege based on given language
-    if (viewerProps.options?.lang === 'sk') {
+    if (viewerParams.options?.lang === 'sk') {
       i18n.changeLanguage('sk')
-    } else if (viewerProps.options?.lang === 'en') {
-      i18n.changeLanguage('en')
     } else {
       i18n.changeLanguage('en')
     }
   }, [])
-
-  // On every data change, convert it to binary and set it to the documentData state
-  useEffect(() => {
-    if (!viewerProps.data) {
-      setDocumentData(null)
-      return
-    }
-    try {
-      setDocumentData(viewerProps.data)
-    } catch (error) {
-      console.error(error)
-      setDocumentData(null)
-    }
-  }, [viewerProps.data])
 
   return (
     <ViewerContext.Provider
       value={{
         theme,
         setTheme,
-        shareFunction: basedOptions.shareFunction,
-        homeFunction: basedOptions.homeFunction,
-        saveFunction: basedOptions.saveFunction,
-        layersFunction: basedOptions.layersFunction,
+        shareFunction: options.shareFunction,
+        homeFunction: options.homeFunction,
+        editPackage: options.editPackage,
         setShowHelp,
         showHelp,
+        citationBib: options.citationBib,
       }}
     >
-      <div id={'evilFlowersViewer'} className={'viewer-container'}>
-        <div className={'viewer-inner-container'}>
-          {documentData === null && (
+      <div
+        id={'evilFlowersViewer'}
+        className={
+          'w-screen h-screen min-h-[660px] overflow-auto text-black dark:text-white'
+        }
+      >
+        <div
+          className={
+            'flex w-full h-full flex-col justify-center items-center bg-gray-light dark:bg-gray-dark-medium'
+          }
+        >
+          {/* If data === null show return option */}
+          {viewerParams.data === null ? (
             <>
-              <h1 className="document-load-error">{t('loadPDFerror')}</h1>
-              {basedOptions.homeFunction && (
-                <div
-                  onClick={() => basedOptions.homeFunction!()}
-                  className={'viewer-back-button'}
+              <h1 className="uppercase text-lg font-extrabold">
+                {t('loadPDFerror')}
+              </h1>
+              {options.homeFunction && (
+                <button
+                  onClick={() => options.homeFunction!()}
+                  className={'py-1 px-2.5 rounded-md bg-transparent'}
                 >
-                  <ImExit className={'viewer-button-icon'} />
-                </div>
+                  <ImExit size={30} />
+                </button>
               )}
             </>
-          )}
-          {documentData === 'null' && (
-            <div className="viewer-loader-small"></div>
-          )}
-          {documentData !== 'null' && documentData && (
-            <Document
-              data={documentData}
-              citationBibTeX={basedOptions.citationBib}
-            />
+          ) : (
+            // Else document
+            <Document data={viewerParams.data} />
           )}
         </div>
       </div>
@@ -150,11 +128,17 @@ export const Viewer = (viewerProps: IViewerProps) => {
   )
 }
 
-export const renderViewer = (
-  rootId: string,
-  data: TypedArray,
-  options: IViewerOptions | null = null
-) => {
+interface IRenderViewerProps {
+  rootId: string
+  data: TypedArray
+  options?: IViewerOptions | null
+}
+
+export const renderViewer = ({
+  rootId,
+  data,
+  options = null,
+}: IRenderViewerProps) => {
   const root = createRoot(document.getElementById(rootId)!)
 
   // render

@@ -1,13 +1,14 @@
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js'
 import { useGesture } from 'react-use-gesture'
 import { KeyboardEvent, MouseEvent, useEffect, useRef, useState } from 'react'
 // @ts-ignore
 import Cite from 'citation-js'
-import { DocumentContext } from './DocumentContext'
+import { DocumentContext } from '../hooks/useDocumentContext'
 import {
   EDIT_TOOLS,
   RENDERING_STATES,
   SIDEBAR_TABS,
+  EDIT_STAGES,
 } from '../../../utils/enums'
 import BottomBar from './bottom-bar/BottomBar'
 import {
@@ -16,11 +17,11 @@ import {
   TypedArray,
 } from 'pdfjs-dist/types/src/display/api'
 import SideMenu from '../side-menu/SideMenu'
-import { useViewerContext } from '../ViewerContext'
 import SinglePage from './single-page/SinglePage'
-import Help from '../helpers/help/Help'
-import EditMenu from './edit-page/edit-menu/EditMenu'
+import Help from '../helpers/Help'
 import EditPage from './edit-page/EditPage'
+import useViewerContext from '../hooks/useViewerContext'
+import useCustomEffect from '../hooks/useCustomEffect'
 
 /**
  * Document component
@@ -29,7 +30,6 @@ import EditPage from './edit-page/EditPage'
  */
 interface IDocumentProps {
   data: TypedArray
-  citationBibTeX: string | null | undefined
 }
 
 /**
@@ -60,7 +60,17 @@ interface PDFOutlineItem {
   items: PDFOutlineItem[] | undefined
 }
 
-const Document = ({ data, citationBibTeX }: IDocumentProps) => {
+const Document = ({ data }: IDocumentProps) => {
+  const {
+    setShowHelp,
+    showHelp,
+    theme,
+    setTheme,
+    shareFunction,
+    citationBib,
+    editPackage,
+  } = useViewerContext()
+
   const [activePage, setActivePage] = useState(1)
   const [prevActivePage, setPrevActivePage] = useState<number>(activePage)
   const [scale, setScale] = useState(1)
@@ -89,7 +99,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   )
   const [basedPdfCitation, setBasedPdfCitation] = useState<
     string | null | undefined
-  >(citationBibTeX)
+  >(citationBib)
   const [pdfCitation, setPdfCitation] = useState<{
     citation: string
     type: string
@@ -110,9 +120,31 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const [elements, setElements] = useState<
     (SVGLineElement | SVGRectElement | SVGPathElement | null)[]
   >([])
+  const [hideBottomBar, setHideBottomBar] = useState<boolean>(false)
+  const [groupId, setGroupId] = useState<string>('')
+  const [layer, setLayer] = useState<{ id: string; svg: string } | null>(null)
+  const [editStage, setEditStage] = useState<EDIT_STAGES>(EDIT_STAGES.NULL)
 
-  const { setShowHelp, showHelp, theme, setTheme, shareFunction } =
-    useViewerContext()
+  // Get layer for choosen group and page
+  useCustomEffect(async () => {
+    if (isEditMode) {
+      setScale(1)
+      if (groupId) {
+        try {
+          setEditStage(EDIT_STAGES.LOADING)
+          const l = await editPackage!.getLayerFunc(activePage, groupId)
+          setLayer(l)
+        } catch {
+          setLayer(null)
+        } finally {
+          setEditStage(EDIT_STAGES.DONE)
+        }
+      }
+    } else {
+      setEditStage(EDIT_STAGES.NULL)
+      setGroupId('')
+    }
+  }, [groupId, activePage, isEditMode])
 
   useEffect(() => {
     // Set base citation
@@ -148,9 +180,13 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    * Load document on mount
    *
    */
-  const loadDocument = async () => {
-    await pdfjs
-      .getDocument({ data } as DocumentInitParameters)
+  useCustomEffect(async () => {
+    await pdfjsLib
+      .getDocument({
+        data,
+        useSystemFonts: true,
+        verbosity: 0,
+      } as DocumentInitParameters)
       .promise.then(async (doc: PDFDocumentProxy) => {
         // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
         // https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFDocumentProxy.html#getDestination
@@ -171,7 +207,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         setActivePage(1)
         setTotalPages(doc.numPages)
       })
-  }
+  }, [])
 
   const getTableOfContents = async (
     outline: PDFOutlineItem[],
@@ -353,7 +389,8 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const setPage = (page: number) => {
     if (
       paginatorPageRender === RENDERING_STATES.RENDERED &&
-      previewRender === RENDERING_STATES.RENDERED
+      previewRender === RENDERING_STATES.RENDERED &&
+      ((isEditMode && editStage === EDIT_STAGES.DONE) || !isEditMode)
     ) {
       setPrevActivePage(activePage)
       setActivePage(page)
@@ -366,7 +403,8 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const nextPage = () => {
     if (
       paginatorPageRender === RENDERING_STATES.RENDERED &&
-      previewRender === RENDERING_STATES.RENDERED
+      previewRender === RENDERING_STATES.RENDERED &&
+      ((isEditMode && editStage === EDIT_STAGES.DONE) || !isEditMode)
     ) {
       if (activePage !== totalPages) {
         setPrevActivePage(activePage)
@@ -381,7 +419,8 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const prevPage = () => {
     if (
       paginatorPageRender === RENDERING_STATES.RENDERED &&
-      previewRender === RENDERING_STATES.RENDERED
+      previewRender === RENDERING_STATES.RENDERED &&
+      ((isEditMode && editStage === EDIT_STAGES.DONE) || !isEditMode)
     ) {
       if (activePage !== 1) {
         setPrevActivePage(activePage)
@@ -398,7 +437,8 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
   const searchPage = (page: number) => {
     if (
       paginatorPageRender === RENDERING_STATES.RENDERED &&
-      previewRender === RENDERING_STATES.RENDERED
+      previewRender === RENDERING_STATES.RENDERED &&
+      ((isEditMode && editStage === EDIT_STAGES.DONE) || !isEditMode)
     ) {
       if (page < 1 || (pdf?.numPages && pdf?.numPages < page)) return
       else if (page === activePage) setRerender({})
@@ -413,6 +453,7 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    * Zoom in on document
    */
   const zoomIn = () => {
+    if (isEditMode) return
     setScale((prevScale) => (prevScale < 3 ? prevScale + 0.25 : prevScale))
   }
 
@@ -420,14 +461,25 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
    * Zoom out on document
    */
   const zoomOut = () => {
+    if (isEditMode) return
     setScale((prevScale) => (prevScale > 0.25 ? prevScale - 0.25 : prevScale))
   }
 
-  // Loads the document every time the data changes
-  useEffect(() => {
-    if (data == null) return
-    loadDocument()
-  }, [data])
+  /**
+   * Save svg
+   */
+  const saveLayer = async () => {
+    try {
+      setEditStage(EDIT_STAGES.WORKING)
+      const svg = document.getElementById('evilFlowersPaintSVG')!
+      if (layer) await editPackage!.updateLayerFunc(layer.id, svg)
+      else await editPackage!.saveLayerFunc(svg)
+    } catch {
+    } finally {
+      setEditStage(EDIT_STAGES.DONE)
+      setElements([])
+    }
+  }
 
   const keyDownHandler = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!controlKey) {
@@ -455,18 +507,20 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
           break
         case 's':
           if (isEditMode) break
+          if (!shareFunction) break
           event.preventDefault()
-          shareFunction &&
-            setActiveSidebar((activity) =>
-              activity === SIDEBAR_TABS.SHARE
-                ? SIDEBAR_TABS.NULL
-                : SIDEBAR_TABS.SHARE
-            )
+          setActiveSidebar((activity) =>
+            activity === SIDEBAR_TABS.SHARE
+              ? SIDEBAR_TABS.NULL
+              : SIDEBAR_TABS.SHARE
+          )
           break
-        // case 'e':
-        //   event.preventDefault()
-        //   setIsEditMode(!isEditMode)
-        //   break
+        case 'e':
+          event.preventDefault()
+          editPackage &&
+            ![EDIT_STAGES.LOADING, EDIT_STAGES.WORKING].includes(editStage) &&
+            setIsEditMode(!isEditMode)
+          break
         case 'f':
           if (isEditMode) break
           event.preventDefault()
@@ -506,24 +560,30 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
           setControlKey(true)
           break
       }
+    } else {
+      switch (event.key.toLocaleLowerCase()) {
+        case 's':
+          if (!editPackage || !isEditMode) break
+          event.preventDefault()
+          saveLayer()
+      }
     }
   }
 
-  const keyUpHandler = (event: KeyboardEvent<HTMLDivElement>) => {
+  const keyUpHandler = () => {
     setControlKey(false)
   }
 
   const handleModeChange = () => {
     if (theme === 'light') {
       setTheme('dark')
-      document.getElementById('evilFlowersViewer')?.classList.add('dark')
     } else {
       setTheme('light')
-      document.getElementById('evilFlowersViewer')?.classList.remove('dark')
     }
   }
 
   const handleDoubleClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (isEditMode) return
     event.preventDefault()
     setScale((prevScale) =>
       prevScale > 1.5 ? 1.5 : prevScale < 1 ? 1 : prevScale === 1.5 ? 1 : 1.5
@@ -541,13 +601,9 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         }
         if (waiter > 100) {
           setWaiter(50)
-          setScale((prevScale) =>
-            prevScale < 3 ? prevScale + 0.25 : prevScale
-          )
+          zoomIn()
         } else if (waiter < 0) {
-          setScale((prevScale) =>
-            prevScale > 0.25 ? prevScale - 0.25 : prevScale
-          )
+          zoomOut()
           setWaiter(50)
         }
       },
@@ -615,36 +671,42 @@ const Document = ({ data, citationBibTeX }: IDocumentProps) => {
         setElements,
         editOpacity,
         setEditOpacity,
+        hideBottomBar,
+        setHideBottomBar,
+        saveLayer,
+        groupId,
+        setGroupId,
+        layer,
+        setLayer,
+        editStage,
+        setEditStage,
       }}
     >
-      {data && (
-        <div
-          ref={ref}
-          onKeyDown={keyDownHandler}
-          onKeyUp={keyUpHandler}
-          tabIndex={-1}
-          className={'document-container'}
-          onMouseEnter={() => ref.current?.focus()}
-        >
-          {showHelp && <Help />}
+      <div
+        ref={ref}
+        onKeyDown={keyDownHandler}
+        onKeyUp={keyUpHandler}
+        tabIndex={-1}
+        className={
+          'w-full h-full outline-none flex justify-start items-center flex-col overflow-hidden'
+        }
+        onMouseEnter={() => ref.current?.focus()}
+      >
+        {showHelp && <Help />}
 
-          <div className="document-upper-row-container">
-            {!isEditMode && <SideMenu />}
-            <div className="document-page-container">
-              {/* {!isEditMode ? ( */}
+        <div className="flex flex-1 w-full overflow-hidden">
+          {!isEditMode && <SideMenu />}
+          <div className="relative flex flex-1 w-full flex-col overflow-hidden">
+            {!isEditMode ? (
               <SinglePage onDoubleClick={handleDoubleClick} />
-              {/* ) : (
-                <>
-                  <EditMenu />
-                  <EditPage onDoubleClick={handleDoubleClick} />
-                </>
-              )} */}
-            </div>
+            ) : (
+              <EditPage onDoubleClick={handleDoubleClick} />
+            )}
           </div>
-
-          <BottomBar />
         </div>
-      )}
+
+        <BottomBar />
+      </div>
     </DocumentContext.Provider>
   )
 }

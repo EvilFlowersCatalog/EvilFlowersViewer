@@ -1,33 +1,20 @@
-import { useDocumentContext } from '../DocumentContext'
+import { useDocumentContext } from '../../hooks/useDocumentContext'
 import { useTranslation } from 'react-i18next'
 
 // icons
-import { AiOutlineLeft, AiOutlineRight } from 'react-icons/ai'
+import {
+  AiOutlineDown,
+  AiOutlineLeft,
+  AiOutlineRight,
+  AiOutlineUp,
+} from 'react-icons/ai'
 
-import Preview from './preview/Preview'
+import Preview from './Preview'
 import { ChangeEvent, ReactNode, useState, KeyboardEvent } from 'react'
-import Tooltip from '../../helpers/toolTip/Tooltip'
-import { RENDERING_STATES, SIDEBAR_TABS } from '../../../../utils/enums'
-
-interface IBottomBarButtonsProps {
-  onClick: () => void
-  icon: ReactNode
-  tooltipText: string
-}
-
-const BottomButtons = ({
-  onClick,
-  icon,
-  tooltipText,
-}: IBottomBarButtonsProps) => {
-  return (
-    <Tooltip title={tooltipText} placement={'top'}>
-      <div onClick={onClick} className={'viewer-button'}>
-        {icon}
-      </div>
-    </Tooltip>
-  )
-}
+import Tooltip from '../../helpers/Tooltip'
+import { RENDERING_STATES } from '../../../../utils/enums'
+import Button from '../../common/Button'
+import Loader from '../../common/Loader'
 
 /**
  * This method renders the bottom bar component
@@ -46,6 +33,8 @@ const BottomBar = () => {
     setPage,
     previewRender,
     isEditMode,
+    hideBottomBar,
+    setHideBottomBar,
   } = useDocumentContext()
   const { t } = useTranslation()
 
@@ -75,67 +64,69 @@ const BottomBar = () => {
 
   return (
     <div
-      className="bottom-bar-container"
-      style={isEditMode ? { height: '50px' } : {}}
+      className={`flex py-2 w-full h-[230px] flex-col bg-white dark:bg-gray-dark-strong ${
+        isEditMode ? 'h-[52px]' : hideBottomBar ? 'h-[75px]' : ''
+      }`}
     >
-      <div className="bottom-bar-paginator-container">
-        <BottomButtons
-          tooltipText={
-            activePage !== 1 && previewRender !== RENDERING_STATES.RENDERING
-              ? t('prevPage')
-              : ''
-          }
+      {!isEditMode && (
+        <div className="relative flex justify-center">
+          <Button
+            toolTip={{ text: '', position: 'top' }}
+            onClick={() => setHideBottomBar(!hideBottomBar)}
+            icon={
+              hideBottomBar ? (
+                <AiOutlineUp size={16} />
+              ) : (
+                <AiOutlineDown size={15} />
+              )
+            }
+          />
+        </div>
+      )}
+      <div className="relative w-full flex justify-center items-center gap-0.5 select-none mt-1.5">
+        <Button
+          toolTip={{
+            text:
+              activePage !== 1 && previewRender !== RENDERING_STATES.RENDERING
+                ? t('prevPage')
+                : '',
+            position: 'top',
+          }}
           onClick={prevPage}
-          icon={
-            <AiOutlineLeft
-              id="bottom-bar-left"
-              className={
-                activePage !== 1 && previewRender !== RENDERING_STATES.RENDERING
-                  ? 'viewer-button-icon'
-                  : 'viewer-button-icon-deactive'
-              }
-              style={{ width: '20px', height: '20px' }}
-            />
-          }
+          icon={<AiOutlineLeft id="bottom-bar-left" size={15} />}
         />
         {previewRender === RENDERING_STATES.RENDERED ? (
-          <span className={'bottom-bar-pagination-pages-text'}>
+          <span
+            className={
+              'text-sm flex items-center gap-0.5 text-black dark:text-white'
+            }
+          >
             <input
               placeholder={activePage.toString()}
               value={inputValue}
               name="page-input"
-              className="bottom-bar-pagination-input"
+              className="w-[60px] py-0.5 p-1 mx-1 text-sm text-center outline-none border-none rounded-md bg-gray-light dark:bg-gray-dark-medium text-black dark:text-white"
               onChange={handleInputChange}
               onKeyDown={handleInputKey}
             />
-            /<span className="bottom-bar-text-container">{totalPages}</span>
+            /<span className="mx-1">{totalPages}</span>
           </span>
         ) : (
-          <div
-            className="viewer-loader-small"
-            style={{ width: '20px', height: '20px' }}
-          ></div>
+          <div className="w-14 flex justify-center">
+            <Loader size={20} />
+          </div>
         )}
-        <BottomButtons
-          tooltipText={
-            activePage !== totalPages &&
-            previewRender !== RENDERING_STATES.RENDERING
-              ? t('nextPage')
-              : ''
-          }
+        <Button
+          toolTip={{
+            text:
+              activePage !== totalPages &&
+              previewRender !== RENDERING_STATES.RENDERING
+                ? t('nextPage')
+                : '',
+            position: 'top',
+          }}
           onClick={nextPage}
-          icon={
-            <AiOutlineRight
-              id="bottom-bar-right"
-              className={
-                activePage !== totalPages &&
-                previewRender !== RENDERING_STATES.RENDERING
-                  ? 'viewer-button-icon'
-                  : 'viewer-button-icon-deactive'
-              }
-              style={{ width: '20px', height: '20px' }}
-            />
-          }
+          icon={<AiOutlineRight id="bottom-bar-right" size={15} />}
         />
       </div>
       <Preview />

@@ -1,44 +1,62 @@
 import { Viewer } from './lib/components/Viewer'
-import { pdf_data } from './examples/pdf/latexSamplePDF'
+import pdf from './examples/pdf/Eye Tracking Methodology.pdf'
 import { exampleShareFunction } from './examples/function/sharedFunction'
-import { saveFunction, layersFunction } from './examples/function/editFunctions'
 import { exampleCitation } from './examples/citation/citation'
+import { useEffect, useState } from 'react'
+import { TypedArray } from 'pdfjs-dist/types/src/display/api'
+import {
+  saveLayerFunc,
+  saveGroupFunc,
+  updateLayerFunc,
+  updateGroupFunc,
+  deleteLayerFunc,
+  deleteGroupFunc,
+  getLayerFunc,
+  getGroupsFunc,
+} from './examples/function/editPackage'
 
 const homeFunction = () => {
   console.log('home')
 }
 
-interface IExample {
-  theme?: 'dark' | 'light'
-  lang?: string
-  citationBib?: string | null
-  shareFunction?:
-    | ((pages: string | null, expaireDate: string) => Promise<string>)
-    | null
-  homeFunction?: (() => void) | null
-  saveFunction?: ((svg: HTMLElement, name: string) => void) | null
-  layersFunction?: ((page: number) => void) | null
-}
+const App = () => {
+  const [data, setData] = useState<TypedArray | null>(null)
 
-const inputOptions: IExample = {
-  citationBib: exampleCitation,
-  shareFunction: exampleShareFunction,
-  homeFunction: homeFunction,
-  saveFunction: saveFunction,
-  layersFunction: layersFunction,
-  // theme: 'light',
-  lang: 'en',
-}
+  useEffect(() => {
+    const fetchAndConvertPDF = async () => {
+      try {
+        const response = await fetch(pdf)
+        const arrayBuffer = await response.arrayBuffer()
+        const typedArray = new Uint8Array(arrayBuffer)
+        setData(typedArray)
+      } catch (error) {
+        setData(null)
+      }
+    }
 
-/**
- *
- * @returns The App component that renders the Viewer component
- */
-export function App() {
+    fetchAndConvertPDF()
+  }, [])
+
   return (
-    <div className="App">
-      <Viewer data={null} options={inputOptions} />
-    </div>
+    <Viewer
+      data={data}
+      options={{
+        citationBib: exampleCitation,
+        shareFunction: exampleShareFunction,
+        homeFunction: homeFunction,
+        editPackage: {
+          saveLayerFunc,
+          saveGroupFunc,
+          updateLayerFunc,
+          updateGroupFunc,
+          deleteLayerFunc,
+          deleteGroupFunc,
+          getLayerFunc,
+          getGroupsFunc,
+        },
+        lang: 'sk',
+      }}
+    />
   )
 }
 

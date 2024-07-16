@@ -1,7 +1,16 @@
-import { useCallback, useEffect, MouseEvent, useState } from 'react'
-import { useDocumentContext } from '../DocumentContext'
-import { EDIT_TOOLS, RENDERING_STATES } from '../../../../utils/enums'
+import { MouseEvent, useState } from 'react'
+import { useDocumentContext } from '../../hooks/useDocumentContext'
+import {
+  EDIT_STAGES,
+  EDIT_TOOLS,
+  RENDERING_STATES,
+} from '../../../../utils/enums'
 import PaintingSVG from './PaintingSVG'
+import useCustomEffect from '../../hooks/useCustomEffect'
+import useRenderPage from '../../hooks/useRenderPage'
+import EditMenu from './edit-items/EditMenu'
+import loader from '../../common/RenderLoader'
+import Loader from '../../common/Loader'
 
 interface ISinglePage {
   onDoubleClick: (event: MouseEvent<HTMLDivElement>) => void
@@ -13,7 +22,6 @@ interface ISinglePage {
  * @returns Page component
  *
  */
-
 const EditPage = ({ onDoubleClick }: ISinglePage) => {
   const {
     pdf,
@@ -24,9 +32,8 @@ const EditPage = ({ onDoubleClick }: ISinglePage) => {
     editLineSize,
     editHexColor,
     activeEditTool,
-    setSvgWidth,
-    setSvgHeight,
     editOpacity,
+    editStage,
   } = useDocumentContext()
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [mouseVisible, setMouseVisible] = useState(false)
@@ -39,62 +46,20 @@ const EditPage = ({ onDoubleClick }: ISinglePage) => {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`
   }
 
-  /**
-   * Renders the page and all its layers
-   *
-   * @returns A promise that resolves when the page is rendered
-   */
-  const renderPage = useCallback(
-    async (view: HTMLElement | null) => {
-      const page = await pdf?.getPage(activePage)
-      if (!page) return
+  const renderPage = useRenderPage()
 
-      const viewerContent = document.getElementById('evilFlowersEditContent')
-
-      if (!viewerContent) return
-
-      const height = viewerContent.getBoundingClientRect().height
-
-      // Calculate scale
-      let viewport = page.getViewport({ scale })
-      const calcScreenHeight = 0.95 * height!
-      const desiredHeight = calcScreenHeight * viewport.scale
-      const viewportHeight = viewport.height / viewport.scale
-      const desiredScale = desiredHeight / viewportHeight
-      viewport = page.getViewport({ scale: desiredScale })
-
-      const canvas = document.createElement('canvas')
-      canvas.setAttribute('class', 'edit-page-canvas-container-paginator')
-      canvas.width = viewport.width
-      canvas.height = viewport.height
-      setSvgWidth(canvas.width)
-      setSvgHeight(canvas.height)
-      const canvasContext = canvas.getContext('2d') as CanvasRenderingContext2D
-
-      // render page
-      await page
-        .render({
-          canvasContext,
-          viewport,
-        })
-        .promise.then(() => {
-          // append canvas
-          view?.replaceChildren(canvas)
-        })
-    },
-    [activePage, pdf, scale]
-  )
-
-  useEffect(() => {
+  useCustomEffect(() => {
     setPaginatorPageRender(RENDERING_STATES.RENDERING)
-    const loader = document.createElement('div')
-    loader.setAttribute('class', 'viewer-loader-small')
 
     const loadPage = async () => {
-      const view = document.getElementById('evilFlowersEditPageContent')
+      const view = document.getElementById('evilFlowersPageContent')
       view?.replaceChildren(loader)
 
-      await renderPage(view)
+      await renderPage({
+        view,
+        edit: true,
+        renderTextContext: false,
+      })
     }
 
     loadPage().then(() => {
@@ -109,58 +74,77 @@ const EditPage = ({ onDoubleClick }: ISinglePage) => {
   }
 
   return (
-    <div id={'evilFlowersEditContent'} onDoubleClick={onDoubleClick}>
-      <div
-        className="edit-page-container"
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => setMouseVisible(false)}
-        style={
-          activeEditTool === EDIT_TOOLS.MOUSE
-            ? { cursor: 'default' }
-            : [EDIT_TOOLS.SQUARE, EDIT_TOOLS.CIRCLE, EDIT_TOOLS.LINE].includes(
-                activeEditTool
-              )
-            ? { cursor: 'crosshair' }
-            : { cursor: 'none' }
-        }
-      >
-        <div id={'evilFlowersEditPageContent'} />
-        <PaintingSVG />
+    <>
+      <EditMenu />
+      <div id={'evilFlowersContent'} onDoubleClick={onDoubleClick}>
+        <div
+          className="relative w-fit m-auto overflow-auto"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setMouseVisible(false)}
+          style={
+            activeEditTool === EDIT_TOOLS.MOUSE
+              ? { cursor: 'default' }
+              : [
+                  EDIT_TOOLS.SQUARE,
+                  EDIT_TOOLS.CIRCLE,
+                  EDIT_TOOLS.LINE,
+                ].includes(activeEditTool)
+              ? { cursor: 'crosshair' }
+              : { cursor: 'none' }
+          }
+        >
+          <div id={'evilFlowersPageContent'} />
+          {/* SVG */}
+          {editStage !== EDIT_STAGES.NULL && (
+            <>
+              {[EDIT_STAGES.DONE, EDIT_STAGES.WORKING].includes(editStage) && (
+                <PaintingSVG />
+              )}
+              {[EDIT_STAGES.LOADING, EDIT_STAGES.WORKING].includes(
+                editStage
+              ) && (
+                <div className="absolute top-0 flex justify-center items-center left-0 w-full h-full bg-black bg-opacity-50 ">
+                  <Loader size={50} />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        {mouseVisible &&
+          ![EDIT_TOOLS.SQUARE, EDIT_TOOLS.CIRCLE, EDIT_TOOLS.LINE].includes(
+            activeEditTool
+          ) && (
+            <span
+              style={{
+                position: 'absolute',
+                left: mousePosition.x - (editLineSize + 4) / 2 + 'px',
+                top: mousePosition.y - (editLineSize + 4) / 2 + 'px',
+                width:
+                  activeEditTool === EDIT_TOOLS.ERASER
+                    ? '20px'
+                    : editLineSize + 'px',
+                height:
+                  activeEditTool === EDIT_TOOLS.ERASER
+                    ? '20px'
+                    : editLineSize + 'px',
+                backgroundColor:
+                  activeEditTool === EDIT_TOOLS.ERASER
+                    ? 'white'
+                    : hexToRgba(editHexColor, editOpacity),
+                border:
+                  activeEditTool === EDIT_TOOLS.ERASER
+                    ? '2px solid black'
+                    : `2px solid ${
+                        editHexColor === '#ffffff' ? 'black' : 'transparent'
+                      }`,
+                borderRadius:
+                  activeEditTool === EDIT_TOOLS.ERASER ? '5px' : '50%',
+                pointerEvents: 'none',
+              }}
+            />
+          )}
       </div>
-      {mouseVisible &&
-        ![EDIT_TOOLS.SQUARE, EDIT_TOOLS.CIRCLE, EDIT_TOOLS.LINE].includes(
-          activeEditTool
-        ) && (
-          <span
-            style={{
-              position: 'absolute',
-              left: mousePosition.x - (editLineSize + 4) / 2 + 'px',
-              top: mousePosition.y - (editLineSize + 4) / 2 + 'px',
-              width:
-                activeEditTool === EDIT_TOOLS.ERASER
-                  ? '20px'
-                  : editLineSize + 'px',
-              height:
-                activeEditTool === EDIT_TOOLS.ERASER
-                  ? '20px'
-                  : editLineSize + 'px',
-              backgroundColor:
-                activeEditTool === EDIT_TOOLS.ERASER
-                  ? 'white'
-                  : hexToRgba(editHexColor, editOpacity),
-              border:
-                activeEditTool === EDIT_TOOLS.ERASER
-                  ? '2px solid black'
-                  : `2px solid ${
-                      editHexColor === '#ffffff' ? 'black' : 'transparent'
-                    }`,
-              borderRadius:
-                activeEditTool === EDIT_TOOLS.ERASER ? '5px' : '50%',
-              pointerEvents: 'none',
-            }}
-          />
-        )}
-    </div>
+    </>
   )
 }
 
