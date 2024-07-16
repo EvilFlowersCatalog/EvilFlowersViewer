@@ -3,6 +3,7 @@
 ## 0.5.1 : TBD
 
 - **Added**: prefix to tailwind
+- **Added**: Responsivness to edit
 - **Changed**: edit `save layer` functions
 
 ## 0.5.0 : 2024-07-16

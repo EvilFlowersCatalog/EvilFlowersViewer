@@ -68,77 +68,77 @@ const PaintingSVG = () => {
     })
   }, [isDrawing, activeEditTool])
 
-  // // Responsivness
-  // useCustomEffect(() => {
-  //   const svg = svgRef.current
-  //   const width = svg.width.baseVal.value
-  //   const height = svg.height.baseVal.value
+  // Responsivness
+  useCustomEffect(() => {
+    const svg = svgRef.current
+    const width = svg.width.baseVal.value
+    const height = svg.height.baseVal.value
 
-  //   console.log(width, height)
+    console.log(width, height)
 
-  //   if (elements.length !== 0) {
-  //     elements.forEach((element) => {
-  //       // adaptd stroke width
-  //       if (element) {
-  //         const strokeWidth = element.getAttribute('stroke-width')
-  //         if (strokeWidth) {
-  //           element.setAttribute(
-  //             'stroke-width',
-  //             Math.max(1, (parseInt(strokeWidth) / width) * svgWidth).toString()
-  //           )
-  //         }
-  //       }
-  //       // FOR STRAIGHT LINE
-  //       if (element && element instanceof SVGLineElement) {
-  //         const x1 = element.x1.baseVal.value
-  //         const y1 = element.y1.baseVal.value
-  //         const x2 = element.x2.baseVal.value
-  //         const y2 = element.y2.baseVal.value
+    if (elements.length !== 0) {
+      elements.forEach((element) => {
+        // adaptd stroke width
+        if (element) {
+          const strokeWidth = element.getAttribute('stroke-width')
+          if (strokeWidth) {
+            element.setAttribute(
+              'stroke-width',
+              Math.max(1, (parseInt(strokeWidth) / width) * svgWidth).toString()
+            )
+          }
+        }
+        // FOR STRAIGHT LINE
+        if (element && element instanceof SVGLineElement) {
+          const x1 = element.x1.baseVal.value
+          const y1 = element.y1.baseVal.value
+          const x2 = element.x2.baseVal.value
+          const y2 = element.y2.baseVal.value
 
-  //         element.setAttribute('x1', ((x1 / width) * svgWidth).toString())
-  //         element.setAttribute('y1', ((y1 / height) * svgHeight).toString())
-  //         element.setAttribute('x2', ((x2 / width) * svgWidth).toString())
-  //         element.setAttribute('y2', ((y2 / height) * svgHeight).toString())
-  //       }
-  //       // FOR RECT
-  //       else if (element && element instanceof SVGRectElement) {
-  //         const x = element.x.baseVal.value
-  //         const y = element.y.baseVal.value
-  //         const entWidth = element.width.baseVal.value
-  //         const entHeight = element.height.baseVal.value
+          element.setAttribute('x1', ((x1 / width) * svgWidth).toString())
+          element.setAttribute('y1', ((y1 / height) * svgHeight).toString())
+          element.setAttribute('x2', ((x2 / width) * svgWidth).toString())
+          element.setAttribute('y2', ((y2 / height) * svgHeight).toString())
+        }
+        // FOR RECT
+        else if (element && element instanceof SVGRectElement) {
+          const x = element.x.baseVal.value
+          const y = element.y.baseVal.value
+          const entWidth = element.width.baseVal.value
+          const entHeight = element.height.baseVal.value
 
-  //         element.setAttribute('x', ((x / width) * svgWidth).toString())
-  //         element.setAttribute('y', ((y / height) * svgHeight).toString())
-  //         element.setAttribute(
-  //           'width',
-  //           ((entWidth / width) * svgWidth).toString()
-  //         )
-  //         element.setAttribute(
-  //           'height',
-  //           ((entHeight / height) * svgHeight).toString()
-  //         )
-  //       }
-  //       // FOR LINE
-  //       else if (element && element instanceof SVGPathElement) {
-  //         const d = element.getAttribute('d') as string
-  //         if (d) {
-  //           const coords = d.split(' ').map((coord) => {
-  //             const command = coord[0]
-  //             const points = coord.substring(1).split(',')
-  //             const x = ((parseInt(points[0]) / width) * svgWidth).toFixed(0)
-  //             const y = ((parseInt(points[1]) / height) * svgHeight).toFixed(0)
+          element.setAttribute('x', ((x / width) * svgWidth).toString())
+          element.setAttribute('y', ((y / height) * svgHeight).toString())
+          element.setAttribute(
+            'width',
+            ((entWidth / width) * svgWidth).toString()
+          )
+          element.setAttribute(
+            'height',
+            ((entHeight / height) * svgHeight).toString()
+          )
+        }
+        // FOR LINE
+        else if (element && element instanceof SVGPathElement) {
+          const d = element.getAttribute('d') as string
+          if (d) {
+            const coords = d.split(' ').map((coord) => {
+              const command = coord[0]
+              const points = coord.substring(1).split(',')
+              const x = ((parseInt(points[0]) / width) * svgWidth).toFixed(0)
+              const y = ((parseInt(points[1]) / height) * svgHeight).toFixed(0)
 
-  //             if (command && x && y) return `${command}${x},${y}`
-  //           })
-  //           element.setAttribute('d', coords.join(' '))
-  //         }
-  //       }
-  //     })
-  //   }
+              if (command && x && y) return `${command}${x},${y}`
+            })
+            element.setAttribute('d', coords.join(' '))
+          }
+        }
+      })
+    }
 
-  //   svg.setAttribute('width', svgWidth)
-  //   svg.setAttribute('height', svgHeight)
-  // }, [svgWidth, svgHeight])
+    svg.setAttribute('width', svgWidth)
+    svg.setAttribute('height', svgHeight)
+  }, [svgWidth, svgHeight])
 
   // Function for starting the drawing
   const startDrawing = ({ nativeEvent }: any) => {

@@ -128,7 +128,6 @@ const Document = ({ data }: IDocumentProps) => {
   // Get layer for choosen group and page
   useCustomEffect(async () => {
     if (isEditMode) {
-      setScale(1)
       if (groupId) {
         try {
           setEditStage(EDIT_STAGES.LOADING)
@@ -453,7 +452,6 @@ const Document = ({ data }: IDocumentProps) => {
    * Zoom in on document
    */
   const zoomIn = () => {
-    if (isEditMode) return
     setScale((prevScale) => (prevScale < 3 ? prevScale + 0.25 : prevScale))
   }
 
@@ -461,7 +459,6 @@ const Document = ({ data }: IDocumentProps) => {
    * Zoom out on document
    */
   const zoomOut = () => {
-    if (isEditMode) return
     setScale((prevScale) => (prevScale > 0.25 ? prevScale - 0.25 : prevScale))
   }
 
@@ -469,6 +466,7 @@ const Document = ({ data }: IDocumentProps) => {
    * Save svg
    */
   const saveLayer = async () => {
+    setScale(1)
     try {
       setEditStage(EDIT_STAGES.WORKING)
       const svg = document.getElementById('evilFlowersPaintSVG')!
@@ -583,7 +581,6 @@ const Document = ({ data }: IDocumentProps) => {
   }
 
   const handleDoubleClick = (event: MouseEvent<HTMLDivElement>) => {
-    if (isEditMode) return
     event.preventDefault()
     setScale((prevScale) =>
       prevScale > 1.5 ? 1.5 : prevScale < 1 ? 1 : prevScale === 1.5 ? 1 : 1.5
