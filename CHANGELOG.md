@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.1 : TBD
+## 0.5.1 : 2024-07-16
 
 - **Added**: prefix to tailwind
 - **Added**: Responsivness to edit
