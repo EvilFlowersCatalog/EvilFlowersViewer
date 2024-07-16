@@ -72,8 +72,6 @@ const PaintingSVG = () => {
     const height = svg.height.baseVal.value
     const children = svgRef.current.children
 
-    console.log(width, height)
-
     if (children.length !== 0) {
       for (const child of children) {
         // Adjust stroke width

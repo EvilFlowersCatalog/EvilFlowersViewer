@@ -2,9 +2,9 @@ const delay = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 let nieco =
-  '<svg xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" /></svg>'
+  '<svg xmlns="http://www.w3.org/2000/svg"><rect stroke="#ff0000" opacity="1" stroke-width="15" stroke-linecap="round" fill="none" rx="50%" x="148" y="238" width="200" height="300"></rect></svg>'
 let nieco1 =
-  '<svg xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" /></svg>'
+  '<svg xmlns="http://www.w3.org/2000/svg"><rect stroke="#ff0000" opacity="1" stroke-width="15" stroke-linecap="round" fill="none" rx="50%" x="148" y="238" width="220" height="300"></rect></svg>'
 
 export const saveLayerFunc = async (
   svg: HTMLElement,
