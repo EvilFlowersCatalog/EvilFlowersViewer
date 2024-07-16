@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, MouseEvent } from 'react'
+import { useRef, useState } from 'react'
 import { useDocumentContext } from '../../hooks/useDocumentContext'
 import { EDIT_TOOLS } from '../../../../utils/enums'
 import useCustomEffect from '../../hooks/useCustomEffect'
@@ -12,8 +12,6 @@ const PaintingSVG = () => {
     activeEditTool,
     svgHeight,
     svgWidth,
-    elements,
-    setElements,
     editOpacity,
     layer,
   } = useDocumentContext()
@@ -32,7 +30,6 @@ const PaintingSVG = () => {
     entity: SVGLineElement | SVGRectElement | SVGPathElement
   ) => {
     if (EDIT_TOOLS.ERASER === activeEditTool && isDrawing) {
-      setElements(elements.filter((item) => entity !== item))
       svgRef.current.removeChild(entity)
     }
   }
@@ -61,84 +58,88 @@ const PaintingSVG = () => {
 
   // reactivate hover function in elements
   useCustomEffect(() => {
-    elements.forEach((element) => {
-      if (element) {
-        element.onmouseover = () => handleMouseOver(element)
+    for (const child of svgRef.current.children) {
+      if (child) {
+        child.onmouseover = () => handleMouseOver(child)
       }
-    })
+    }
   }, [isDrawing, activeEditTool])
 
-  // // Responsivness
-  // useCustomEffect(() => {
-  //   const svg = svgRef.current
-  //   const width = svg.width.baseVal.value
-  //   const height = svg.height.baseVal.value
+  // Responsivness
+  const resize = (children: any, width: number, height: number) => {
+    for (const child of children) {
+      // Adjust stroke width
+      if (child) {
+        const strokeWidth = child.getAttribute('stroke-width')
+        if (strokeWidth) {
+          const newStrokeWidth = (parseFloat(strokeWidth) / width) * svgWidth
+          child.setAttribute('stroke-width', newStrokeWidth.toString())
+        }
 
-  //   console.log(width, height)
+        // FOR STRAIGHT LINE
+        if (child instanceof SVGLineElement) {
+          const x1 = child.x1.baseVal.value
+          const y1 = child.y1.baseVal.value
+          const x2 = child.x2.baseVal.value
+          const y2 = child.y2.baseVal.value
 
-  //   if (elements.length !== 0) {
-  //     elements.forEach((element) => {
-  //       // adaptd stroke width
-  //       if (element) {
-  //         const strokeWidth = element.getAttribute('stroke-width')
-  //         if (strokeWidth) {
-  //           element.setAttribute(
-  //             'stroke-width',
-  //             Math.max(1, (parseInt(strokeWidth) / width) * svgWidth).toString()
-  //           )
-  //         }
-  //       }
-  //       // FOR STRAIGHT LINE
-  //       if (element && element instanceof SVGLineElement) {
-  //         const x1 = element.x1.baseVal.value
-  //         const y1 = element.y1.baseVal.value
-  //         const x2 = element.x2.baseVal.value
-  //         const y2 = element.y2.baseVal.value
+          // Adjust height and width for position
+          child.setAttribute('x1', ((x1 / width) * svgWidth).toString())
+          child.setAttribute('y1', ((y1 / height) * svgHeight).toString())
+          child.setAttribute('x2', ((x2 / width) * svgWidth).toString())
+          child.setAttribute('y2', ((y2 / height) * svgHeight).toString())
+        }
+        // FOR RECT
+        else if (child instanceof SVGRectElement) {
+          const x = child.x.baseVal.value
+          const y = child.y.baseVal.value
+          const entWidth = child.width.baseVal.value
+          const entHeight = child.height.baseVal.value
 
-  //         element.setAttribute('x1', ((x1 / width) * svgWidth).toString())
-  //         element.setAttribute('y1', ((y1 / height) * svgHeight).toString())
-  //         element.setAttribute('x2', ((x2 / width) * svgWidth).toString())
-  //         element.setAttribute('y2', ((y2 / height) * svgHeight).toString())
-  //       }
-  //       // FOR RECT
-  //       else if (element && element instanceof SVGRectElement) {
-  //         const x = element.x.baseVal.value
-  //         const y = element.y.baseVal.value
-  //         const entWidth = element.width.baseVal.value
-  //         const entHeight = element.height.baseVal.value
+          // Adjust height and width for position
+          child.setAttribute('x', ((x / width) * svgWidth).toString())
+          child.setAttribute('y', ((y / height) * svgHeight).toString())
+          child.setAttribute(
+            'width',
+            ((entWidth / width) * svgWidth).toString()
+          )
+          child.setAttribute(
+            'height',
+            ((entHeight / height) * svgHeight).toString()
+          )
+        }
+        // FOR LINE
+        else if (child instanceof SVGPathElement) {
+          const d = child.getAttribute('d') as string
+          if (d) {
+            const coords = d.split(' ').map((coord) => {
+              const command = coord[0]
+              const points = coord.substring(1).split(',')
+              const x = ((parseFloat(points[0]) / width) * svgWidth).toFixed(0)
+              const y = ((parseFloat(points[1]) / height) * svgHeight).toFixed(
+                0
+              )
 
-  //         element.setAttribute('x', ((x / width) * svgWidth).toString())
-  //         element.setAttribute('y', ((y / height) * svgHeight).toString())
-  //         element.setAttribute(
-  //           'width',
-  //           ((entWidth / width) * svgWidth).toString()
-  //         )
-  //         element.setAttribute(
-  //           'height',
-  //           ((entHeight / height) * svgHeight).toString()
-  //         )
-  //       }
-  //       // FOR LINE
-  //       else if (element && element instanceof SVGPathElement) {
-  //         const d = element.getAttribute('d') as string
-  //         if (d) {
-  //           const coords = d.split(' ').map((coord) => {
-  //             const command = coord[0]
-  //             const points = coord.substring(1).split(',')
-  //             const x = ((parseInt(points[0]) / width) * svgWidth).toFixed(0)
-  //             const y = ((parseInt(points[1]) / height) * svgHeight).toFixed(0)
+              if (command && x && y) return `${command}${x},${y}`
+            })
+            child.setAttribute('d', coords.join(' '))
+          }
+        }
+      }
+    }
+  }
+  // Call responsive each time schWidth/Height change
+  useCustomEffect(() => {
+    const svg = svgRef.current
+    const width = svg.width.baseVal.value
+    const height = svg.height.baseVal.value
+    const children = svgRef.current.children
 
-  //             if (command && x && y) return `${command}${x},${y}`
-  //           })
-  //           element.setAttribute('d', coords.join(' '))
-  //         }
-  //       }
-  //     })
-  //   }
+    resize(children, width, height)
 
-  //   svg.setAttribute('width', svgWidth)
-  //   svg.setAttribute('height', svgHeight)
-  // }, [svgWidth, svgHeight])
+    svg.setAttribute('width', svgWidth)
+    svg.setAttribute('height', svgHeight)
+  }, [svgWidth, svgHeight])
 
   // Function for starting the drawing
   const startDrawing = ({ nativeEvent }: any) => {
@@ -202,14 +203,14 @@ const PaintingSVG = () => {
       setIsDrawing(false)
       return
     }
-    if (isDrawing) elements.push(entity)
     setEntity(null)
     setIsDrawing(false)
     setPath('M')
     setRecreate((prev) => !prev) // for trigger createing new entity
   }
 
-  useEffect(() => {
+  // Copy svg layer to pating layer
+  useCustomEffect(() => {
     if (layer && svgRef.current) {
       // Clear existing SVG content
       svgRef.current.innerHTML = ''
@@ -219,31 +220,17 @@ const PaintingSVG = () => {
       const doc = parser.parseFromString(layer.svg, 'image/svg+xml')
       const parsedSvg = doc.documentElement
 
+      // Get width and height from parsed SVG
+      const width = parseFloat(parsedSvg.getAttribute('width')!)
+      const height = parseFloat(parsedSvg.getAttribute('height')!)
+
       // Append child nodes to the SVG element
       if (parsedSvg) {
-        const tmpElements: (
-          | SVGLineElement
-          | SVGRectElement
-          | SVGPathElement
-          | null
-        )[] = []
         Array.from(parsedSvg.children).forEach((child) => {
           svgRef.current.appendChild(child)
-          switch (child.tagName.toLowerCase()) {
-            case 'line':
-              tmpElements.push(child as SVGLineElement)
-              break
-            case 'rect':
-              tmpElements.push(child as SVGRectElement)
-              break
-            case 'path':
-              tmpElements.push(child as SVGPathElement)
-              break
-            default:
-              break
-          }
         })
-        setElements(tmpElements)
+
+        resize(svgRef.current.children, width, height)
       }
     }
   }, [layer])
@@ -252,7 +239,7 @@ const PaintingSVG = () => {
     <svg
       xmlns="http://www.w3.org/2000/svg"
       id="evilFlowersPaintSVG"
-      className="absolute top-0 left-0 w-full h-full border border-red"
+      className="efw-absolute efw-top-0 efw-left-0 efw-w-full efw-h-full efw-border efw-border-red"
       onMouseDown={
         EDIT_TOOLS.MOUSE === activeEditTool ? undefined : startDrawing
       }

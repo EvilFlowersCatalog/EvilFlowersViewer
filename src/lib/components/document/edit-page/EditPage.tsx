@@ -78,7 +78,7 @@ const EditPage = ({ onDoubleClick }: ISinglePage) => {
       <EditMenu />
       <div id={'evilFlowersContent'} onDoubleClick={onDoubleClick}>
         <div
-          className="relative w-fit m-auto overflow-auto"
+          className="efw-relative efw-w-fit efw-m-auto efw-overflow-auto"
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setMouseVisible(false)}
           style={
@@ -103,7 +103,7 @@ const EditPage = ({ onDoubleClick }: ISinglePage) => {
               {[EDIT_STAGES.LOADING, EDIT_STAGES.WORKING].includes(
                 editStage
               ) && (
-                <div className="absolute top-0 flex justify-center items-center left-0 w-full h-full bg-black bg-opacity-50 ">
+                <div className="efw-absolute efw-top-0 efw-flex efw-justify-center efw-items-center efw-left-0 efw-w-full efw-h-full efw-bg-black efw-bg-opacity-50 ">
                   <Loader size={50} />
                 </div>
               )}

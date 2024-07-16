@@ -64,7 +64,11 @@ const ShareQRCode = (props: IShareQRProps) => {
       onClick={() => handleOnClickClick()}
       onClose={() => handleOnCloseClick()}
     >
-      <div className={'w-full min-h-[200px] flex justify-center items-center'}>
+      <div
+        className={
+          'efw-w-full efw-min-h-[200px] efw-flex efw-justify-center efw-items-center'
+        }
+      >
         {props.link ? (
           props.link !== 'error' ? (
             <QRCode
@@ -74,9 +78,9 @@ const ShareQRCode = (props: IShareQRProps) => {
               value={props.link}
             />
           ) : (
-            <pre className="flex justify-center items-center text-center flex-col uppercase text-sm font-extrabold">
+            <pre className="efw-flex efw-justify-center efw-items-center efw-text-center efw-flex-col efw-uppercase efw-text-sm efw-font-extrabold">
               {t('shareQrCodeFail')}
-              <BiSad size={25} className="mt-5" />
+              <BiSad size={25} className="efw-mt-5" />
             </pre>
           )
         ) : (

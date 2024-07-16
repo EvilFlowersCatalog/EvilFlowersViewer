@@ -184,7 +184,9 @@ const Search = () => {
 
   return (
     <>
-      <div className={'flex w-full items-center justify-center'}>
+      <div
+        className={'efw-flex efw-w-full efw-items-center efw-justify-center'}
+      >
         {/* Search input */}
         <input
           ref={ref}
@@ -192,7 +194,7 @@ const Search = () => {
           value={searchPattern}
           onChange={handleSearchChange}
           name="search-input"
-          className="w-full p-2 text-sm border-none rounded-md bg-gray-light dark:bg-gray-dark-medium outline-none text-black dark:text-white"
+          className="efw-w-full efw-p-2 efw-text-sm efw-border-none efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium efw-outline-none efw-text-black dark:efw-text-white"
           placeholder={t('search')}
           onKeyDown={(e) => {
             e.stopPropagation()
@@ -201,7 +203,7 @@ const Search = () => {
       </div>
       {/* If loading */}
       {searching === SEARCH_STATES.LOADING && (
-        <div className="w-full flex justify-center mt-5">
+        <div className="efw-w-full efw-flex efw-justify-center efw-mt-5">
           <Loader size={30} />
         </div>
       )}
@@ -209,11 +211,11 @@ const Search = () => {
       {searchPattern.length === 0 && searching === SEARCH_STATES.DONE && (
         <span
           className={
-            'mt-5 w-full text-center text-sm whitespace-pre-wrap flex flex-col justify-center items-center'
+            'efw-mt-5 efw-w-full efw-text-center efw-text-sm efw-whitespace-pre-wrap efw-flex efw-flex-col efw-justify-center efw-items-center'
           }
         >
           {t('searchPattern')}
-          <BiSmile className="mt-2" size={30} />
+          <BiSmile className="efw-mt-2" size={30} />
         </span>
       )}
       {/* if search is done and there are no matches and ther is pattern */}
@@ -222,22 +224,22 @@ const Search = () => {
         searchPattern.length > 0 && (
           <span
             className={
-              'mt-5 w-full text-center text-sm whitespace-pre-wrap flex flex-col justify-center items-center'
+              'efw-mt-5 efw-w-full efw-text-center efw-text-sm efw-whitespace-pre-wrap efw-flex efw-flex-col efw-justify-center efw-items-center'
             }
           >
             {t('noMatchesFound')}
-            <BiSad className="mt-2" size={30} />
+            <BiSad className="efw-mt-2" size={30} />
           </span>
         )}
       {/* if search is done and there are matches */}
       {searching === SEARCH_STATES.DONE &&
         matches.length > 0 &&
         searchPattern.length > 0 && (
-          <div className="w-full flex flex-col mt-5">
-            <span className={'text-sm font-medium mb-2'}>
+          <div className="efw-w-full efw-flex efw-flex-col efw-mt-5">
+            <span className={'efw-text-sm efw-font-medium efw-mb-2'}>
               {t('foundResults', { count: matches.length })}
             </span>
-            <div className="flex flex-col gap-2.5 w-full">
+            <div className="efw-flex efw-flex-col efw-gap-2.5 efw-w-full">
               {/* matches */}
               {matches.map((match, i) => {
                 if (!match) return <></>
@@ -245,14 +247,20 @@ const Search = () => {
                   <div
                     key={i}
                     className={
-                      'rounded-md bg-gray-light dark:bg-gray-dark-medium hover:bg-opacity-50 dark:hover:bg-opacity-50 cursor-pointer flex flex-col p-2 gap-2'
+                      'efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium hover:efw-bg-opacity-50 dark:hover:efw-bg-opacity-50 efw-cursor-pointer efw-flex efw-flex-col efw-p-2 efw-gap-2'
                     }
                     onClick={() => {
                       findMatchedText(match.page, i)
                     }}
                   >
-                    <span className={'text-sm text-left'}>{match.text}</span>
-                    <span className={'text-right block text-sm font-bold'}>
+                    <span className={'efw-text-sm efw-text-left'}>
+                      {match.text}
+                    </span>
+                    <span
+                      className={
+                        'efw-text-right efw-block efw-text-sm efw-font-bold'
+                      }
+                    >
                       {t('pageNumber', { number: match.page })}
                     </span>
                   </div>

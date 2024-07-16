@@ -36,7 +36,7 @@ const useRenderPage = () => {
 
       // create canvas
       const canvas = document.createElement('canvas')
-      canvas.setAttribute('class', 'shadow-own-2 transition-all')
+      canvas.setAttribute('class', 'efw-shadow-own-2 efw-transition-all')
       canvas.width = viewport.width
       canvas.height = viewport.height
 

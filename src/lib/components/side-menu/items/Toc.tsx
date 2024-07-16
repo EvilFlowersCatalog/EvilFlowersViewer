@@ -45,15 +45,17 @@ const Toc = ({ setTocVisibility }: IOutlineProps) => {
 
   const renderTOC = (items: TOCItem[] | undefined, level = 1) => {
     return (
-      <div className="w-full overflow-auto">
+      <div className="efw-w-full efw-overflow-auto">
         {items?.map((item, i) => (
           <div
             key={`${item.title}-${i}`}
-            className={`text-sm', ${
-              level === 1 ? 'font-medium pl-0' : 'font-light pl-5'
+            className={`efw-text-sm', ${
+              level === 1
+                ? 'efw-font-medium efw-pl-0'
+                : 'efw-font-light efw-pl-5'
             }`}
           >
-            <div className="flex w-full items-center justify-between gap-7 border-b border-transparent mb-1">
+            <div className="efw-flex efw-w-full efw-items-center efw-justify-between efw-gap-7 efw-border-b efw-border-transparent efw-mb-1">
               {/* Title */}
               <Button
                 onClick={

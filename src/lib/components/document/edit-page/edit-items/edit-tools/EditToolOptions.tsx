@@ -14,12 +14,12 @@ const EditToolOption = () => {
   const { t } = useTranslation()
 
   return (
-    <div className="flex flex-col justify-evenly h-[130px]">
+    <div className="efw-flex efw-flex-col efw-justify-evenly efw-h-[130px]">
       {activeEditTool !== EDIT_TOOLS.MOUSE &&
         activeEditTool !== EDIT_TOOLS.ERASER && (
-          <div className="flex gap-4 flex-col ml-5">
-            <div className="w-[100px] flex flex-col items-center">
-              <span className="text-sm">{t('editWidth')}</span>
+          <div className="efw-flex efw-gap-4 efw-flex-col efw-ml-5">
+            <div className="efw-w-[100px] efw-flex efw-flex-col efw-items-center">
+              <span className="efw-text-sm">{t('editWidth')}</span>
               <Slider
                 value={editLineSize}
                 max={30}
@@ -29,8 +29,8 @@ const EditToolOption = () => {
               />
             </div>
 
-            <div className="w-full flex flex-col items-center">
-              <span className="text-sm">{t('editOpacity')}</span>
+            <div className="efw-w-full efw-flex efw-flex-col efw-items-center">
+              <span className="efw-text-sm">{t('editOpacity')}</span>
               <Slider
                 value={editOpacity}
                 step={0.1}

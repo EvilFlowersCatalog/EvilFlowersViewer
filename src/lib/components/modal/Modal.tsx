@@ -58,26 +58,26 @@ const ModalWrapper = ({
     <>
       {isOpen && (
         <div
-          className="fixed overflow-hidden h-full inset-0 flex justify-center items-center z-20"
+          className="efw-fixed efw-overflow-hidden efw-h-full efw-inset-0 efw-flex efw-justify-center efw-items-center efw-z-20"
           ref={ref}
           onKeyDown={onKeyDown}
           tabIndex={-1}
         >
           {/* Container for hiding after click */}
           <div
-            className="absolute flex left-0 right-0 bottom-0 top-0 justify-center items-center bg-black bg-opacity-80"
+            className="efw-absolute efw-flex efw-left-0 efw-right-0 efw-bottom-0 efw-top-0 efw-justify-center efw-items-center efw-bg-black efw-bg-opacity-80"
             onClick={onClose}
           ></div>
           {/* Container for modal */}
-          <div className="relative z-30 flex min-w-[200px] w-5/6 px-2.5 md:w-2/3 lg:w-1/2 xl:w-1/3 max-h-[70%] flex-col overflow-hidden py-8 md:px-12 rounded-md bg-white dark:bg-gray-dark-strong">
-            <h4 className="text-xl font-extrabold uppercase mb-5 w-full text-center">
+          <div className="efw-relative efw-z-30 efw-flex efw-min-w-[200px] efw-w-5/6 efw-px-2.5 md:efw-w-2/3 lg:efw-w-1/2 xl:efw-w-1/3 efw-max-h-[70%] efw-flex-col efw-overflow-hidden efw-py-8 md:efw-px-12 efw-rounded-md efw-bg-white dark:efw-bg-gray-dark-strong">
+            <h4 className="efw-text-xl efw-font-extrabold efw-uppercase efw-mb-5 efw-w-full efw-text-center">
               {title}
             </h4>
             {children}
-            <div className="w-full flex justify-end items-center gap-2.5 mt-7">
+            <div className="efw-w-full efw-flex efw-justify-end efw-items-center efw-gap-2.5 efw-mt-7">
               {label && (
                 <button
-                  className="text-sm flex justify-center items-center py-1 px-2.5 rounded-md border-none bg-blue-dark hover:bg-blue-light text-white gap-4 cursor-pointer"
+                  className="efw-text-sm efw-flex efw-justify-center efw-items-center efw-py-1 efw-px-2.5 efw-rounded-md efw-border-none efw-bg-blue-dark hover:efw-bg-blue-light efw-text-white efw-gap-4 efw-cursor-pointer"
                   onClick={onClick}
                 >
                   {label} {icon}

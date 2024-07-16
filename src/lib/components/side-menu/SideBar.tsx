@@ -1,6 +1,4 @@
 import { ReactNode } from 'react'
-import cx from 'classnames'
-import Tooltip from '../helpers/Tooltip'
 import { useTranslation } from 'react-i18next'
 
 // icons
@@ -27,13 +25,13 @@ const SideBar = ({
 
   return (
     <div
-      className={`absolute top-2.5 h-[calc(100vh-250px)] min-h-96 w-48 md:w-64 bg-white dark:bg-gray-dark-strong rounded-md flex justify-start items-center flex-col overflow-auto p-5 whitespace-pre-wrap z-10 transition-left duration-200',
-        ${open ? 'left-[60px]' : '-left-[400px]'}
+      className={`efw-absolute efw-top-2.5 efw-h-[calc(100vh-250px)] efw-min-h-96 efw-w-48 md:efw-w-64 efw-bg-white dark:efw-bg-gray-dark-strong efw-rounded-md efw-flex efw-justify-start efw-items-center efw-flex-col efw-overflow-auto efw-p-5 efw-whitespace-pre-wrap efw-z-10 efw-transition-left efw-duration-200',
+        ${open ? 'efw-left-[60px]' : '-efw-left-[400px]'}
       `}
     >
-      <div className="w-full flex justify-between items-center mb-5">
+      <div className="efw-w-full efw-flex efw-justify-between efw-items-center efw-mb-5">
         {/* Title */}
-        <span className={'text-lg font-extrabold uppercase'}>
+        <span className={'efw-text-md efw-font-extrabold efw-uppercase'}>
           {(title as string).toLocaleLowerCase() === 'null' ? '' : title}
         </span>
         {/* Close button */}
@@ -47,7 +45,7 @@ const SideBar = ({
         />
       </div>
       {/* Children container */}
-      <div className="w-full flex-1">{children}</div>
+      <div className="efw-w-full efw-flex-1">{children}</div>
     </div>
   )
 }

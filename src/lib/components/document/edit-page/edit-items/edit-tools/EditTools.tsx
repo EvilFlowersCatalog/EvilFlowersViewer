@@ -53,15 +53,15 @@ const EditTools = () => {
   }, [activeEditTool])
 
   return (
-    <div className="grid grid-cols-2 gap-2 h-full">
+    <div className="efw-grid efw-grid-cols-2 efw-gap-2 efw-h-full">
       {editButtons.map((item, index) => (
         <div
           key={index}
-          className={`py-1 px-2 flex items-center justify-center cursor-pointer outline-none border-none rounded-md hover:bg-gray-light dark:hover:bg-gray-dark-medium
+          className={`efw-py-1 efw-px-2 efw-flex efw-items-center efw-justify-center efw-cursor-pointer efw-outline-none efw-border-none efw-rounded-md hover:efw-bg-gray-light dark:hover:efw-bg-gray-dark-medium
             ${
               item.active
-                ? 'bg-gray-light dark:bg-gray-dark-medium'
-                : 'bg-transparent'
+                ? 'efw-bg-gray-light dark:efw-bg-gray-dark-medium'
+                : 'efw-bg-transparent'
             }`}
           onClick={() => {
             setActiveEditTool(item.name)

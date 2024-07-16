@@ -117,9 +117,6 @@ const Document = ({ data }: IDocumentProps) => {
   const [editOpacity, setEditOpacity] = useState<number>(1)
   const [svgWidth, setSvgWidth] = useState(0)
   const [svgHeight, setSvgHeight] = useState(0)
-  const [elements, setElements] = useState<
-    (SVGLineElement | SVGRectElement | SVGPathElement | null)[]
-  >([])
   const [hideBottomBar, setHideBottomBar] = useState<boolean>(false)
   const [groupId, setGroupId] = useState<string>('')
   const [layer, setLayer] = useState<{ id: string; svg: string } | null>(null)
@@ -128,7 +125,6 @@ const Document = ({ data }: IDocumentProps) => {
   // Get layer for choosen group and page
   useCustomEffect(async () => {
     if (isEditMode) {
-      setScale(1)
       if (groupId) {
         try {
           setEditStage(EDIT_STAGES.LOADING)
@@ -453,7 +449,6 @@ const Document = ({ data }: IDocumentProps) => {
    * Zoom in on document
    */
   const zoomIn = () => {
-    if (isEditMode) return
     setScale((prevScale) => (prevScale < 3 ? prevScale + 0.25 : prevScale))
   }
 
@@ -461,7 +456,6 @@ const Document = ({ data }: IDocumentProps) => {
    * Zoom out on document
    */
   const zoomOut = () => {
-    if (isEditMode) return
     setScale((prevScale) => (prevScale > 0.25 ? prevScale - 0.25 : prevScale))
   }
 
@@ -469,15 +463,16 @@ const Document = ({ data }: IDocumentProps) => {
    * Save svg
    */
   const saveLayer = async () => {
+    if (editStage !== EDIT_STAGES.DONE) return
+    setScale(1)
     try {
       setEditStage(EDIT_STAGES.WORKING)
       const svg = document.getElementById('evilFlowersPaintSVG')!
       if (layer) await editPackage!.updateLayerFunc(layer.id, svg)
-      else await editPackage!.saveLayerFunc(svg)
+      else await editPackage!.saveLayerFunc(svg, groupId, activePage)
     } catch {
     } finally {
       setEditStage(EDIT_STAGES.DONE)
-      setElements([])
     }
   }
 
@@ -583,7 +578,6 @@ const Document = ({ data }: IDocumentProps) => {
   }
 
   const handleDoubleClick = (event: MouseEvent<HTMLDivElement>) => {
-    if (isEditMode) return
     event.preventDefault()
     setScale((prevScale) =>
       prevScale > 1.5 ? 1.5 : prevScale < 1 ? 1 : prevScale === 1.5 ? 1 : 1.5
@@ -667,8 +661,6 @@ const Document = ({ data }: IDocumentProps) => {
         setSvgWidth,
         svgHeight,
         setSvgHeight,
-        elements,
-        setElements,
         editOpacity,
         setEditOpacity,
         hideBottomBar,
@@ -688,15 +680,15 @@ const Document = ({ data }: IDocumentProps) => {
         onKeyUp={keyUpHandler}
         tabIndex={-1}
         className={
-          'w-full h-full outline-none flex justify-start items-center flex-col overflow-hidden'
+          'efw-w-full efw-h-full efw-outline-none efw-flex efw-justify-start efw-items-center efw-flex-col efw-overflow-hidden'
         }
         onMouseEnter={() => ref.current?.focus()}
       >
         {showHelp && <Help />}
 
-        <div className="flex flex-1 w-full overflow-hidden">
+        <div className="efw-flex efw-flex-1 efw-w-full efw-overflow-hidden">
           {!isEditMode && <SideMenu />}
-          <div className="relative flex flex-1 w-full flex-col overflow-hidden">
+          <div className="efw-relative efw-flex efw-flex-1 efw-w-full efw-flex-col efw-overflow-hidden">
             {!isEditMode ? (
               <SinglePage onDoubleClick={handleDoubleClick} />
             ) : (

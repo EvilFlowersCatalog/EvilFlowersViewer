@@ -69,10 +69,6 @@ interface IDocumentContext {
   setSvgWidth: (width: number) => void
   svgHeight: number
   setSvgHeight: (width: number) => void
-  elements: (SVGLineElement | SVGRectElement | SVGPathElement | null)[]
-  setElements: (
-    elements: (SVGLineElement | SVGRectElement | SVGPathElement | null)[]
-  ) => void
   editOpacity: number
   setEditOpacity: (opacity: number) => void
   hideBottomBar: boolean

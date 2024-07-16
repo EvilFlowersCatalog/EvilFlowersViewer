@@ -114,14 +114,18 @@ const Share = (params: IShareParams) => {
 
   return (
     <form
-      className={'w-full h-full flex flex-col justify-start items-center'}
+      className={
+        'efw-w-full efw-h-full efw-flex efw-flex-col efw-justify-start efw-items-center'
+      }
       onSubmit={handleSubmit}
     >
-      <div className={'w-full flex justify-between items-center'}>
+      <div
+        className={'efw-w-full efw-flex efw-justify-between efw-items-center'}
+      >
         {/* Pages input */}
         <input
           className={
-            'w-4/5 p-2 text-sm border-none rounded-md bg-gray-light dark:bg-gray-dark-medium outline-none text-black dark:text-white'
+            'efw-w-4/5 efw-p-2 efw-text-sm efw-border-none efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium efw-outline-none efw-text-black dark:efw-text-white'
           }
           placeholder={t('shareSearch')}
           name="share-input"
@@ -134,22 +138,26 @@ const Share = (params: IShareParams) => {
         {/* Info button */}
         <Button
           toolTip={{ text: t('shareSearchInfoToolTip'), position: 'left' }}
-          icon={<BiInfoCircle size={20} className="text-blue-light" />}
+          icon={<BiInfoCircle size={20} className="efw-text-blue-light" />}
         />
       </div>
-      <div className="w-full flex justify-start flex-col mt-2.5">
-        <span className="text-sm w-full flex justify-start flex-col mt-2.5">
+      <div className="efw-w-full efw-flex efw-justify-start efw-flex-col efw-mt-2.5">
+        <span className="efw-text-sm efw-w-full efw-flex efw-justify-start efw-flex-col efw-mt-2.5">
           {t('shareExpaire')}
         </span>
-        <div className={'flex w-full justify-between items-center mt-2.5'}>
+        <div
+          className={
+            'efw-flex efw-w-full efw-justify-between efw-items-center efw-mt-2.5'
+          }
+        >
           {/* Button for exparation */}
           {expaireOptions.map((item, i) => (
             <div
               key={i}
-              className={` py-1 px-2.5 flex items-center justify-center rounded-md cursor-pointer border-none outline-none hover:bg-gray-light dark:hover:bg-gray-dark-medium ${
+              className={`efw-py-1 efw-px-2.5 efw-flex efw-items-center efw-justify-center efw-rounded-md efw-cursor-pointer efw-border-none efw-outline-none hover:efw-bg-gray-light dark:hover:efw-bg-gray-dark-medium ${
                 item.active
-                  ? 'bg-gray-light dark:bg-gray-dark-medium'
-                  : 'bg-transparent'
+                  ? 'efw-bg-gray-light dark:efw-bg-gray-dark-medium'
+                  : 'efw-bg-transparent'
               }`}
               onClick={() => handleExpare(item)}
             >
@@ -158,11 +166,11 @@ const Share = (params: IShareParams) => {
           ))}
         </div>
       </div>
-      <span className="flex-1"></span>
+      <span className="efw-flex-1"></span>
       {/* Hide button if there is bad input */}
       {!isInappropriate && (
         <button
-          className="w-full py-2.5 flex border-none rounded-md justify-center items-center bg-blue-dark cursor-pointer hover:bg-blue-light"
+          className="efw-w-full efw-py-2.5 efw-flex efw-border-none efw-rounded-md efw-justify-center efw-items-center efw-bg-blue-dark efw-cursor-pointer hover:efw-bg-blue-light"
           type="submit"
         >
           <RxShare2 size={20} color="white" />

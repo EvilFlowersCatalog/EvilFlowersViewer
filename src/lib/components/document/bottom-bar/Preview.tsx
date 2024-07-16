@@ -47,7 +47,7 @@ const Preview = () => {
       const paragraph = document.createElement('p')
       paragraph.setAttribute(
         'class',
-        'text-[10px] font-bold flex justify-center mt-1'
+        'efw-text-[10px] efw-font-bold efw-flex efw-justify-center efw-mt-1'
       )
       paragraph.textContent = givenPage.toString()
 
@@ -73,7 +73,7 @@ const Preview = () => {
           viewport,
         })
         .promise.then(() => {
-          div.classList.remove('flex', 'h-full', 'items-center') // remove loader container
+          div.classList.remove('efw-flex', 'efw-h-full', 'efw-items-center') // remove loader container
           div.replaceChildren(canvas, paragraph)
         })
     },
@@ -93,10 +93,10 @@ const Preview = () => {
         const canvas = document.createElement('canvas')
         canvas.setAttribute(
           'class',
-          'shadow-own transition-all duration-200 cursor-pointer'
+          'efw-shadow-own efw-transition-all efw-duration-200 efw-cursor-pointer'
         ) // give it style
         if (page === activePage) {
-          canvas.setAttribute('class', 'border-t-5 border-red') // if it's active
+          canvas.setAttribute('class', 'efw-border-t-5 efw-border-red') // if it's active
         }
 
         // take div
@@ -108,11 +108,11 @@ const Preview = () => {
           div = document.createElement('div')
           div.setAttribute('id', 'previewPage' + page)
           div.setAttribute('key', 'previewKey' + page)
-          div.setAttribute('class', 'flex h-4/5 items-center')
+          div.setAttribute('class', 'efw-flex efw-h-4/5 efw-items-center')
           div.appendChild(loader) // append loader
           previewBar?.appendChild(div) // append to container
         } else {
-          div.setAttribute('class', 'flex h-4/5 items-center')
+          div.setAttribute('class', 'efw-flex efw-h-4/5 efw-items-center')
           div.replaceChildren(loader) // delete everything and replace
         }
 
@@ -165,14 +165,14 @@ const Preview = () => {
       // change active styles
       if (prevActive) {
         const canvas = prevActive.querySelector('canvas')
-        if (canvas) canvas.classList.remove('border-t-5', 'border-red')
+        if (canvas) canvas.classList.remove('efw-border-t-5', 'efw-border-red')
       }
       if (newActive) {
         const canvas = newActive.querySelector('canvas')
         if (canvas)
           canvas.setAttribute(
             'class',
-            'border-t-5 border-red shadow-own cursor-pointer'
+            'efw-border-t-5 efw-border-red efw-shadow-own efw-cursor-pointer'
           )
         const container = document.getElementById('previewBar')
 
@@ -209,12 +209,12 @@ const Preview = () => {
   return (
     <div
       id={'previewBar'}
-      className="flex max-w-full h-full mx-5 pt-5 md:mx-[50px] px-2.5 overflow-x-auto"
+      className="efw-flex efw-max-w-full efw-h-full efw-mx-5 efw-pt-5 md:efw-mx-[50px] efw-px-2.5 efw-overflow-x-auto"
       onScroll={handleScroll}
     >
       <div
         id="previewBarContainer"
-        className="relative flex items-start mx-auto gap-2.5"
+        className="efw-relative efw-flex efw-items-start efw-mx-auto efw-gap-2.5"
       ></div>
     </div>
   )
