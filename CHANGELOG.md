@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.4 : 2024-07-17
+
+- **Changed**: After added group the input hides
+- **Changed**: Modal design for goups in edit
+- **Changed**: Close login in modal for groups
+- **Changed**: Edit layer function
+- **Fixed**: Button not pressed when hitting space in input in edit groups
+
 ## 0.5.3 : 2024-07-16
 
 - **Changed**: worker src for prod

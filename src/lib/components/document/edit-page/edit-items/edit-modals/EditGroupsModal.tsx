@@ -24,6 +24,7 @@ const Anotation = ({ group, setVisible, update, remove }: IAnotationParams) => {
     <button
       className="efw-flex efw-items-center efw-p-4 efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium hover:efw-bg-opacity-50 dark:hover:efw-bg-opacity-50"
       onClick={() => {
+        if (!disabled) return
         setGroupId(group.id)
         setVisible(false)
       }}
@@ -87,6 +88,7 @@ const EditGroupsModal = ({
 }: IEditAnotationModalParams) => {
   const { t } = useTranslation()
 
+  const { setIsEditMode, groupId } = useDocumentContext()
   const { editPackage } = useViewerContext()
   const { getGroupsFunc, updateGroupFunc, deleteGroupFunc, saveGroupFunc } =
     editPackage!
@@ -97,6 +99,8 @@ const EditGroupsModal = ({
   const [input, setInput] = useState<string>('')
 
   useCustomEffect(async () => {
+    setShowInput(false)
+    setInput('')
     try {
       const g = await getGroupsFunc()
       setGroups(g)
@@ -133,7 +137,13 @@ const EditGroupsModal = ({
   }
 
   return (
-    <ModalWrapper isOpen={visible} title={t('chooseGroups')}>
+    <ModalWrapper
+      isOpen={visible}
+      title={t('chooseGroups')}
+      label={t('groupNew')}
+      onClick={() => setShowInput(true)}
+      onClose={() => (groupId ? setVisible(false) : setIsEditMode(false))}
+    >
       {isLoading && (
         <div className="efw-flex efw-justify-center">
           <Loader size={50} />
@@ -171,12 +181,6 @@ const EditGroupsModal = ({
               />
             </div>
           )}
-          <button
-            className="efw-w-full efw-p-4 efw-text-center efw-uppercase efw-border-blue-dark efw-bg-blue-dark hover:efw-bg-opacity-50 efw-rounded-md efw-cursor-pointer"
-            onClick={() => setShowInput(true)}
-          >
-            {t('groupNew')}
-          </button>
         </div>
       )}
     </ModalWrapper>

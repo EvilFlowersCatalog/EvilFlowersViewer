@@ -19,7 +19,12 @@ export const saveGroupFunc = async (name: string) => {
 
   console.log(name, 'saved')
 }
-export const updateLayerFunc = async (id: string, svg: HTMLElement) => {
+export const updateLayerFunc = async (
+  id: string,
+  svg: HTMLElement,
+  groupId: string,
+  page: number
+) => {
   await delay(2000)
 
   nieco = svg.outerHTML

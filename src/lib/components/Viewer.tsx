@@ -30,7 +30,12 @@ export interface IViewerOptions {
       page: number
     ) => Promise<void>
     saveGroupFunc: (name: string) => Promise<void>
-    updateLayerFunc: (id: string, svg: HTMLElement) => Promise<void>
+    updateLayerFunc: (
+      id: string,
+      svg: HTMLElement,
+      groupId: string,
+      page: number
+    ) => Promise<void>
     updateGroupFunc: (id: string, name: string) => Promise<void>
     deleteLayerFunc: (id: string) => Promise<void>
     deleteGroupFunc: (id: string) => Promise<void>
