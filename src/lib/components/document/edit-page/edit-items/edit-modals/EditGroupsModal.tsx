@@ -24,6 +24,7 @@ const Anotation = ({ group, setVisible, update, remove }: IAnotationParams) => {
     <button
       className="efw-flex efw-items-center efw-p-4 efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium hover:efw-bg-opacity-50 dark:hover:efw-bg-opacity-50"
       onClick={() => {
+        if (!disabled) return
         setGroupId(group.id)
         setVisible(false)
       }}

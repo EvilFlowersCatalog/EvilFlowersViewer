@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.4 : TBD
+
+- **Fixed**: Button not pressed when hitting space in input in edit groups
+
 ## 0.5.3 : 2024-07-16
 
 - **Changed**: worker src for prod
