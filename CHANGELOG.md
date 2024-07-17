@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.4 : TBD
+## 0.5.4 : 2024-07-17
 
 - **Changed**: After added group the input hides
 - **Changed**: Modal design for goups in edit

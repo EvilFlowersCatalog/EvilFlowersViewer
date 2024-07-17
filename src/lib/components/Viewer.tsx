@@ -9,11 +9,11 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js'
 // @ts-ignore
 import * as PDFJSWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry'
 import { ViewerContext } from './hooks/useViewerContext'
-// pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJSWorker
+pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJSWorker
 
 // Use on local
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
+// pdfjsLib.GlobalWorkerOptions.workerSrc =
+//   '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
 
 export interface IViewerOptions {
   theme?: 'dark' | 'light'
