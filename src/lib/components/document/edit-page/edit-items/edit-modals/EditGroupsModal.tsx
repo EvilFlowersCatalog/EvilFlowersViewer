@@ -88,7 +88,7 @@ const EditGroupsModal = ({
 }: IEditAnotationModalParams) => {
   const { t } = useTranslation()
 
-  const { setIsEditMode } = useDocumentContext()
+  const { setIsEditMode, groupId } = useDocumentContext()
   const { editPackage } = useViewerContext()
   const { getGroupsFunc, updateGroupFunc, deleteGroupFunc, saveGroupFunc } =
     editPackage!
@@ -142,7 +142,7 @@ const EditGroupsModal = ({
       title={t('chooseGroups')}
       label={t('groupNew')}
       onClick={() => setShowInput(true)}
-      onClose={() => setIsEditMode(false)}
+      onClose={() => (groupId ? setVisible(false) : setIsEditMode(false))}
     >
       {isLoading && (
         <div className="efw-flex efw-justify-center">

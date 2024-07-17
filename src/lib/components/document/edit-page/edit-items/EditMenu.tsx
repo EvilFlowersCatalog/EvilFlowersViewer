@@ -107,8 +107,6 @@ const EditMenu = () => {
 
   const handleOpenGroups = () => {
     if (editStage === EDIT_STAGES.DONE) {
-      setEditStage(EDIT_STAGES.NULL)
-      setGroupId('')
       setGroupsModalVisibility(true)
     }
   }
