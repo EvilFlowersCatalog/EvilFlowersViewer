@@ -4,6 +4,7 @@
 
 - **Changed**: After added group the input hides
 - **Changed**: Modal design for goups in edit
+- **Changed**: Edit layer function
 - **Fixed**: Button not pressed when hitting space in input in edit groups
 
 ## 0.5.3 : 2024-07-16
