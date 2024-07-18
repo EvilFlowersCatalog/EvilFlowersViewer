@@ -28,7 +28,6 @@ export const sk = {
     menuCloseToolTip: 'Zavrieť menu',
     edit: 'Pero',
     editToolTip: 'Úprava dokumentu',
-    editCloseToolTip: 'Ukončiť úpravu dokumentu',
     editColor: 'Farba',
     editTool: 'Nástroj',
     editDeleteSure: 'Ste si istý?',
@@ -38,6 +37,7 @@ export const sk = {
     editSetName: 'Nastav meno vrstvy',
     save: 'Uložiť vrstvu',
     groups: 'Skupiny',
+    none: 'Žiaden',
     delete: 'Vymazať vrstvu',
     chooseGroups: 'Vyber si skupinu',
     size: 'Veľkosť',
@@ -85,46 +85,49 @@ export const sk = {
     helpDone: 'Ukončiť',
     homeTitle: 'Tlačítko domov',
     homeDescription:
-      "Keď je <span class='font-extrabold'>tlačítko domov</span> stlačené, vráti vás na hlavnú domovskú stránku.",
+      "Keď je <span class='efw-font-extrabold'>tlačítko domov</span> stlačené, vráti vás na hlavnú domovskú stránku.",
     editTitle: 'Tlačítko upraviť',
     editDescription:
-      "Keď je stlačené <span class='font-extrabold'>tlačítko upraviť</span> alebo klávesa <span class='font-bold whitespace-nowrap px-2 border border-white'>E</span> , bude vám umožnené upravovať aktuálnu stranu, na ktorej sa nachádzate. Je možné zmeniť stranu v režime úpravy.",
+      "Keď je stlačené <span class='efw-font-extrabold'>tlačítko upraviť</span> alebo klávesa <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>E</span> , bude vám umožnené upravovať aktuálnu stranu, na ktorej sa nachádzate. Je možné zmeniť stranu v režime úpravy.",
+    groupsTitle: 'Tlačítko skupiny',
+    groupsDescription:
+      "Keď stlačíte <span class='efw-font-extrabold'>tlačidlo skupiny</span>, budete mať možnosť vybrať skupinu vrstiev, ktoré ste vytvorili.",
     searchTitle: 'Tlačítko hľadať',
     searchDescription:
-      "Ak hľadáte akýkoľvek textový vzor, jednoducho stlačte <span class='font-extrabold'>tlačítko hľadať</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>F</span> .",
+      "Ak hľadáte akýkoľvek textový vzor, jednoducho stlačte <span class='efw-font-extrabold'>tlačítko hľadať</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>F</span> .",
     citationTitle: 'Tlačítko citácie',
     citationDescription:
-      "Stlačte <span class='font-extrabold'>tlačítko citácie</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>C</span> na citovanie tohto dokumentu. K dispozícii sú možnosti <span class='font-extrabold'>BibTeX</span>, <span class='font-extrabold'>BibLaTeX</span>, <span class='font-extrabold'>RIS</span> a <span class='font-extrabold'>Plain-Text</span>.",
+      "Stlačte <span class='efw-font-extrabold'>tlačítko citácie</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>C</span> na citovanie tohto dokumentu. K dispozícii sú možnosti <span class='efw-font-extrabold'>BibTeX</span>, <span class='efw-font-extrabold'>BibLaTeX</span>, <span class='efw-font-extrabold'>RIS</span> a <span class='efw-font-extrabold'>Plain-Text</span>.",
     tocTitle: 'Tlačítko obsah',
     tocDescription:
-      "Stlačte <span class='font-extrabold'>tlačítko obsah</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>T</span> a zobrazí sa vám obsah dokumentu. Keď kliknete na sekciu, budete presmerovaní na stranu, na ktorej sa daná sekcia nachádza.",
+      "Stlačte <span class='efw-font-extrabold'>tlačítko obsah</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>T</span> a zobrazí sa vám obsah dokumentu. Keď kliknete na sekciu, budete presmerovaní na stranu, na ktorej sa daná sekcia nachádza.",
     shareTitle: 'Tlačítko zdielať',
     shareDescription:
-      "Keď je stlačené <span class='font-extrabold'>tlačítko zdieľať</span> alebo klávesa <span class='font-bold whitespace-nowrap px-2 border border-white'>S</span> , umožní sa vám zdieľať dokument, kde môžete vybrať, ktoré strany chcete zdieľať so svojimi študentmi/priateľmi.",
+      "Keď je stlačené <span class='efw-font-extrabold'>tlačítko zdieľať</span> alebo klávesa <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>S</span> , umožní sa vám zdieľať dokument, kde môžete vybrať, ktoré strany chcete zdieľať so svojimi študentmi/priateľmi.",
     infoTitle: 'Tlačítko info',
     infoDescription:
-      "Ak chcete vidieť informácie o dokumente, stačí stlačiť <span class='font-extrabold'>tlačítko info</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>I</span> .",
+      "Ak chcete vidieť informácie o dokumente, stačí stlačiť <span class='efw-font-extrabold'>tlačítko info</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>I</span> .",
     helpTitle: 'Tlačítko pomoc',
     helpDescription:
-      "Ak kedykoľvek potrebujete pomocť s týmto viewerom, stačí stlačiť <span class='font-extrabold'>tlačítko pomoc</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>H</span> , aby ste videli kroky s popisom, ako a čo robiť.",
+      "Ak kedykoľvek potrebujete pomocť s týmto viewerom, stačí stlačiť <span class='efw-font-extrabold'>tlačítko pomoc</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>H</span> , aby ste videli kroky s popisom, ako a čo robiť.",
     themeTitle: 'Tlačítko režim',
     themeDescription:
-      "Pre zmenu režimu (tmavý/svetlý) stlačte <span class='font-extrabold'>tlačítko režim</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>M</span> .",
+      "Pre zmenu režimu (tmavý/svetlý) stlačte <span class='efw-font-extrabold'>tlačítko režim</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>M</span> .",
     downloadTitle: 'Tlačítko stiahnúť',
     downloadDescription:
-      "Pre stiahnutie dokumentu stlačte <span class='font-extrabold'>tlačítko stiahnúť</span>.",
+      "Pre stiahnutie dokumentu stlačte <span class='efw-font-extrabold'>tlačítko stiahnúť</span>.",
     zoomInTitle: 'Tlačítko priblížiť',
     zoomInDescription:
-      "Pre priblíženie dokumentu stlačte <span class='font-extrabold'>tlačítko priblížiť</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>+</span> . Môžete tiež roztiahnuť dva prsty odseba na touchepade <span class='font-bold whitespace-nowrap px-2 border border-white'>< ></span> alebo <span class='font-extrabold'>dvojkliknúť</span> na dokument.",
+      "Pre priblíženie dokumentu stlačte <span class='efw-font-extrabold'>tlačítko priblížiť</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>+</span> . Môžete tiež roztiahnuť dva prsty odseba na touchepade <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>< ></span> alebo <span class='efw-font-extrabold'>dvojkliknúť</span> na dokument.",
     zoomOutTitle: 'Tlačítko oddialiť',
     zoomOutDescription:
-      "Pre oddialenie dokumentu stlačte <span class='font-extrabold'>tlačítko oddialiť</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>-</span> . Môžete tiež potiahnúť dva prsty k sebe na touchepade <span class='font-bold whitespace-nowrap px-2 border border-white'>> <</span> alebo <span class='font-extrabold'>dvojkliknúť</span> na dokument.",
+      "Pre oddialenie dokumentu stlačte <span class='efw-font-extrabold'>tlačítko oddialiť</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>-</span> . Môžete tiež potiahnúť dva prsty k sebe na touchepade <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>> <</span> alebo <span class='efw-font-extrabold'>dvojkliknúť</span> na dokument.",
     previousTitle: 'Tlačítko predchádzajúca',
     previousDescription:
-      "Stlačte <span class='font-extrabold'>tlačítko predchádzajúca</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'><</span> (šípka vľavo) pre zobrazenie predchádzajúcej strany tohto dokumentu.",
+      "Stlačte <span class='efw-font-extrabold'>tlačítko predchádzajúca</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'><</span> (šípka vľavo) pre zobrazenie predchádzajúcej strany tohto dokumentu.",
     nextTitle: 'Tlačítko ďaľšia',
     nextDescription:
-      "Stlačte <span class='font-extrabold'>tlačítko ďalšia</span> alebo klávesu <span class='font-bold whitespace-nowrap px-2 border border-white'>></span> (šípka vpravo) pre zobrazenie ďalšej strany tohto dokumentu.",
+      "Stlačte <span class='efw-font-extrabold'>tlačítko ďalšia</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>></span> (šípka vpravo) pre zobrazenie ďalšej strany tohto dokumentu.",
     groupNew: 'Pridať skupinu',
     noGroups: 'Neboli nájdené žiadne skupiny',
     groupName: 'Meno skupiny',

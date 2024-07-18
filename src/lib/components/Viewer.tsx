@@ -109,7 +109,7 @@ export const Viewer = (viewerParams: IViewerParams) => {
       <div
         id={'evilFlowersViewer'}
         className={
-          'efw-w-screen efw-h-screen efw-min-h-[660px] efw-overflow-auto efw-text-black dark:efw-text-white'
+          'efw-w-screen efw-h-screen efw-min-h-[690px] efw-overflow-auto efw-text-black dark:efw-text-white'
         }
       >
         <div

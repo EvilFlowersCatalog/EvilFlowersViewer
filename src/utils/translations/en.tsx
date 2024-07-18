@@ -28,7 +28,6 @@ export const en = {
     homeNoneToolTip: 'Home is not available',
     edit: 'Edit',
     editToolTip: 'Document editing',
-    editCloseToolTip: 'Close document editing',
     editColor: 'Color',
     editTool: 'Tool',
     editDeleteSure: 'Are you sure?',
@@ -38,6 +37,7 @@ export const en = {
     editSetName: 'Set name for layer',
     save: 'Save layer',
     groups: 'Groups',
+    none: 'None',
     delete: 'Delete layer',
     chooseGroups: 'Vyber si skupinu',
     size: 'Size',
@@ -85,46 +85,49 @@ export const en = {
     helpDone: 'Done',
     homeTitle: 'Home button',
     homeDescription:
-      "When <span class='font-extrabold'>home button</span> is pressed, it will return you to the main home page.",
+      "When <span class='efw-font-extrabold'>home button</span> is pressed, it will return you to the main home page.",
     editTitle: 'Edit button',
     editDescription:
-      "When the <span class='font-extrabold'>edit button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>E</span> is pressed, it will allow you to edit the current page you are on. It's possible to change the page in edit mode.",
+      "When the <span class='efw-font-extrabold'>edit button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>E</span> is pressed, it will allow you to edit the current page you are on. It's possible to change the page in edit mode.",
+    groupsTitle: 'Group button',
+    groupsDescription:
+      "When the <span class='efw-font-extrabold'>group button</span> is pressed, you will be given the option to select a group of layers that you have created.",
     searchTitle: 'Search button',
     searchDescription:
-      "If you are looking for any text pattern, just press the <span class='font-extrabold'>search button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>F</span> .",
+      "If you are looking for any text pattern, just press the <span class='efw-font-extrabold'>search button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>F</span> .",
     citationTitle: 'Citations button',
     citationDescription:
-      "Press the <span class='font-extrabold'>citations button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>C</span> to citate this document. Available options are <span class='font-extrabold'>BibTeX</span>, <span class='font-extrabold'>BibLaTeX</span>, <span class='font-extrabold'>RIS</span>, and <span class='font-extrabold'>Plain-Text</span>.",
+      "Press the <span class='efw-font-extrabold'>citations button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>C</span> to citate this document. Available options are <span class='efw-font-extrabold'>BibTeX</span>, <span class='efw-font-extrabold'>BibLaTeX</span>, <span class='efw-font-extrabold'>RIS</span>, and <span class='efw-font-extrabold'>Plain-Text</span>.",
     tocTitle: 'TOC button',
     tocDescription:
-      "Press the <span class='font-extrabold'>TOC button</span> or keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>T</span> and it will show you the document's table of context where when you click on the section, you will be moved to the page where the section is located.",
+      "Press the <span class='efw-font-extrabold'>TOC button</span> or keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>T</span> and it will show you the document's table of context where when you click on the section, you will be moved to the page where the section is located.",
     shareTitle: 'Share button',
     shareDescription:
-      "When the <span class='font-extrabold'>Share button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>S</span> is pressed, it will allow you to share document, where you can choose what pages you want to share with you students/friends.",
+      "When the <span class='efw-font-extrabold'>Share button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>S</span> is pressed, it will allow you to share document, where you can choose what pages you want to share with you students/friends.",
     infoTitle: 'Info button',
     infoDescription:
-      "If you want to see document's informations, just press the <span class='font-extrabold'>info button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>I</span> .",
+      "If you want to see document's informations, just press the <span class='efw-font-extrabold'>info button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>I</span> .",
     helpTitle: 'Help button',
     helpDescription:
-      "If you at any time need some help with this viewer, just press the <span class='font-extrabold'>help button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>H</span> to see steps with description how and what to do.",
+      "If you at any time need some help with this viewer, just press the <span class='efw-font-extrabold'>help button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>H</span> to see steps with description how and what to do.",
     themeTitle: 'Theme button',
     themeDescription:
-      "To change theme (dark/light) press the <span class='font-extrabold'>mode button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>M</span> .",
+      "To change theme (dark/light) press the <span class='efw-font-extrabold'>mode button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>M</span> .",
     downloadTitle: 'Download button',
     downloadDescription:
-      "To download document press the <span class='font-extrabold'>download button</span>.",
+      "To download document press the <span class='efw-font-extrabold'>download button</span>.",
     zoomInTitle: 'Zoom in button',
     zoomInDescription:
-      "To zoom in the document press the <span class='font-extrabold'>zoom in button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>+</span> . You can also pinch out the touchepad <span class='font-bold whitespace-nowrap px-2 border border-white'>< ></span> or <span class='font-extrabold'>double click</span> on the document.",
+      "To zoom in the document press the <span class='efw-font-extrabold'>zoom in button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>+</span> . You can also pinch out the touchepad <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>< ></span> or <span class='efw-font-extrabold'>double click</span> on the document.",
     zoomOutTitle: 'Zoom out button',
     zoomOutDescription:
-      "To zoom out the document press the <span class='font-extrabold'>zoom out button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>-</span> . You can also pinch in the touchepad <span class='font-bold whitespace-nowrap px-2 border border-white'>> <</span> or <span class='font-extrabold'>double click</span> on the document.",
+      "To zoom out the document press the <span class='efw-font-extrabold'>zoom out button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>-</span> . You can also pinch in the touchepad <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>> <</span> or <span class='efw-font-extrabold'>double click</span> on the document.",
     previousTitle: 'Previous button',
     previousDescription:
-      "Press the <span class='font-extrabold'>previous button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'><</span> (Left Arrow) to see the previous page of this document.",
+      "Press the <span class='efw-font-extrabold'>previous button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'><</span> (Left Arrow) to see the previous page of this document.",
     nextTitle: 'Next button',
     nextDescription:
-      "Press the <span class='font-extrabold'>next button</span> or the keyboard key <span class='font-bold whitespace-nowrap px-2 border border-white'>></span> (Right Arrow) to see the next page of this document.",
+      "Press the <span class='efw-font-extrabold'>next button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>></span> (Right Arrow) to see the next page of this document.",
     groupNew: 'Add group',
     noGroups: 'No groups found',
     groupName: "Group's name",

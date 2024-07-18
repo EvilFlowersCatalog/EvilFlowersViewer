@@ -4,6 +4,8 @@ import { RENDERING_STATES } from '../../../../utils/enums'
 import useCustomEffect from '../../hooks/useCustomEffect'
 import useRenderPage from '../../hooks/useRenderPage'
 import loader from '../../common/RenderLoader'
+import useViewerContext from '../../hooks/useViewerContext'
+import LayerSVG from './LayerSVG'
 
 interface ISinglePage {
   onDoubleClick: (event: MouseEvent<HTMLDivElement>) => void
@@ -24,7 +26,12 @@ const SinglePage = ({ onDoubleClick }: ISinglePage) => {
     setPaginatorPageRender,
     screenHeight,
     hideBottomBar,
+    setLayer,
+    groupId,
+    layer,
   } = useDocumentContext()
+
+  const { editPackage } = useViewerContext()
 
   const renderPage = useRenderPage()
 
@@ -32,8 +39,15 @@ const SinglePage = ({ onDoubleClick }: ISinglePage) => {
     setPaginatorPageRender(RENDERING_STATES.RENDERING)
 
     const loadPage = async () => {
+      setLayer(null)
       const view = document.getElementById('evilFlowersPageContent')
       view?.replaceChildren(loader)
+
+      if (editPackage && groupId) {
+        const { getLayerFunc } = editPackage
+        const l = await getLayerFunc(activePage, groupId)
+        setLayer(l)
+      }
 
       await renderPage({
         view,
@@ -45,11 +59,14 @@ const SinglePage = ({ onDoubleClick }: ISinglePage) => {
     loadPage().then(() => {
       setPaginatorPageRender(RENDERING_STATES.RENDERED)
     })
-  }, [activePage, pdf, scale, rerender, screenHeight, hideBottomBar])
+  }, [activePage, pdf, scale, rerender, screenHeight, hideBottomBar, groupId])
 
   return (
     <div id={'evilFlowersContent'} onDoubleClick={onDoubleClick}>
-      <div id={'evilFlowersPageContent'}></div>
+      <div className="efw-relative efw-w-fit efw-m-auto">
+        <div id={'evilFlowersPageContent'} />
+        {layer && <LayerSVG />}
+      </div>
     </div>
   )
 }

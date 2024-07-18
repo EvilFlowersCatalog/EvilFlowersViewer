@@ -24,12 +24,15 @@ import Info from './items/Info'
 import Share from './items/share/Share'
 import useViewerContext from '../hooks/useViewerContext'
 import Button from '../common/Button'
+import { LuLayers } from 'react-icons/lu'
+import EditGroupsModal from '../document/edit-page/edit-items/edit-modals/EditGroupsModal'
 
 const SideMenu = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [link, setLink] = useState<string>('')
   const sidebarNames = SIDEBAR_TAB_NAMES()
   const [shareQRVisibility, setShareQRVisibility] = useState<boolean>(false)
+  const [groupsVisibility, setGroupsVisibility] = useState<boolean>(false)
 
   const { t } = useTranslation()
   const {
@@ -69,6 +72,15 @@ const SideMenu = () => {
           icon: <BiHome id="menu-home" size={23} />,
           tooltipText: t('homeToolTip'),
           onClick: () => homeFunction(),
+        }
+      : null,
+    // GROUPS
+    editPackage
+      ? {
+          name: t('groups'),
+          icon: <LuLayers id="menu-edit" size={20} />,
+          tooltipText: t('groups'),
+          onClick: () => setGroupsVisibility(true),
         }
       : null,
     // EDIT
@@ -237,6 +249,15 @@ const SideMenu = () => {
       )}
       {/* Modal for TOC */}
       {tocVisibility && <Toc setTocVisibility={setTocVisibility} />}
+
+      {/* Modal for GROUPS */}
+      {groupsVisibility && (
+        <EditGroupsModal
+          setVisible={setGroupsVisibility}
+          visible={groupsVisibility}
+          choosing
+        />
+      )}
     </>
   )
 }

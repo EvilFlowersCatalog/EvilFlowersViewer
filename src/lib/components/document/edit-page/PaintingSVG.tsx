@@ -13,7 +13,7 @@ const PaintingSVG = () => {
     svgHeight,
     svgWidth,
     editOpacity,
-    layer,
+    editLayer,
   } = useDocumentContext()
   const [isDrawing, setIsDrawing] = useState<boolean>(false)
   const [entity, setEntity] = useState<
@@ -209,15 +209,15 @@ const PaintingSVG = () => {
     setRecreate((prev) => !prev) // for trigger createing new entity
   }
 
-  // Copy svg layer to pating layer
+  // Copy svg editLayer to pating editLayer
   useCustomEffect(() => {
-    if (layer && svgRef.current) {
+    if (editLayer && svgRef.current) {
       // Clear existing SVG content
       svgRef.current.innerHTML = ''
 
       // Parse SVG string into a DOM object
       const parser = new DOMParser()
-      const doc = parser.parseFromString(layer.svg, 'image/svg+xml')
+      const doc = parser.parseFromString(editLayer.svg, 'image/svg+xml')
       const parsedSvg = doc.documentElement
 
       // Get width and height from parsed SVG
@@ -233,7 +233,7 @@ const PaintingSVG = () => {
         resize(svgRef.current.children, width, height)
       }
     }
-  }, [layer])
+  }, [editLayer])
 
   return (
     <svg
