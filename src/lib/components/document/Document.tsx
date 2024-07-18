@@ -134,15 +134,10 @@ const Document = ({ data }: IDocumentProps) => {
   useCustomEffect(async () => {
     if (isEditMode) {
       if (editGroupId) {
-        try {
-          setEditStage(EDIT_STAGES.LOADING)
-          const l = await editPackage!.getLayerFunc(activePage, editGroupId)
-          setEditLayer(l)
-        } catch {
-          setEditLayer(null)
-        } finally {
-          setEditStage(EDIT_STAGES.DONE)
-        }
+        setEditStage(EDIT_STAGES.LOADING)
+        const l = await editPackage!.getLayerFunc(activePage, editGroupId)
+        setEditLayer(l)
+        setEditStage(EDIT_STAGES.DONE)
       }
     } else {
       setEditStage(EDIT_STAGES.NULL)
@@ -533,29 +528,25 @@ const Document = ({ data }: IDocumentProps) => {
   const saveLayer = async () => {
     if (editStage !== EDIT_STAGES.DONE) return
     setScale(1)
-    try {
-      setEditStage(EDIT_STAGES.WORKING)
-      const svg = document.getElementById('evilFlowersPaintSVG')!
-      svg.classList.remove('efw-border', 'efw-border-red') // remove border before save/update
-      if (editLayer)
-        await editPackage!.updateLayerFunc(
-          editLayer.id,
-          svg.outerHTML,
-          editGroupId,
-          activePage
-        )
-      else {
-        const response = await editPackage!.saveLayerFunc(
-          svg.outerHTML,
-          editGroupId,
-          activePage
-        )
-        setEditLayer(response)
-      }
-    } catch {
-    } finally {
-      setEditStage(EDIT_STAGES.DONE)
+    setEditStage(EDIT_STAGES.WORKING)
+    const svg = document.getElementById('evilFlowersPaintSVG')!
+    svg.classList.remove('efw-border', 'efw-border-red') // remove border before save/update
+    if (editLayer)
+      await editPackage!.updateLayerFunc(
+        editLayer.id,
+        svg.outerHTML,
+        editGroupId,
+        activePage
+      )
+    else {
+      const response = await editPackage!.saveLayerFunc(
+        svg.outerHTML,
+        editGroupId,
+        activePage
+      )
+      setEditLayer(response)
     }
+    setEditStage(EDIT_STAGES.DONE)
   }
 
   const keyDownHandler = (event: KeyboardEvent<HTMLDivElement>) => {

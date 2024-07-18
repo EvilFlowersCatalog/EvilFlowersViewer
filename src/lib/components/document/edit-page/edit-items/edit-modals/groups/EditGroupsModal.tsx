@@ -37,42 +37,32 @@ const EditGroupsModal = ({
   useCustomEffect(async () => {
     setShowInput(false)
     setInput('')
-    try {
-      const g = await getGroupsFunc()
-      setGroups(g)
-      setIsLoading(false)
-    } catch {
-      setGroups([])
-    }
+    const g = await getGroupsFunc()
+    setGroups(g)
+    setIsLoading(false)
   }, [reload])
 
   // Save group
   const save = async () => {
     if (input) {
-      try {
-        setIsLoading(true)
-        await saveGroupFunc(input)
-        setReload(!reload)
-      } catch {}
+      setIsLoading(true)
+      await saveGroupFunc(input)
+      setReload(!reload)
     }
   }
 
   // Update group
   const update = async (id: string, name: string) => {
-    try {
-      setIsLoading(true)
-      await updateGroupFunc(id, name)
-      setReload(!reload)
-    } catch {}
+    setIsLoading(true)
+    await updateGroupFunc(id, name)
+    setReload(!reload)
   }
 
   // Remove group
   const remove = async (id: string) => {
-    try {
-      setIsLoading(true)
-      await deleteGroupFunc(id)
-      setReload(!reload)
-    } catch {}
+    setIsLoading(true)
+    await deleteGroupFunc(id)
+    setReload(!reload)
   }
 
   return (
