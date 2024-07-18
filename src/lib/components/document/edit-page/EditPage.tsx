@@ -49,12 +49,14 @@ const EditPage = ({ onDoubleClick }: ISinglePage) => {
   const renderPage = useRenderPage()
 
   useCustomEffect(() => {
+    // start rendering
     setPaginatorPageRender(RENDERING_STATES.RENDERING)
 
     const loadPage = async () => {
       const view = document.getElementById('evilFlowersPageContent')
-      view?.replaceChildren(loader)
+      view?.replaceChildren(loader) // set loader
 
+      // render page
       await renderPage({
         view,
         edit: true,
@@ -75,8 +77,10 @@ const EditPage = ({ onDoubleClick }: ISinglePage) => {
 
   return (
     <>
+      {/* MENU */}
       <EditMenu />
       <div id={'evilFlowersContent'} onDoubleClick={onDoubleClick}>
+        {/* Container */}
         <div
           className="efw-relative efw-w-fit efw-m-auto efw-overflow-auto"
           onMouseMove={handleMouseMove}
@@ -93,8 +97,10 @@ const EditPage = ({ onDoubleClick }: ISinglePage) => {
               : { cursor: 'none' }
           }
         >
+          {/* Content */}
           <div id={'evilFlowersPageContent'} />
-          {/* SVG */}
+
+          {/* Panting SVG */}
           {editStage !== EDIT_STAGES.NULL && (
             <>
               {[EDIT_STAGES.DONE, EDIT_STAGES.WORKING].includes(editStage) && (

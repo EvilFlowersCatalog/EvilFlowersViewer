@@ -134,15 +134,10 @@ const Document = ({ data }: IDocumentProps) => {
   useCustomEffect(async () => {
     if (isEditMode) {
       if (editGroupId) {
-        try {
-          setEditStage(EDIT_STAGES.LOADING)
-          const l = await editPackage!.getLayerFunc(activePage, editGroupId)
-          setEditLayer(l)
-        } catch {
-          setEditLayer(null)
-        } finally {
-          setEditStage(EDIT_STAGES.DONE)
-        }
+        setEditStage(EDIT_STAGES.LOADING)
+        const l = await editPackage!.getLayerFunc(activePage, editGroupId)
+        setEditLayer(l)
+        setEditStage(EDIT_STAGES.DONE)
       }
     } else {
       setEditStage(EDIT_STAGES.NULL)
@@ -284,6 +279,72 @@ const Document = ({ data }: IDocumentProps) => {
       link.href = URL.createObjectURL(blob)
       link.download = fileName
       link.click()
+    }
+  }
+
+  /**
+   * Responzivness of elements in svg
+   */
+  const resizeElements = (children: any, width: number, height: number) => {
+    for (const child of children) {
+      // Adjust stroke width
+      if (child) {
+        const strokeWidth = child.getAttribute('stroke-width')
+        if (strokeWidth) {
+          const newStrokeWidth = (parseFloat(strokeWidth) / width) * svgWidth
+          child.setAttribute('stroke-width', newStrokeWidth.toString())
+        }
+
+        // FOR STRAIGHT LINE
+        if (child instanceof SVGLineElement) {
+          const x1 = child.x1.baseVal.value
+          const y1 = child.y1.baseVal.value
+          const x2 = child.x2.baseVal.value
+          const y2 = child.y2.baseVal.value
+
+          // Adjust height and width for position
+          child.setAttribute('x1', ((x1 / width) * svgWidth).toString())
+          child.setAttribute('y1', ((y1 / height) * svgHeight).toString())
+          child.setAttribute('x2', ((x2 / width) * svgWidth).toString())
+          child.setAttribute('y2', ((y2 / height) * svgHeight).toString())
+        }
+        // FOR RECT
+        else if (child instanceof SVGRectElement) {
+          const x = child.x.baseVal.value
+          const y = child.y.baseVal.value
+          const entWidth = child.width.baseVal.value
+          const entHeight = child.height.baseVal.value
+
+          // Adjust height and width for position
+          child.setAttribute('x', ((x / width) * svgWidth).toString())
+          child.setAttribute('y', ((y / height) * svgHeight).toString())
+          child.setAttribute(
+            'width',
+            ((entWidth / width) * svgWidth).toString()
+          )
+          child.setAttribute(
+            'height',
+            ((entHeight / height) * svgHeight).toString()
+          )
+        }
+        // FOR LINE
+        else if (child instanceof SVGPathElement) {
+          const d = child.getAttribute('d') as string
+          if (d) {
+            const coords = d.split(' ').map((coord) => {
+              const command = coord[0]
+              const points = coord.substring(1).split(',')
+              const x = ((parseFloat(points[0]) / width) * svgWidth).toFixed(0)
+              const y = ((parseFloat(points[1]) / height) * svgHeight).toFixed(
+                0
+              )
+
+              if (command && x && y) return `${command}${x},${y}`
+            })
+            child.setAttribute('d', coords.join(' '))
+          }
+        }
+      }
     }
   }
 
@@ -467,29 +528,25 @@ const Document = ({ data }: IDocumentProps) => {
   const saveLayer = async () => {
     if (editStage !== EDIT_STAGES.DONE) return
     setScale(1)
-    try {
-      setEditStage(EDIT_STAGES.WORKING)
-      const svg = document.getElementById('evilFlowersPaintSVG')!
-      svg.classList.remove('efw-border', 'efw-border-red') // remove border before save/update
-      if (editLayer)
-        await editPackage!.updateLayerFunc(
-          editLayer.id,
-          svg.outerHTML,
-          editGroupId,
-          activePage
-        )
-      else {
-        const response = await editPackage!.saveLayerFunc(
-          svg.outerHTML,
-          editGroupId,
-          activePage
-        )
-        setEditLayer(response)
-      }
-    } catch {
-    } finally {
-      setEditStage(EDIT_STAGES.DONE)
+    setEditStage(EDIT_STAGES.WORKING)
+    const svg = document.getElementById('evilFlowersPaintSVG')!
+    svg.classList.remove('efw-border', 'efw-border-red') // remove border before save/update
+    if (editLayer)
+      await editPackage!.updateLayerFunc(
+        editLayer.id,
+        svg.outerHTML,
+        editGroupId,
+        activePage
+      )
+    else {
+      const response = await editPackage!.saveLayerFunc(
+        svg.outerHTML,
+        editGroupId,
+        activePage
+      )
+      setEditLayer(response)
     }
+    setEditStage(EDIT_STAGES.DONE)
   }
 
   const keyDownHandler = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -691,6 +748,7 @@ const Document = ({ data }: IDocumentProps) => {
         setLayer,
         editStage,
         setEditStage,
+        resizeElements,
       }}
     >
       <div

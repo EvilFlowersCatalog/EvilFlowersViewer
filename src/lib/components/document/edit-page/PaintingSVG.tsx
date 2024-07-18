@@ -14,6 +14,7 @@ const PaintingSVG = () => {
     svgWidth,
     editOpacity,
     editLayer,
+    resizeElements,
   } = useDocumentContext()
   const [isDrawing, setIsDrawing] = useState<boolean>(false)
   const [entity, setEntity] = useState<
@@ -46,11 +47,13 @@ const PaintingSVG = () => {
           : 'path'
       )
 
+      // set atributes
       newEntity.setAttribute('stroke', editHexColor)
       newEntity.setAttribute('opacity', editOpacity.toString())
       newEntity.setAttribute('stroke-width', editLineSize.toString())
       newEntity.setAttribute('stroke-linecap', 'round')
       newEntity.setAttribute('fill', 'none')
+      // for rubber to work
       newEntity.onmouseover = () => handleMouseOver(newEntity)
       setEntity(newEntity)
     }
@@ -60,74 +63,12 @@ const PaintingSVG = () => {
   useCustomEffect(() => {
     for (const child of svgRef.current.children) {
       if (child) {
+        // reactivate
         child.onmouseover = () => handleMouseOver(child)
       }
     }
   }, [isDrawing, activeEditTool])
 
-  // Responsivness
-  const resize = (children: any, width: number, height: number) => {
-    for (const child of children) {
-      // Adjust stroke width
-      if (child) {
-        const strokeWidth = child.getAttribute('stroke-width')
-        if (strokeWidth) {
-          const newStrokeWidth = (parseFloat(strokeWidth) / width) * svgWidth
-          child.setAttribute('stroke-width', newStrokeWidth.toString())
-        }
-
-        // FOR STRAIGHT LINE
-        if (child instanceof SVGLineElement) {
-          const x1 = child.x1.baseVal.value
-          const y1 = child.y1.baseVal.value
-          const x2 = child.x2.baseVal.value
-          const y2 = child.y2.baseVal.value
-
-          // Adjust height and width for position
-          child.setAttribute('x1', ((x1 / width) * svgWidth).toString())
-          child.setAttribute('y1', ((y1 / height) * svgHeight).toString())
-          child.setAttribute('x2', ((x2 / width) * svgWidth).toString())
-          child.setAttribute('y2', ((y2 / height) * svgHeight).toString())
-        }
-        // FOR RECT
-        else if (child instanceof SVGRectElement) {
-          const x = child.x.baseVal.value
-          const y = child.y.baseVal.value
-          const entWidth = child.width.baseVal.value
-          const entHeight = child.height.baseVal.value
-
-          // Adjust height and width for position
-          child.setAttribute('x', ((x / width) * svgWidth).toString())
-          child.setAttribute('y', ((y / height) * svgHeight).toString())
-          child.setAttribute(
-            'width',
-            ((entWidth / width) * svgWidth).toString()
-          )
-          child.setAttribute(
-            'height',
-            ((entHeight / height) * svgHeight).toString()
-          )
-        }
-        // FOR LINE
-        else if (child instanceof SVGPathElement) {
-          const d = child.getAttribute('d') as string
-          if (d) {
-            const coords = d.split(' ').map((coord) => {
-              const command = coord[0]
-              const points = coord.substring(1).split(',')
-              const x = ((parseFloat(points[0]) / width) * svgWidth).toFixed(0)
-              const y = ((parseFloat(points[1]) / height) * svgHeight).toFixed(
-                0
-              )
-
-              if (command && x && y) return `${command}${x},${y}`
-            })
-            child.setAttribute('d', coords.join(' '))
-          }
-        }
-      }
-    }
-  }
   // Call responsive each time schWidth/Height change
   useCustomEffect(() => {
     const svg = svgRef.current
@@ -135,8 +76,9 @@ const PaintingSVG = () => {
     const height = svg.height.baseVal.value
     const children = svgRef.current.children
 
-    resize(children, width, height)
+    resizeElements(children, width, height)
 
+    // update size
     svg.setAttribute('width', svgWidth)
     svg.setAttribute('height', svgHeight)
   }, [svgWidth, svgHeight])
@@ -230,7 +172,7 @@ const PaintingSVG = () => {
           svgRef.current.appendChild(child)
         })
 
-        resize(svgRef.current.children, width, height)
+        resizeElements(svgRef.current.children, width, height)
       }
     }
   }, [editLayer])

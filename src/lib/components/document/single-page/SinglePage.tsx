@@ -36,19 +36,22 @@ const SinglePage = ({ onDoubleClick }: ISinglePage) => {
   const renderPage = useRenderPage()
 
   useCustomEffect(() => {
+    // set rendering
     setPaginatorPageRender(RENDERING_STATES.RENDERING)
 
     const loadPage = async () => {
-      setLayer(null)
+      setLayer(null) // reset
       const view = document.getElementById('evilFlowersPageContent')
-      view?.replaceChildren(loader)
+      view?.replaceChildren(loader) // set loader
 
+      // Get layer for page
       if (editPackage && groupId) {
         const { getLayerFunc } = editPackage
         const l = await getLayerFunc(activePage, groupId)
         setLayer(l)
       }
 
+      // render page
       await renderPage({
         view,
         edit: false,
@@ -64,7 +67,9 @@ const SinglePage = ({ onDoubleClick }: ISinglePage) => {
   return (
     <div id={'evilFlowersContent'} onDoubleClick={onDoubleClick}>
       <div className="efw-relative efw-w-fit efw-m-auto">
+        {/* Content */}
         <div id={'evilFlowersPageContent'} />
+        {/* Layer */}
         {layer && <LayerSVG />}
       </div>
     </div>

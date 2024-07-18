@@ -83,6 +83,7 @@ interface IDocumentContext {
   setLayer: (layer: { id: string; svg: string } | null) => void
   editStage: EDIT_STAGES
   setEditStage: (editStage: EDIT_STAGES) => void
+  resizeElements: (children: any, width: number, height: number) => void
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)

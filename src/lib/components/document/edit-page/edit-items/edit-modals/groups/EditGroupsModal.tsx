@@ -1,95 +1,14 @@
 import { useTranslation } from 'react-i18next'
-import ModalWrapper from '../../../../modal/Modal'
-import useCustomEffect from '../../../../hooks/useCustomEffect'
-import useViewerContext from '../../../../hooks/useViewerContext'
+import ModalWrapper from '../../../../../modal/Modal'
+import useCustomEffect from '../../../../../hooks/useCustomEffect'
+import useViewerContext from '../../../../../hooks/useViewerContext'
 import { useState } from 'react'
-import Loader from '../../../../common/Loader'
+import Loader from '../../../../../common/Loader'
 import { MdDelete, MdModeEdit } from 'react-icons/md'
 import { FaCheckCircle } from 'react-icons/fa'
 import { IoMdRemoveCircle } from 'react-icons/io'
-import { useDocumentContext } from '../../../../hooks/useDocumentContext'
-
-interface IAnotationParams {
-  group: { id: string; name: string }
-  setVisible: (visible: boolean) => void
-  update: (id: string, name: string) => void
-  remove: (id: string) => void
-  choosing: boolean
-}
-const Anotation = ({
-  group,
-  setVisible,
-  update,
-  remove,
-  choosing,
-}: IAnotationParams) => {
-  const { setEditGroupId, setGroupId } = useDocumentContext()
-  const [input, setInput] = useState<string>(group.name)
-  const [disabled, setDisabled] = useState<boolean>(true)
-
-  return (
-    <button
-      className="efw-flex efw-items-center efw-p-4 efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium hover:efw-bg-opacity-50 dark:hover:efw-bg-opacity-50"
-      onClick={() => {
-        if (!disabled) return
-        if (choosing) setGroupId(group.id)
-        else setEditGroupId(group.id)
-        setVisible(false)
-      }}
-    >
-      <input
-        className="efw-bg-transparent efw-p-1 efw-border-b-2 disabled:efw-border-transparent disabled:efw-pointer-events-none efw-border-white efw-outline-none"
-        name={group.id}
-        onClick={(e) => e.stopPropagation()}
-        type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={(e) => e.stopPropagation()}
-        disabled={disabled}
-      />
-      <span className="efw-flex-1"></span>
-      {!choosing && (
-        <div
-          className="efw-flex efw-h-full efw-items-center efw-gap-2"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {disabled ? (
-            <>
-              <MdModeEdit
-                size={20}
-                color="green"
-                onClick={() => setDisabled(false)}
-              />
-              <MdDelete
-                size={20}
-                color="red"
-                onClick={() => remove(group.id)}
-              />
-            </>
-          ) : (
-            <>
-              <FaCheckCircle
-                size={19}
-                color="green"
-                onClick={() => {
-                  if (input) update(group.id, input)
-                }}
-              />
-              <IoMdRemoveCircle
-                size={22}
-                color="red"
-                onClick={() => {
-                  setInput(group.name)
-                  setDisabled(true)
-                }}
-              />
-            </>
-          )}
-        </div>
-      )}
-    </button>
-  )
-}
+import { useDocumentContext } from '../../../../../hooks/useDocumentContext'
+import EditAnotation from './EditAnotation'
 
 interface IEditAnotationModalParams {
   visible: boolean
@@ -114,42 +33,36 @@ const EditGroupsModal = ({
   const [showInput, setShowInput] = useState<boolean>(false)
   const [input, setInput] = useState<string>('')
 
+  // GET GROUPS
   useCustomEffect(async () => {
     setShowInput(false)
     setInput('')
-    try {
-      const g = await getGroupsFunc()
-      setGroups(g)
-      setIsLoading(false)
-    } catch {
-      setGroups([])
-    }
+    const g = await getGroupsFunc()
+    setGroups(g)
+    setIsLoading(false)
   }, [reload])
 
+  // Save group
   const save = async () => {
     if (input) {
-      try {
-        setIsLoading(true)
-        await saveGroupFunc(input)
-        setReload(!reload)
-      } catch {}
+      setIsLoading(true)
+      await saveGroupFunc(input)
+      setReload(!reload)
     }
   }
 
+  // Update group
   const update = async (id: string, name: string) => {
-    try {
-      setIsLoading(true)
-      await updateGroupFunc(id, name)
-      setReload(!reload)
-    } catch {}
+    setIsLoading(true)
+    await updateGroupFunc(id, name)
+    setReload(!reload)
   }
 
+  // Remove group
   const remove = async (id: string) => {
-    try {
-      setIsLoading(true)
-      await deleteGroupFunc(id)
-      setReload(!reload)
-    } catch {}
+    setIsLoading(true)
+    await deleteGroupFunc(id)
+    setReload(!reload)
   }
 
   return (
@@ -164,13 +77,16 @@ const EditGroupsModal = ({
           : () => (editGroupId ? setVisible(false) : setIsEditMode(false))
       }
     >
+      {/* Loader */}
       {isLoading && (
         <div className="efw-flex efw-justify-center">
           <Loader size={50} />
         </div>
       )}
+      {/* When loaded */}
       {!isLoading && (
         <div className="efw-flex efw-flex-col efw-justify-center efw-text-center efw-flex-1 efw-gap-4 efw-overflow-auto">
+          {/* For no group */}
           {choosing && (
             <button
               className="efw-flex efw-items-center efw-p-4 efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium hover:efw-bg-opacity-50 dark:hover:efw-bg-opacity-50"
@@ -182,9 +98,10 @@ const EditGroupsModal = ({
               {t('none')}
             </button>
           )}
+          {/* Groups */}
           {groups.length > 0
             ? groups.map((group) => (
-                <Anotation
+                <EditAnotation
                   key={group.id}
                   group={group}
                   setVisible={setVisible}
@@ -194,6 +111,7 @@ const EditGroupsModal = ({
                 />
               ))
             : t('noGroups')}
+          {/* For adding group */}
           {showInput && (
             <div className="efw-flex efw-w-full efw-items-center efw-gap-2 efw-cursor-pointer">
               <input

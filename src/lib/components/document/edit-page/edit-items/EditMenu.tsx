@@ -10,12 +10,12 @@ import { LuEraser } from 'react-icons/lu'
 import { GoPencil } from 'react-icons/go'
 import { HiOutlineMinus } from 'react-icons/hi2'
 import { MdCancel } from 'react-icons/md'
-import { LuLayers } from 'react-icons/lu'
+import { IoLayersOutline } from 'react-icons/io5'
 import useViewerContext from '../../../hooks/useViewerContext'
 import Button from '../../../common/Button'
 import EditColorsModal from './edit-modals/EditColorsModal'
 import EditToolsModal from './edit-modals/EditToolsModal'
-import EditGroupsModal from './edit-modals/EditGroupsModal'
+import EditGroupsModal from './edit-modals/groups/EditGroupsModal'
 import EditTools from './edit-tools/EditTools'
 import { RiDeleteBin6Line } from 'react-icons/ri'
 import { BiSave } from 'react-icons/bi'
@@ -82,6 +82,7 @@ const EditMenu = () => {
     [EDIT_TOOLS.SQUARE]: <FiSquare size={30} className="efw-mt-2.5" />,
   }
 
+  // delete layer
   const deleteLayer = async () => {
     if (editStage !== EDIT_STAGES.DONE) return
     try {
@@ -98,6 +99,7 @@ const EditMenu = () => {
     }
   }
 
+  // HANDLERS
   const handleCloseEditPage = () => {
     if (editStage === EDIT_STAGES.DONE) {
       setActiveEditTool(EDIT_TOOLS.MOUSE)
@@ -131,23 +133,27 @@ const EditMenu = () => {
             icon={<MdCancel size={25} color="red" />}
           />
           <div className="efw-relative efw-flex efw-flex-col efw-gap-3.5 efw-justify-center efw-h-full efw-border-r efw-border-black dark:efw-border-white efw-pr-2.5">
+            {/* GROUPS */}
             <Button
               onClick={handleOpenGroups}
               toolTip={{ position: 'right', text: t('groups') }}
-              icon={<LuLayers size={23} />}
+              icon={<IoLayersOutline size={23} />}
             />
+            {/* SAVE */}
             <Button
               onClick={saveLayer}
               toolTip={{ position: 'right', text: t('save') }}
-              icon={<BiSave size={25} />}
+              icon={<BiSave size={23} />}
             />
+            {/* DELETE */}
             <Button
               onClick={deleteLayer}
               toolTip={{ position: 'right', text: t('delete') }}
-              icon={<RiDeleteBin6Line size={22} />}
+              icon={<RiDeleteBin6Line size={23} />}
             />
           </div>
         </div>
+        {/* MOBILE */}
         {screenWidth > 699 ? (
           <div className="efw-w-full efw-h-full efw-flex efw-justify-between efw-items-center efw-gap-4">
             <div className="efw-flex efw-items-start efw-h-full efw-gap-4 efw-py-1.5">
@@ -178,6 +184,7 @@ const EditMenu = () => {
           </div>
         )}
       </div>
+      {/* MODALS */}
       {colorChangerVisibility && (
         <EditColorsModal
           visible={colorChangerVisibility}

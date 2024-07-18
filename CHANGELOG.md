@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.6 : 2024-07-18
+
+- **Added**: Few comments to code
+- **Changed**: Layers icon
+- **Changed**: Last position in help
+- **Removed**: try-catch used uselesly
+
 ## 0.5.5 : 2024-07-18
 
 - **Added**: Removing border from svg before saving/editing

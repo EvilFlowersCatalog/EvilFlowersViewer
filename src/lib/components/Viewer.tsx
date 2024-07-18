@@ -15,6 +15,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJSWorker
 // pdfjsLib.GlobalWorkerOptions.workerSrc =
 //   '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
 
+// For options in renderViewer
 export interface IViewerOptions {
   theme?: 'dark' | 'light'
   lang?: string
