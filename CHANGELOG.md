@@ -3,6 +3,7 @@
 ## 0.5.6 : TBD
 
 - **Changed**: Layers icon
+- **Changed**: Last position in help
 
 ## 0.5.5 : 2024-07-18
 

@@ -42,7 +42,7 @@ const Help = () => {
     '338px', // Theme change
     '373px', // Download
     '407px', // Zoom In
-    '440px', // Zoom out
+    '442px', // Zoom out
   ])
 
   // css for each type of help step
