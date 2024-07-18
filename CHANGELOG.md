@@ -2,6 +2,7 @@
 
 ## 0.5.5 : TBD
 
+- **Added**: Removing border from svg before saving/editing
 - **Changed**: Saving layer function
 
 ## 0.5.4 : 2024-07-17
