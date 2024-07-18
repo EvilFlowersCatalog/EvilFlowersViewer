@@ -23,7 +23,7 @@ import Info from './items/Info'
 import Share from './items/share/Share'
 import useViewerContext from '../hooks/useViewerContext'
 import Button from '../common/Button'
-import EditGroupsModal from '../document/edit-page/edit-items/edit-modals/EditGroupsModal'
+import EditGroupsModal from '../document/edit-page/edit-items/edit-modals/groups/EditGroupsModal'
 import { IoLayersOutline } from 'react-icons/io5'
 
 const SideMenu = () => {

@@ -67,6 +67,7 @@ const BottomBar = () => {
         isEditMode ? 'efw-h-[52px]' : hideBottomBar ? 'efw-h-[75px]' : ''
       }`}
     >
+      {/* UP/DOWN hiding bottom bar */}
       {!isEditMode && (
         <div className="efw-relative efw-flex efw-justify-center">
           <Button
@@ -83,6 +84,7 @@ const BottomBar = () => {
         </div>
       )}
       <div className="efw-relative efw-w-full efw-flex efw-justify-center efw-items-center efw-gap-0.5 efw-select-none efw-mt-1.5">
+        {/* PREV PAGE */}
         <Button
           toolTip={{
             text:
@@ -94,6 +96,7 @@ const BottomBar = () => {
           onClick={prevPage}
           icon={<AiOutlineLeft id="bottom-bar-left" size={15} />}
         />
+        {/* INPUT */}
         {previewRender === RENDERING_STATES.RENDERED ? (
           <span
             className={
@@ -111,10 +114,12 @@ const BottomBar = () => {
             /<span className="efw-mx-1">{totalPages}</span>
           </span>
         ) : (
+          // LOADER when loading pages
           <div className="efw-w-14 efw-flex efw-justify-center">
             <Loader size={20} />
           </div>
         )}
+        {/* NEXT PAGE */}
         <Button
           toolTip={{
             text:
@@ -128,6 +133,7 @@ const BottomBar = () => {
           icon={<AiOutlineRight id="bottom-bar-right" size={15} />}
         />
       </div>
+      {/* PREVIEW */}
       <Preview />
     </div>
   )

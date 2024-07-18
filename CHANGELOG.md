@@ -2,6 +2,7 @@
 
 ## 0.5.6 : TBD
 
+- **Added**: Few comments to code
 - **Changed**: Layers icon
 - **Changed**: Last position in help
 
