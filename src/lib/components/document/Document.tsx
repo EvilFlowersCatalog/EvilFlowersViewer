@@ -118,29 +118,37 @@ const Document = ({ data }: IDocumentProps) => {
   const [svgWidth, setSvgWidth] = useState(0)
   const [svgHeight, setSvgHeight] = useState(0)
   const [hideBottomBar, setHideBottomBar] = useState<boolean>(false)
+  const [editGroupId, setEditGroupId] = useState<string>('')
   const [groupId, setGroupId] = useState<string>('')
-  const [layer, setLayer] = useState<{ id: string; svg: string } | null>(null)
+  const [editLayer, setEditLayer] = useState<{
+    id: string
+    svg: string
+  } | null>(null)
+  const [layer, setLayer] = useState<{
+    id: string
+    svg: string
+  } | null>(null)
   const [editStage, setEditStage] = useState<EDIT_STAGES>(EDIT_STAGES.NULL)
 
   // Get layer for choosen group and page
   useCustomEffect(async () => {
     if (isEditMode) {
-      if (groupId) {
+      if (editGroupId) {
         try {
           setEditStage(EDIT_STAGES.LOADING)
-          const l = await editPackage!.getLayerFunc(activePage, groupId)
-          setLayer(l)
+          const l = await editPackage!.getLayerFunc(activePage, editGroupId)
+          setEditLayer(l)
         } catch {
-          setLayer(null)
+          setEditLayer(null)
         } finally {
           setEditStage(EDIT_STAGES.DONE)
         }
       }
     } else {
       setEditStage(EDIT_STAGES.NULL)
-      setGroupId('')
+      setEditGroupId('')
     }
-  }, [groupId, activePage, isEditMode])
+  }, [editGroupId, activePage, isEditMode])
 
   useEffect(() => {
     // Set base citation
@@ -382,12 +390,16 @@ const Document = ({ data }: IDocumentProps) => {
     }
   }
 
-  const setPage = (page: number) => {
-    if (
+  const isDone = () => {
+    return (
       paginatorPageRender === RENDERING_STATES.RENDERED &&
       previewRender === RENDERING_STATES.RENDERED &&
       ((isEditMode && editStage === EDIT_STAGES.DONE) || !isEditMode)
-    ) {
+    )
+  }
+
+  const setPage = (page: number) => {
+    if (isDone()) {
       setPrevActivePage(activePage)
       setActivePage(page)
     }
@@ -397,11 +409,7 @@ const Document = ({ data }: IDocumentProps) => {
    * Go to next page
    */
   const nextPage = () => {
-    if (
-      paginatorPageRender === RENDERING_STATES.RENDERED &&
-      previewRender === RENDERING_STATES.RENDERED &&
-      ((isEditMode && editStage === EDIT_STAGES.DONE) || !isEditMode)
-    ) {
+    if (isDone()) {
       if (activePage !== totalPages) {
         setPrevActivePage(activePage)
         setActivePage(activePage + 1)
@@ -413,11 +421,7 @@ const Document = ({ data }: IDocumentProps) => {
    * Go to previous page
    */
   const prevPage = () => {
-    if (
-      paginatorPageRender === RENDERING_STATES.RENDERED &&
-      previewRender === RENDERING_STATES.RENDERED &&
-      ((isEditMode && editStage === EDIT_STAGES.DONE) || !isEditMode)
-    ) {
+    if (isDone()) {
       if (activePage !== 1) {
         setPrevActivePage(activePage)
         setActivePage(activePage - 1)
@@ -431,11 +435,7 @@ const Document = ({ data }: IDocumentProps) => {
    * @param page - Page number
    */
   const searchPage = (page: number) => {
-    if (
-      paginatorPageRender === RENDERING_STATES.RENDERED &&
-      previewRender === RENDERING_STATES.RENDERED &&
-      ((isEditMode && editStage === EDIT_STAGES.DONE) || !isEditMode)
-    ) {
+    if (isDone()) {
       if (page < 1 || (pdf?.numPages && pdf?.numPages < page)) return
       else if (page === activePage) setRerender({})
       else {
@@ -449,14 +449,16 @@ const Document = ({ data }: IDocumentProps) => {
    * Zoom in on document
    */
   const zoomIn = () => {
-    setScale((prevScale) => (prevScale < 3 ? prevScale + 0.25 : prevScale))
+    if (isDone())
+      setScale((prevScale) => (prevScale < 3 ? prevScale + 0.25 : prevScale))
   }
 
   /**
    * Zoom out on document
    */
   const zoomOut = () => {
-    setScale((prevScale) => (prevScale > 0.25 ? prevScale - 0.25 : prevScale))
+    if (isDone())
+      setScale((prevScale) => (prevScale > 0.25 ? prevScale - 0.25 : prevScale))
   }
 
   /**
@@ -468,9 +470,22 @@ const Document = ({ data }: IDocumentProps) => {
     try {
       setEditStage(EDIT_STAGES.WORKING)
       const svg = document.getElementById('evilFlowersPaintSVG')!
-      if (layer)
-        await editPackage!.updateLayerFunc(layer.id, svg, groupId, activePage)
-      else await editPackage!.saveLayerFunc(svg, groupId, activePage)
+      svg.classList.remove('efw-border', 'efw-border-red') // remove border before save/update
+      if (editLayer)
+        await editPackage!.updateLayerFunc(
+          editLayer.id,
+          svg.outerHTML,
+          editGroupId,
+          activePage
+        )
+      else {
+        const response = await editPackage!.saveLayerFunc(
+          svg.outerHTML,
+          editGroupId,
+          activePage
+        )
+        setEditLayer(response)
+      }
     } catch {
     } finally {
       setEditStage(EDIT_STAGES.DONE)
@@ -669,6 +684,9 @@ const Document = ({ data }: IDocumentProps) => {
         saveLayer,
         groupId,
         setGroupId,
+        editGroupId,
+        setEditGroupId,
+        editLayer,
         layer,
         setLayer,
         editStage,

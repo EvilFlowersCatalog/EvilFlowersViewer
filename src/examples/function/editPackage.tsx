@@ -7,12 +7,13 @@ let nieco1 =
   '<svg xmlns="http://www.w3.org/2000/svg" width="362" height="549"><rect stroke="#ff0000" opacity="1" stroke-width="16" stroke-linecap="round" fill="none" rx="50%" x="101" y="189" width="167" height="205"></rect></svg>'
 
 export const saveLayerFunc = async (
-  svg: HTMLElement,
+  svg: string,
   groupId: string,
   page: number
-) => {
+): Promise<{ id: string; svg: string } | null> => {
   await delay(2000)
-  console.log(svg, 'saved')
+
+  return { id: 'nieco', svg: nieco }
 }
 export const saveGroupFunc = async (name: string) => {
   await delay(2000)
@@ -21,13 +22,13 @@ export const saveGroupFunc = async (name: string) => {
 }
 export const updateLayerFunc = async (
   id: string,
-  svg: HTMLElement,
+  svg: string,
   groupId: string,
   page: number
 ) => {
   await delay(2000)
 
-  nieco = svg.outerHTML
+  nieco = svg
 
   console.log(id, svg, 'updated')
 }

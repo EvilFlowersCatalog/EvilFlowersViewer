@@ -40,11 +40,10 @@ const useRenderPage = () => {
       canvas.width = viewport.width
       canvas.height = viewport.height
 
-      // If we are at edit mode
-      if (edit) {
-        setSvgWidth(canvas.width)
-        setSvgHeight(canvas.height)
-      } else {
+      setSvgWidth(canvas.width)
+      setSvgHeight(canvas.height)
+
+      if (renderTextContext) {
         // container for rendering text content
         container = document.createElement('div')
         container.setAttribute('id', 'textLayer')

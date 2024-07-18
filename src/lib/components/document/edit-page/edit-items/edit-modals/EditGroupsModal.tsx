@@ -14,9 +14,16 @@ interface IAnotationParams {
   setVisible: (visible: boolean) => void
   update: (id: string, name: string) => void
   remove: (id: string) => void
+  choosing: boolean
 }
-const Anotation = ({ group, setVisible, update, remove }: IAnotationParams) => {
-  const { setGroupId } = useDocumentContext()
+const Anotation = ({
+  group,
+  setVisible,
+  update,
+  remove,
+  choosing,
+}: IAnotationParams) => {
+  const { setEditGroupId, setGroupId } = useDocumentContext()
   const [input, setInput] = useState<string>(group.name)
   const [disabled, setDisabled] = useState<boolean>(true)
 
@@ -25,7 +32,8 @@ const Anotation = ({ group, setVisible, update, remove }: IAnotationParams) => {
       className="efw-flex efw-items-center efw-p-4 efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium hover:efw-bg-opacity-50 dark:hover:efw-bg-opacity-50"
       onClick={() => {
         if (!disabled) return
-        setGroupId(group.id)
+        if (choosing) setGroupId(group.id)
+        else setEditGroupId(group.id)
         setVisible(false)
       }}
     >
@@ -40,39 +48,45 @@ const Anotation = ({ group, setVisible, update, remove }: IAnotationParams) => {
         disabled={disabled}
       />
       <span className="efw-flex-1"></span>
-      <div
-        className="efw-flex efw-h-full efw-items-center efw-gap-2"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {disabled ? (
-          <>
-            <MdModeEdit
-              size={20}
-              color="green"
-              onClick={() => setDisabled(false)}
-            />
-            <MdDelete size={20} color="red" onClick={() => remove(group.id)} />
-          </>
-        ) : (
-          <>
-            <FaCheckCircle
-              size={19}
-              color="green"
-              onClick={() => {
-                if (input) update(group.id, input)
-              }}
-            />
-            <IoMdRemoveCircle
-              size={22}
-              color="red"
-              onClick={() => {
-                setInput(group.name)
-                setDisabled(true)
-              }}
-            />
-          </>
-        )}
-      </div>
+      {!choosing && (
+        <div
+          className="efw-flex efw-h-full efw-items-center efw-gap-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {disabled ? (
+            <>
+              <MdModeEdit
+                size={20}
+                color="green"
+                onClick={() => setDisabled(false)}
+              />
+              <MdDelete
+                size={20}
+                color="red"
+                onClick={() => remove(group.id)}
+              />
+            </>
+          ) : (
+            <>
+              <FaCheckCircle
+                size={19}
+                color="green"
+                onClick={() => {
+                  if (input) update(group.id, input)
+                }}
+              />
+              <IoMdRemoveCircle
+                size={22}
+                color="red"
+                onClick={() => {
+                  setInput(group.name)
+                  setDisabled(true)
+                }}
+              />
+            </>
+          )}
+        </div>
+      )}
     </button>
   )
 }
@@ -80,15 +94,17 @@ const Anotation = ({ group, setVisible, update, remove }: IAnotationParams) => {
 interface IEditAnotationModalParams {
   visible: boolean
   setVisible: (visible: boolean) => void
+  choosing?: boolean
 }
 
 const EditGroupsModal = ({
   visible,
   setVisible,
+  choosing = false,
 }: IEditAnotationModalParams) => {
   const { t } = useTranslation()
 
-  const { setIsEditMode, groupId } = useDocumentContext()
+  const { setIsEditMode, editGroupId, setGroupId } = useDocumentContext()
   const { editPackage } = useViewerContext()
   const { getGroupsFunc, updateGroupFunc, deleteGroupFunc, saveGroupFunc } =
     editPackage!
@@ -140,9 +156,13 @@ const EditGroupsModal = ({
     <ModalWrapper
       isOpen={visible}
       title={t('chooseGroups')}
-      label={t('groupNew')}
-      onClick={() => setShowInput(true)}
-      onClose={() => (groupId ? setVisible(false) : setIsEditMode(false))}
+      label={choosing ? null : t('groupNew')}
+      onClick={choosing ? undefined : () => setShowInput(true)}
+      onClose={
+        choosing
+          ? () => setVisible(false)
+          : () => (editGroupId ? setVisible(false) : setIsEditMode(false))
+      }
     >
       {isLoading && (
         <div className="efw-flex efw-justify-center">
@@ -151,6 +171,17 @@ const EditGroupsModal = ({
       )}
       {!isLoading && (
         <div className="efw-flex efw-flex-col efw-justify-center efw-text-center efw-flex-1 efw-gap-4 efw-overflow-auto">
+          {choosing && (
+            <button
+              className="efw-flex efw-items-center efw-p-4 efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium hover:efw-bg-opacity-50 dark:hover:efw-bg-opacity-50"
+              onClick={() => {
+                setGroupId('')
+                setVisible(false)
+              }}
+            >
+              {t('none')}
+            </button>
+          )}
           {groups.length > 0
             ? groups.map((group) => (
                 <Anotation
@@ -159,6 +190,7 @@ const EditGroupsModal = ({
                   setVisible={setVisible}
                   update={update}
                   remove={remove}
+                  choosing={choosing}
                 />
               ))
             : t('noGroups')}

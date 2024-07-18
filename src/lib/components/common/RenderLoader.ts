@@ -2,7 +2,7 @@
 const loader = document.createElement('div')
 loader.setAttribute(
   'class',
-  'w-10 h-10 border-2 border-black dark:border-white border-t-2 border-t-blue-dark dark:border-t-blue-dark rounded-full animate-spin'
+  'efw-w-10 efw-h-10 efw-border-2 efw-border-black dark:efw-border-white efw-border-t-2 efw-border-t-blue-dark dark:efw-border-t-blue-dark efw-rounded-full efw-animate-spin'
 )
 
 export default loader

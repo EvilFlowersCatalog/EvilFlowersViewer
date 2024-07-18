@@ -25,14 +25,14 @@ export interface IViewerOptions {
   homeFunction?: (() => void) | null
   editPackage?: {
     saveLayerFunc: (
-      svg: HTMLElement,
+      svg: string,
       groupId: string,
       page: number
-    ) => Promise<void>
+    ) => Promise<{ id: string; svg: string } | null>
     saveGroupFunc: (name: string) => Promise<void>
     updateLayerFunc: (
       id: string,
-      svg: HTMLElement,
+      svg: string,
       groupId: string,
       page: number
     ) => Promise<void>
@@ -109,7 +109,7 @@ export const Viewer = (viewerParams: IViewerParams) => {
       <div
         id={'evilFlowersViewer'}
         className={
-          'efw-w-screen efw-h-screen efw-min-h-[660px] efw-overflow-auto efw-text-black dark:efw-text-white'
+          'efw-w-screen efw-h-screen efw-min-h-[690px] efw-overflow-auto efw-text-black dark:efw-text-white'
         }
       >
         <div

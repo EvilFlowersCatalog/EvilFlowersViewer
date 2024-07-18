@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.5 : 2024-07-18
+
+- **Added**: Removing border from svg before saving/editing
+- **Added**: Layer in reading mode
+- **Added**: Button to side bar for choosing groups
+- **Added**: Help for new button in sidebar
+- **Changed**: Saving layer function
+- **Changed**: SVG in saving layer function from HTMLElement to string
+- **Fixed**: talwind in loader and helper
+
 ## 0.5.4 : 2024-07-17
 
 - **Changed**: After added group the input hides
