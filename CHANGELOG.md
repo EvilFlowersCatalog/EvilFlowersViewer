@@ -4,6 +4,7 @@
 
 - **Added**: Removing border from svg before saving/editing
 - **Changed**: Saving layer function
+- **Changed**: SVG in saving layer function from HTMLElement to string
 
 ## 0.5.4 : 2024-07-17
 

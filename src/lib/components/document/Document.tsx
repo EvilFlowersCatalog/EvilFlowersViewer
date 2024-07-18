@@ -470,10 +470,15 @@ const Document = ({ data }: IDocumentProps) => {
       const svg = document.getElementById('evilFlowersPaintSVG')!
       svg.classList.remove('efw-border', 'efw-border-red') // remove border before save/update
       if (layer)
-        await editPackage!.updateLayerFunc(layer.id, svg, groupId, activePage)
+        await editPackage!.updateLayerFunc(
+          layer.id,
+          svg.outerHTML,
+          groupId,
+          activePage
+        )
       else {
         const response = await editPackage!.saveLayerFunc(
-          svg,
+          svg.outerHTML,
           groupId,
           activePage
         )
