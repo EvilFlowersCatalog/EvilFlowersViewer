@@ -10,9 +10,10 @@ export const saveLayerFunc = async (
   svg: HTMLElement,
   groupId: string,
   page: number
-) => {
+): Promise<{ id: string; svg: string } | null> => {
   await delay(2000)
-  console.log(svg, 'saved')
+
+  return { id: 'nieco', svg: nieco }
 }
 export const saveGroupFunc = async (name: string) => {
   await delay(2000)

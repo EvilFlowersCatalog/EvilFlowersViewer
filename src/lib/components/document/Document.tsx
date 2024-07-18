@@ -470,7 +470,14 @@ const Document = ({ data }: IDocumentProps) => {
       const svg = document.getElementById('evilFlowersPaintSVG')!
       if (layer)
         await editPackage!.updateLayerFunc(layer.id, svg, groupId, activePage)
-      else await editPackage!.saveLayerFunc(svg, groupId, activePage)
+      else {
+        const response = await editPackage!.saveLayerFunc(
+          svg,
+          groupId,
+          activePage
+        )
+        setLayer(response)
+      }
     } catch {
     } finally {
       setEditStage(EDIT_STAGES.DONE)

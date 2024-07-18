@@ -28,7 +28,7 @@ export interface IViewerOptions {
       svg: HTMLElement,
       groupId: string,
       page: number
-    ) => Promise<void>
+    ) => Promise<{ id: string; svg: string } | null>
     saveGroupFunc: (name: string) => Promise<void>
     updateLayerFunc: (
       id: string,
