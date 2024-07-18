@@ -10,7 +10,7 @@ import { LuEraser } from 'react-icons/lu'
 import { GoPencil } from 'react-icons/go'
 import { HiOutlineMinus } from 'react-icons/hi2'
 import { MdCancel } from 'react-icons/md'
-import { LuLayers } from 'react-icons/lu'
+import { IoLayersOutline } from 'react-icons/io5'
 import useViewerContext from '../../../hooks/useViewerContext'
 import Button from '../../../common/Button'
 import EditColorsModal from './edit-modals/EditColorsModal'
@@ -134,17 +134,17 @@ const EditMenu = () => {
             <Button
               onClick={handleOpenGroups}
               toolTip={{ position: 'right', text: t('groups') }}
-              icon={<LuLayers size={23} />}
+              icon={<IoLayersOutline size={23} />}
             />
             <Button
               onClick={saveLayer}
               toolTip={{ position: 'right', text: t('save') }}
-              icon={<BiSave size={25} />}
+              icon={<BiSave size={23} />}
             />
             <Button
               onClick={deleteLayer}
               toolTip={{ position: 'right', text: t('delete') }}
-              icon={<RiDeleteBin6Line size={22} />}
+              icon={<RiDeleteBin6Line size={23} />}
             />
           </div>
         </div>

@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import Tooltip from '../helpers/Tooltip'
 import { useDocumentContext } from '../hooks/useDocumentContext'
 import {
   BiDownload,
@@ -24,8 +23,8 @@ import Info from './items/Info'
 import Share from './items/share/Share'
 import useViewerContext from '../hooks/useViewerContext'
 import Button from '../common/Button'
-import { LuLayers } from 'react-icons/lu'
 import EditGroupsModal from '../document/edit-page/edit-items/edit-modals/EditGroupsModal'
+import { IoLayersOutline } from 'react-icons/io5'
 
 const SideMenu = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -78,7 +77,7 @@ const SideMenu = () => {
     editPackage
       ? {
           name: t('groups'),
-          icon: <LuLayers id="menu-edit" size={20} />,
+          icon: <IoLayersOutline id="menu-edit" size={23} />,
           tooltipText: t('groups'),
           onClick: () => setGroupsVisibility(true),
         }

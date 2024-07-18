@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.6 : TBD
+
+- **Changed**: Layers icon
+
 ## 0.5.5 : 2024-07-18
 
 - **Added**: Removing border from svg before saving/editing
