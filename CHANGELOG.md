@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.5 : TBD
+## 0.5.5 : 2024-07-18
 
 - **Added**: Removing border from svg before saving/editing
 - **Added**: Layer in reading mode
