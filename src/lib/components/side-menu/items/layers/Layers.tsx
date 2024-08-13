@@ -6,10 +6,12 @@ import useViewerContext from '../../../hooks/useViewerContext'
 import useCustomEffect from '../../../hooks/useCustomEffect'
 import Loader from '../../../common/Loader'
 import LayerItem from './LayerItem'
+import { useDocumentContext } from '../../../hooks/useDocumentContext'
 
 const Layers = () => {
   const { t } = useTranslation()
 
+  const { setGroupId, groupId } = useDocumentContext()
   const { editPackage } = useViewerContext()
   const { getGroupsFunc, updateGroupFunc, deleteGroupFunc, saveGroupFunc } =
     editPackage!
@@ -68,17 +70,30 @@ const Layers = () => {
           >
             <IoMdAdd size={30} color="white" />
           </button>
+
           {/* Groups */}
-          {groups.length > 0
-            ? groups.map((group, index) => (
+          {groups.length > 0 ? (
+            <>
+              <div
+                className={`efw-w-full efw-p-4 efw-bg-gray-light dark:efw-bg-gray-dark-medium ${
+                  groupId ? '' : 'efw-bg-opacity-50 dark:efw-bg-opacity-50'
+                } hover:efw-bg-opacity-50 dark:hover:efw-bg-opacity-50 efw-rounded-md efw-cursor-pointer`}
+                onClick={() => setGroupId('')}
+              >
+                {t('noneLayer')}
+              </div>
+              {groups.map((group, index) => (
                 <LayerItem
                   key={index}
                   group={group}
                   update={update}
                   remove={remove}
                 />
-              ))
-            : t('noLayers')}
+              ))}
+            </>
+          ) : (
+            t('noLayers')
+          )}
           {/* For adding group */}
           {showInput && (
             <div className="efw-flex efw-w-full efw-items-center efw-gap-2 efw-cursor-pointer">

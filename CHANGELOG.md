@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.7 : TBD
+## 0.5.7 : 2024-08-13
 
 - **Changed**: `groups` to `layers`
 - **Changed**: groups and edit, merged together

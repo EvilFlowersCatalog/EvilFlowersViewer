@@ -37,7 +37,7 @@ export const sk = {
     editSetName: 'Nastav meno vrstvy',
     saveLayer: 'Uložiť vrstvu',
     layers: 'Vrstvy',
-    none: 'Žiaden',
+    noneLayer: 'Žiadna vrstva',
     deleteLayer: 'Vymazať vrstvu strany',
     editLayer: 'Upraviť vrstvu',
     size: 'Veľkosť',

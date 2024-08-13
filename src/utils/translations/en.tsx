@@ -37,7 +37,7 @@ export const en = {
     editSetName: 'Set name for layer',
     saveLayer: 'Save layer',
     layers: 'Layers',
-    none: 'None',
+    noneLayer: 'No layer',
     deleteLayer: 'Delete page layer',
     editLayer: 'Edit layer',
     size: 'Size',
