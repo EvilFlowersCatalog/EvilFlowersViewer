@@ -92,7 +92,7 @@ const Layers = () => {
               ))}
             </>
           ) : (
-            t('noLayers')
+            t('noLayer')
           )}
           {/* For adding group */}
           {showInput && (

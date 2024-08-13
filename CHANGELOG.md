@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.8 : 2024-08-13
+
+- **Fixed**: translation
+
 ## 0.5.7 : 2024-08-13
 
 - **Changed**: `groups` to `layers`
