@@ -11,21 +11,26 @@ interface IEditAnotationParams {
   remove: (id: string) => void
 }
 const LayerItem = ({ group, update, remove }: IEditAnotationParams) => {
-  const { setGroupId, setIsEditMode } = useDocumentContext()
+  const { setGroupId, setIsEditMode, groupId } = useDocumentContext()
   const { t } = useTranslation()
   const [input, setInput] = useState<string>(group.name)
   const [disabled, setDisabled] = useState<boolean>(true)
 
   return (
     <button
+      className={`efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium efw-border-2 ${
+        group.id === groupId
+          ? 'efw-border-black dark:efw-border-white'
+          : 'efw-border-transparent'
+      } hover:efw-bg-opacity-50 dark:hover:efw-bg-opacity-50`}
       onClick={() => {
         if (!disabled) return
         setGroupId(group.id)
       }}
     >
-      <div className="efw-flex efw-p-4 efw-items-center efw-gap-2 efw-rounded-t-md efw-bg-gray-light dark:efw-bg-gray-dark-medium hover:efw-bg-opacity-50 dark:hover:efw-bg-opacity-50">
+      <div className="efw-flex efw-p-4 efw-pb-2 efw-items-center efw-gap-2">
         <input
-          className="efw-bg-transparent efw-w-full efw-p-1 efw-border-b-2 disabled:efw-border-transparent disabled:efw-pointer-events-none efw-border-white efw-outline-none"
+          className="efw-bg-transparent efw-w-full efw-p-1 efw-border-b-2 disabled:efw-border-transparent efw-uppercase efw-font-bold disabled:efw-pointer-events-none efw-border-white efw-outline-none"
           name={group.id}
           onClick={(e) => e.stopPropagation()}
           type="text"
@@ -74,7 +79,7 @@ const LayerItem = ({ group, update, remove }: IEditAnotationParams) => {
         </div>
       </div>
       <div
-        className="efw-w-full efw-outline-none efw-text-center efw-rounded-b-md efw-uppercase efw-font-extrabold efw-text-[12px] efw-py-2 efw-bg-gray-light dark:efw-bg-gray-dark-medium hover:efw-bg-opacity-50 dark:hover:efw-bg-opacity-50"
+        className="efw-w-full efw-outline-none efw-text-center efw-uppercase efw-text-[12px] efw-py-2"
         onClick={(e) => {
           e.stopPropagation()
           if (!disabled) return
