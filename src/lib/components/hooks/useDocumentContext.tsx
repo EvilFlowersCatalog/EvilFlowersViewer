@@ -76,8 +76,6 @@ interface IDocumentContext {
   saveLayer: () => void
   groupId: string
   setGroupId: (groupId: string) => void
-  editGroupId: string
-  setEditGroupId: (groupId: string) => void
   editLayer: { id: string; svg: string } | null
   layer: { id: string; svg: string } | null
   setLayer: (layer: { id: string; svg: string } | null) => void

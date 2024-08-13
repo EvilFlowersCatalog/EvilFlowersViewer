@@ -4,15 +4,15 @@ export enum SIDEBAR_TABS {
   SEARCH = 'SEARCH',
   SHARE = 'SHARE',
   INFO = 'INFO',
+  LAYERS = 'LAYERS',
   NULL = 'NULL',
 }
 
 export const SIDEBAR_TAB_NAMES = () => ({
   SEARCH: i18next.t('fullTextSearch'),
-  CITATIONS: i18next.t('citations'),
   SHARE: i18next.t('share'),
   INFO: i18next.t('info'),
-  DOWNLOAD: i18next.t('download'),
+  LAYERS: i18next.t('layers'),
   NULL: i18next.t('null'),
 })
 

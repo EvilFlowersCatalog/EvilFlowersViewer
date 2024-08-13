@@ -1,29 +1,15 @@
 import { useTranslation } from 'react-i18next'
-import ModalWrapper from '../../../../../modal/Modal'
-import useCustomEffect from '../../../../../hooks/useCustomEffect'
-import useViewerContext from '../../../../../hooks/useViewerContext'
 import { useState } from 'react'
-import Loader from '../../../../../common/Loader'
-import { MdDelete, MdModeEdit } from 'react-icons/md'
 import { FaCheckCircle } from 'react-icons/fa'
-import { IoMdRemoveCircle } from 'react-icons/io'
-import { useDocumentContext } from '../../../../../hooks/useDocumentContext'
-import EditAnotation from './EditAnotation'
+import { IoMdAdd, IoMdRemoveCircle } from 'react-icons/io'
+import useViewerContext from '../../../hooks/useViewerContext'
+import useCustomEffect from '../../../hooks/useCustomEffect'
+import Loader from '../../../common/Loader'
+import LayerItem from './LayerItem'
 
-interface IEditAnotationModalParams {
-  visible: boolean
-  setVisible: (visible: boolean) => void
-  choosing?: boolean
-}
-
-const EditGroupsModal = ({
-  visible,
-  setVisible,
-  choosing = false,
-}: IEditAnotationModalParams) => {
+const Layers = () => {
   const { t } = useTranslation()
 
-  const { setIsEditMode, editGroupId, setGroupId } = useDocumentContext()
   const { editPackage } = useViewerContext()
   const { getGroupsFunc, updateGroupFunc, deleteGroupFunc, saveGroupFunc } =
     editPackage!
@@ -66,51 +52,33 @@ const EditGroupsModal = ({
   }
 
   return (
-    <ModalWrapper
-      isOpen={visible}
-      title={t('chooseGroups')}
-      label={choosing ? null : t('groupNew')}
-      onClick={choosing ? undefined : () => setShowInput(true)}
-      onClose={
-        choosing
-          ? () => setVisible(false)
-          : () => (editGroupId ? setVisible(false) : setIsEditMode(false))
-      }
-    >
+    <div className="efw-flex efw-flex-col efw-h-full">
       {/* Loader */}
       {isLoading && (
-        <div className="efw-flex efw-justify-center">
+        <div className="efw-flex efw-flex-1 efw-justify-center efw-items-center">
           <Loader size={50} />
         </div>
       )}
       {/* When loaded */}
       {!isLoading && (
-        <div className="efw-flex efw-flex-col efw-justify-center efw-text-center efw-flex-1 efw-gap-4 efw-overflow-auto">
-          {/* For no group */}
-          {choosing && (
-            <button
-              className="efw-flex efw-items-center efw-p-4 efw-rounded-md efw-bg-gray-light dark:efw-bg-gray-dark-medium hover:efw-bg-opacity-50 dark:hover:efw-bg-opacity-50"
-              onClick={() => {
-                setGroupId('')
-                setVisible(false)
-              }}
-            >
-              {t('none')}
-            </button>
-          )}
+        <div className="efw-flex efw-flex-col efw-justify-start efw-text-center efw-flex-1 efw-gap-4 efw-overflow-auto">
+          <button
+            className="efw-w-full efw-h-10 efw-flex efw-justify-center efw-items-center efw-bg-blue-dark efw-cursor-pointer hover:efw-bg-blue-light efw-rounded-md"
+            onClick={() => setShowInput(true)}
+          >
+            <IoMdAdd size={30} color="white" />
+          </button>
           {/* Groups */}
           {groups.length > 0
-            ? groups.map((group) => (
-                <EditAnotation
-                  key={group.id}
+            ? groups.map((group, index) => (
+                <LayerItem
+                  key={index}
                   group={group}
-                  setVisible={setVisible}
                   update={update}
                   remove={remove}
-                  choosing={choosing}
                 />
               ))
-            : t('noGroups')}
+            : t('noLayers')}
           {/* For adding group */}
           {showInput && (
             <div className="efw-flex efw-w-full efw-items-center efw-gap-2 efw-cursor-pointer">
@@ -120,7 +88,7 @@ const EditGroupsModal = ({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.stopPropagation()}
-                placeholder={t('groupName')}
+                placeholder={t('layerName')}
                 name="new group"
               />
               <FaCheckCircle size={19} color="green" onClick={save} />
@@ -133,8 +101,8 @@ const EditGroupsModal = ({
           )}
         </div>
       )}
-    </ModalWrapper>
+    </div>
   )
 }
 
-export default EditGroupsModal
+export default Layers

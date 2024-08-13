@@ -31,18 +31,17 @@ const Help = () => {
   const [indexPosition, setIndexPosition] = useState(0)
   const [yPositions] = useState<string[]>([
     '23px', // Home
-    '59px', // Groups
-    '92px', // Edit
-    '127px', // Search
-    '163px', // Citation
-    '198px', // TOC
-    '232px', // Share
-    '267px', // Info
-    '303px', // Help
-    '338px', // Theme change
-    '373px', // Download
-    '407px', // Zoom In
-    '442px', // Zoom out
+    '59px', // Layer
+    '92px', // Search
+    '127px', // Citation
+    '163px', // TOC
+    '198px', // Share
+    '232px', // Info
+    '267px', // Help
+    '303px', // Theme change
+    '338px', // Download
+    '373px', // Zoom In
+    '407px', // Zoom out
   ])
 
   // css for each type of help step
@@ -67,25 +66,12 @@ const Help = () => {
           class: `${tailwindcss['container']} ${tailwindcss['left-step']}`,
         }
       : null,
-    // GROUPS
+    // LAYERS
     editPackage
       ? {
           icon: <LuLayers size={30} />,
-          title: t('groupsTitle'),
-          description: t('groupsDescription'),
-          left: true,
-          positionX: '80px',
-          top: true,
-          positionY: '',
-          class: `${tailwindcss['container']} ${tailwindcss['left-step']}`,
-        }
-      : null,
-    // EDIT
-    editPackage
-      ? {
-          icon: <AiOutlineEdit size={30} />,
-          title: t('editTitle'),
-          description: t('editDescription'),
+          title: t('layersTitle'),
+          description: t('layersDescription'),
           left: true,
           positionX: '80px',
           top: true,

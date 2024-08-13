@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.7 : TBD
+
+- **Changed**: `groups` to `layers`
+- **Changed**: groups and edit, merged together
+- **Changed**: groups modal to sidebar
+- **Changed**: edit menu
+
 ## 0.5.6 : 2024-07-18
 
 - **Added**: Few comments to code
