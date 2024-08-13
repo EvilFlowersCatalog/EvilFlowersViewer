@@ -35,11 +35,11 @@ export const en = {
     editWidth: 'Width',
     editOpacity: 'Opacity',
     editSetName: 'Set name for layer',
-    save: 'Save layer',
-    groups: 'Groups',
-    none: 'None',
-    delete: 'Delete layer',
-    chooseGroups: 'Vyber si skupinu',
+    saveLayer: 'Save layer',
+    layers: 'Layers',
+    noneLayer: 'No layer',
+    deleteLayer: 'Delete page layer',
+    editLayer: 'Edit layer',
     size: 'Size',
     citations: 'Citations',
     citationsToolTip: 'Citate',
@@ -86,12 +86,9 @@ export const en = {
     homeTitle: 'Home button',
     homeDescription:
       "When <span class='efw-font-extrabold'>home button</span> is pressed, it will return you to the main home page.",
-    editTitle: 'Edit button',
-    editDescription:
-      "When the <span class='efw-font-extrabold'>edit button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>E</span> is pressed, it will allow you to edit the current page you are on. It's possible to change the page in edit mode.",
-    groupsTitle: 'Group button',
-    groupsDescription:
-      "When the <span class='efw-font-extrabold'>group button</span> is pressed, you will be given the option to select a group of layers that you have created.",
+    layersTitle: 'Layers button',
+    layersDescription:
+      "If you want to select a layer for the PDF file you are currently reading, press the <span class='efw-font-extrabold'>layer button</span> or the <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>E</span> key to open the panel. Once opened, you can select the layer you want to use, and you can also edit or delete layers.",
     searchTitle: 'Search button',
     searchDescription:
       "If you are looking for any text pattern, just press the <span class='efw-font-extrabold'>search button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>F</span> .",
@@ -128,8 +125,8 @@ export const en = {
     nextTitle: 'Next button',
     nextDescription:
       "Press the <span class='efw-font-extrabold'>next button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>></span> (Right Arrow) to see the next page of this document.",
-    groupNew: 'Add group',
-    noGroups: 'No groups found',
-    groupName: "Group's name",
+    layerNew: 'Add layer',
+    noLayer: 'No layers found',
+    layerName: "Layer's name",
   },
 }

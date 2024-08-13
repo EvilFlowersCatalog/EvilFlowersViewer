@@ -35,11 +35,11 @@ export const sk = {
     editWidth: 'Šírka',
     editOpacity: 'Viditeľnosť',
     editSetName: 'Nastav meno vrstvy',
-    save: 'Uložiť vrstvu',
-    groups: 'Skupiny',
-    none: 'Žiaden',
-    delete: 'Vymazať vrstvu',
-    chooseGroups: 'Vyber si skupinu',
+    saveLayer: 'Uložiť vrstvu',
+    layers: 'Vrstvy',
+    noneLayer: 'Žiadna vrstva',
+    deleteLayer: 'Vymazať vrstvu strany',
+    editLayer: 'Upraviť vrstvu',
     size: 'Veľkosť',
     citations: 'Citácie',
     citationsToolTip: 'Citovať',
@@ -86,12 +86,9 @@ export const sk = {
     homeTitle: 'Tlačítko domov',
     homeDescription:
       "Keď je <span class='efw-font-extrabold'>tlačítko domov</span> stlačené, vráti vás na hlavnú domovskú stránku.",
-    editTitle: 'Tlačítko upraviť',
-    editDescription:
-      "Keď je stlačené <span class='efw-font-extrabold'>tlačítko upraviť</span> alebo klávesa <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>E</span> , bude vám umožnené upravovať aktuálnu stranu, na ktorej sa nachádzate. Je možné zmeniť stranu v režime úpravy.",
-    groupsTitle: 'Tlačítko skupiny',
-    groupsDescription:
-      "Keď stlačíte <span class='efw-font-extrabold'>tlačidlo skupiny</span>, budete mať možnosť vybrať skupinu vrstiev, ktoré ste vytvorili.",
+    layersTitle: 'Tlačítko vrstvy',
+    layersDescription:
+      "Pokiaľ si chcete vybrať vsrtvu pre PDF súbor, ktorý momentálne čítate, stlačte <span class='efw-font-extrabold'>tlačítko vrstvy</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>E</span> na otvorenie panelu. Po otvorení si môžete vybrať vrstvu ktorú chcete použiť ale zároveň môžete vrstvy aj upraviť alebo vymazať",
     searchTitle: 'Tlačítko hľadať',
     searchDescription:
       "Ak hľadáte akýkoľvek textový vzor, jednoducho stlačte <span class='efw-font-extrabold'>tlačítko hľadať</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>F</span> .",
@@ -128,8 +125,8 @@ export const sk = {
     nextTitle: 'Tlačítko ďaľšia',
     nextDescription:
       "Stlačte <span class='efw-font-extrabold'>tlačítko ďalšia</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>></span> (šípka vpravo) pre zobrazenie ďalšej strany tohto dokumentu.",
-    groupNew: 'Pridať skupinu',
-    noGroups: 'Neboli nájdené žiadne skupiny',
-    groupName: 'Meno skupiny',
+    layerNew: 'Pridať vrstvu',
+    noLayer: 'Žiadne vrstvy neboli nájdené',
+    layerName: 'Meno vrstvy',
   },
 }

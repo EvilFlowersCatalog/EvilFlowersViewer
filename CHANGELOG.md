@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.7 : 2024-08-13
+
+- **Changed**: `groups` to `layers`
+- **Changed**: groups and edit, merged together
+- **Changed**: groups modal to sidebar
+- **Changed**: `LayerItem` design
+- **Changed**: edit menu
+
 ## 0.5.6 : 2024-07-18
 
 - **Added**: Few comments to code

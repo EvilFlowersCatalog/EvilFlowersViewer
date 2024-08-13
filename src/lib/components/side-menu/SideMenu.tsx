@@ -23,15 +23,14 @@ import Info from './items/Info'
 import Share from './items/share/Share'
 import useViewerContext from '../hooks/useViewerContext'
 import Button from '../common/Button'
-import EditGroupsModal from '../document/edit-page/edit-items/edit-modals/groups/EditGroupsModal'
 import { IoLayersOutline } from 'react-icons/io5'
+import Layers from './items/layers/Layers'
 
 const SideMenu = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [link, setLink] = useState<string>('')
   const sidebarNames = SIDEBAR_TAB_NAMES()
   const [shareQRVisibility, setShareQRVisibility] = useState<boolean>(false)
-  const [groupsVisibility, setGroupsVisibility] = useState<boolean>(false)
 
   const { t } = useTranslation()
   const {
@@ -47,9 +46,6 @@ const SideMenu = () => {
     tocVisibility,
     setTocVisibility,
     handleModeChange,
-    scale,
-    isEditMode,
-    setIsEditMode,
   } = useDocumentContext()
   const { theme, shareFunction, homeFunction, setShowHelp, editPackage } =
     useViewerContext()
@@ -73,22 +69,18 @@ const SideMenu = () => {
           onClick: () => homeFunction(),
         }
       : null,
-    // GROUPS
+    // LAYERS
     editPackage
       ? {
           name: t('groups'),
           icon: <IoLayersOutline id="menu-edit" size={23} />,
-          tooltipText: t('groups'),
-          onClick: () => setGroupsVisibility(true),
-        }
-      : null,
-    // EDIT
-    editPackage
-      ? {
-          name: t('edit'),
-          icon: <AiOutlineEdit id="menu-edit" size={23} />,
-          tooltipText: isEditMode ? t('editCloseToolTip') : t('editToolTip'),
-          onClick: () => setIsEditMode(!isEditMode),
+          tooltipText: t('layers'),
+          onClick: () =>
+            setActiveSidebar(
+              activeSidebar === SIDEBAR_TABS.LAYERS
+                ? SIDEBAR_TABS.NULL
+                : SIDEBAR_TABS.LAYERS
+            ),
         }
       : null,
     // SEARCH
@@ -217,6 +209,7 @@ const SideMenu = () => {
         title={sidebarNames[activeSidebar]}
       >
         {activeSidebar === SIDEBAR_TABS.SEARCH && <Search />}
+        {activeSidebar === SIDEBAR_TABS.LAYERS && <Layers />}
         {activeSidebar === SIDEBAR_TABS.INFO && <Info />}
         {activeSidebar === SIDEBAR_TABS.SHARE && (
           <Share
@@ -248,15 +241,6 @@ const SideMenu = () => {
       )}
       {/* Modal for TOC */}
       {tocVisibility && <Toc setTocVisibility={setTocVisibility} />}
-
-      {/* Modal for GROUPS */}
-      {groupsVisibility && (
-        <EditGroupsModal
-          setVisible={setGroupsVisibility}
-          visible={groupsVisibility}
-          choosing
-        />
-      )}
     </>
   )
 }

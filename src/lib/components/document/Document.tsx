@@ -118,7 +118,6 @@ const Document = ({ data }: IDocumentProps) => {
   const [svgWidth, setSvgWidth] = useState(0)
   const [svgHeight, setSvgHeight] = useState(0)
   const [hideBottomBar, setHideBottomBar] = useState<boolean>(false)
-  const [editGroupId, setEditGroupId] = useState<string>('')
   const [groupId, setGroupId] = useState<string>('')
   const [editLayer, setEditLayer] = useState<{
     id: string
@@ -133,17 +132,16 @@ const Document = ({ data }: IDocumentProps) => {
   // Get layer for choosen group and page
   useCustomEffect(async () => {
     if (isEditMode) {
-      if (editGroupId) {
+      if (groupId) {
         setEditStage(EDIT_STAGES.LOADING)
-        const l = await editPackage!.getLayerFunc(activePage, editGroupId)
+        const l = await editPackage!.getLayerFunc(activePage, groupId)
         setEditLayer(l)
         setEditStage(EDIT_STAGES.DONE)
       }
     } else {
       setEditStage(EDIT_STAGES.NULL)
-      setEditGroupId('')
     }
-  }, [editGroupId, activePage, isEditMode])
+  }, [groupId, activePage, isEditMode])
 
   useEffect(() => {
     // Set base citation
@@ -535,13 +533,13 @@ const Document = ({ data }: IDocumentProps) => {
       await editPackage!.updateLayerFunc(
         editLayer.id,
         svg.outerHTML,
-        editGroupId,
+        groupId,
         activePage
       )
     else {
       const response = await editPackage!.saveLayerFunc(
         svg.outerHTML,
-        editGroupId,
+        groupId,
         activePage
       )
       setEditLayer(response)
@@ -584,10 +582,13 @@ const Document = ({ data }: IDocumentProps) => {
           )
           break
         case 'e':
+          if (isEditMode && !editPackage) break
           event.preventDefault()
-          editPackage &&
-            ![EDIT_STAGES.LOADING, EDIT_STAGES.WORKING].includes(editStage) &&
-            setIsEditMode(!isEditMode)
+          setActiveSidebar((activity) =>
+            activity === SIDEBAR_TABS.LAYERS
+              ? SIDEBAR_TABS.NULL
+              : SIDEBAR_TABS.LAYERS
+          )
           break
         case 'f':
           if (isEditMode) break
@@ -741,8 +742,6 @@ const Document = ({ data }: IDocumentProps) => {
         saveLayer,
         groupId,
         setGroupId,
-        editGroupId,
-        setEditGroupId,
         editLayer,
         layer,
         setLayer,

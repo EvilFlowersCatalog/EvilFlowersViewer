@@ -10,12 +10,10 @@ import { LuEraser } from 'react-icons/lu'
 import { GoPencil } from 'react-icons/go'
 import { HiOutlineMinus } from 'react-icons/hi2'
 import { MdCancel } from 'react-icons/md'
-import { IoLayersOutline } from 'react-icons/io5'
 import useViewerContext from '../../../hooks/useViewerContext'
 import Button from '../../../common/Button'
 import EditColorsModal from './edit-modals/EditColorsModal'
 import EditToolsModal from './edit-modals/EditToolsModal'
-import EditGroupsModal from './edit-modals/groups/EditGroupsModal'
 import EditTools from './edit-tools/EditTools'
 import { RiDeleteBin6Line } from 'react-icons/ri'
 import { BiSave } from 'react-icons/bi'
@@ -71,8 +69,6 @@ const EditMenu = () => {
     useState<boolean>(false)
   const [toolChangerVisibility, setToolChangerVisibility] =
     useState<boolean>(false)
-  const [groupsModalVisibility, setGroupsModalVisibility] =
-    useState<boolean>(true)
   const toolIcons = {
     [EDIT_TOOLS.MOUSE]: <FiMousePointer size={30} className="efw-mt-2.5" />,
     [EDIT_TOOLS.ERASER]: <LuEraser size={30} className="efw-mt-2.5" />,
@@ -107,12 +103,6 @@ const EditMenu = () => {
     }
   }
 
-  const handleOpenGroups = () => {
-    if (editStage === EDIT_STAGES.DONE) {
-      setGroupsModalVisibility(true)
-    }
-  }
-
   useEffect(() => {
     if (screenWidth > 699) {
       setToolChangerVisibility(false)
@@ -127,31 +117,24 @@ const EditMenu = () => {
           'efw-w-full efw-overflow-hidden efw-flex efw-gap-2.5 efw-bg-white dark:efw-bg-gray-dark-strong efw-h-[150px] efw-p-2'
         }
       >
-        <div className="efw-relative efw-flex efw-items-center">
+        <div className="efw-relative efw-flex efw-flex-col efw-gap-3.5 efw-justify-center efw-h-full efw-border-r efw-border-black dark:efw-border-white efw-pr-2.5">
+          {/* Close edit mode */}
           <Button
             onClick={handleCloseEditPage}
             icon={<MdCancel size={25} color="red" />}
           />
-          <div className="efw-relative efw-flex efw-flex-col efw-gap-3.5 efw-justify-center efw-h-full efw-border-r efw-border-black dark:efw-border-white efw-pr-2.5">
-            {/* GROUPS */}
-            <Button
-              onClick={handleOpenGroups}
-              toolTip={{ position: 'right', text: t('groups') }}
-              icon={<IoLayersOutline size={23} />}
-            />
-            {/* SAVE */}
-            <Button
-              onClick={saveLayer}
-              toolTip={{ position: 'right', text: t('save') }}
-              icon={<BiSave size={23} />}
-            />
-            {/* DELETE */}
-            <Button
-              onClick={deleteLayer}
-              toolTip={{ position: 'right', text: t('delete') }}
-              icon={<RiDeleteBin6Line size={23} />}
-            />
-          </div>
+          {/* SAVE */}
+          <Button
+            onClick={saveLayer}
+            toolTip={{ position: 'right', text: t('saveLayer') }}
+            icon={<BiSave size={23} />}
+          />
+          {/* DELETE */}
+          <Button
+            onClick={deleteLayer}
+            toolTip={{ position: 'right', text: t('deleteLayer') }}
+            icon={<RiDeleteBin6Line size={23} />}
+          />
         </div>
         {/* MOBILE */}
         {screenWidth > 699 ? (
@@ -195,12 +178,6 @@ const EditMenu = () => {
         <EditToolsModal
           visible={toolChangerVisibility}
           setVisible={setToolChangerVisibility}
-        />
-      )}
-      {groupsModalVisibility && (
-        <EditGroupsModal
-          visible={groupsModalVisibility}
-          setVisible={setGroupsModalVisibility}
         />
       )}
     </>
