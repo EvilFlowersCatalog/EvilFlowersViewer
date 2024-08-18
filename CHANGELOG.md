@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.9 : TBD
+
+- **Fixed**: `customUseEffect` returning function
+
 ## 0.5.8 : 2024-08-13
 
 - **Fixed**: translation
