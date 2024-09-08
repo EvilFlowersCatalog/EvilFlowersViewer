@@ -62,6 +62,8 @@ export const en = {
     downloadQR: 'Download QR',
     download: 'Download',
     downloadToolTip: 'Download document',
+    print: 'Print',
+    printToolTip: 'Print document',
     pdfUpDown: 'View all pages',
     pdfLeftRight: 'View 1 page with paginator',
     null: 'Null',
@@ -113,6 +115,9 @@ export const en = {
     downloadTitle: 'Download button',
     downloadDescription:
       "To download document press the <span class='efw-font-extrabold'>download button</span>.",
+    printTitle: 'Print button',
+    printDescription:
+      "To print document press the <span class='efw-font-extrabold'>print button</span>.",
     zoomInTitle: 'Zoom in button',
     zoomInDescription:
       "To zoom in the document press the <span class='efw-font-extrabold'>zoom in button</span> or the keyboard key <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>+</span> . You can also pinch out the touchepad <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>< ></span> or <span class='efw-font-extrabold'>double click</span> on the document.",

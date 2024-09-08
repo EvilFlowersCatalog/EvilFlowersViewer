@@ -22,12 +22,14 @@ const Layers = () => {
   const [input, setInput] = useState<string>('')
 
   // GET GROUPS
-  useCustomEffect(async () => {
-    setShowInput(false)
-    setInput('')
-    const g = await getGroupsFunc()
-    setGroups(g)
-    setIsLoading(false)
+  useCustomEffect(() => {
+    ;(async () => {
+      setShowInput(false)
+      setInput('')
+      const g = await getGroupsFunc()
+      setGroups(g)
+      setIsLoading(false)
+    })()
   }, [reload])
 
   // Save group

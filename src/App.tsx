@@ -56,6 +56,12 @@ const App = () => {
         },
         lang: 'sk',
       }}
+      config={{
+        edit: false,
+        download: true,
+        print: true,
+        share: true,
+      }}
     />
   )
 }
