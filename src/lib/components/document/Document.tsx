@@ -69,6 +69,7 @@ const Document = ({ data }: IDocumentProps) => {
     shareFunction,
     citationBib,
     editPackage,
+    config,
   } = useViewerContext()
 
   const [activePage, setActivePage] = useState(1)
@@ -130,17 +131,19 @@ const Document = ({ data }: IDocumentProps) => {
   const [editStage, setEditStage] = useState<EDIT_STAGES>(EDIT_STAGES.NULL)
 
   // Get layer for choosen group and page
-  useCustomEffect(async () => {
-    if (isEditMode) {
-      if (groupId) {
-        setEditStage(EDIT_STAGES.LOADING)
-        const l = await editPackage!.getLayerFunc(activePage, groupId)
-        setEditLayer(l)
-        setEditStage(EDIT_STAGES.DONE)
+  useCustomEffect(() => {
+    ;(async () => {
+      if (isEditMode) {
+        if (groupId) {
+          setEditStage(EDIT_STAGES.LOADING)
+          const l = await editPackage!.getLayerFunc(activePage, groupId)
+          setEditLayer(l)
+          setEditStage(EDIT_STAGES.DONE)
+        }
+      } else {
+        setEditStage(EDIT_STAGES.NULL)
       }
-    } else {
-      setEditStage(EDIT_STAGES.NULL)
-    }
+    })()
   }, [groupId, activePage, isEditMode])
 
   useEffect(() => {
@@ -177,33 +180,35 @@ const Document = ({ data }: IDocumentProps) => {
    * Load document on mount
    *
    */
-  useCustomEffect(async () => {
-    await pdfjsLib
-      .getDocument({
-        data,
-        useSystemFonts: true,
-        verbosity: 0,
-      } as DocumentInitParameters)
-      .promise.then(async (doc: PDFDocumentProxy) => {
-        // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
-        // https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFDocumentProxy.html#getDestination
+  useCustomEffect(() => {
+    ;(async () => {
+      await pdfjsLib
+        .getDocument({
+          data,
+          useSystemFonts: true,
+          verbosity: 0,
+        } as DocumentInitParameters)
+        .promise.then(async (doc: PDFDocumentProxy) => {
+          // https://medium.com/@csofiamsousa/creating-a-table-of-contents-with-pdf-js-4a4316472fff
+          // https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFDocumentProxy.html#getDestination
 
-        // Case where we do not have outlines
-        doc.getOutline().then(async (outline: any) => {
-          if (!outline) {
-            return
-          }
+          // Case where we do not have outlines
+          doc.getOutline().then(async (outline: any) => {
+            if (!outline) {
+              return
+            }
 
-          // Case where we have outlines
-          const toc = await getTableOfContents(outline, 0, doc)
-          setTOC(toc)
+            // Case where we have outlines
+            const toc = await getTableOfContents(outline, 0, doc)
+            setTOC(toc)
+          })
+
+          setPdf(doc)
+          setPrevActivePage(1)
+          setActivePage(1)
+          setTotalPages(doc.numPages)
         })
-
-        setPdf(doc)
-        setPrevActivePage(1)
-        setActivePage(1)
-        setTotalPages(doc.numPages)
-      })
+    })()
   }, [])
 
   const getTableOfContents = async (
@@ -254,6 +259,7 @@ const Document = ({ data }: IDocumentProps) => {
    * Download document
    */
   const downloadDocument = () => {
+    if (!config.download) return
     const link = document.createElement('a')
     pdf?.getMetadata().then((meta: any) => {
       var fileName = meta.info?.Title || 'document'
@@ -278,6 +284,12 @@ const Document = ({ data }: IDocumentProps) => {
       link.download = fileName
       link.click()
     }
+  }
+
+  // Print document
+  const printDocument = () => {
+    if (!config.print) return
+    window.print()
   }
 
   /**
@@ -574,6 +586,7 @@ const Document = ({ data }: IDocumentProps) => {
         case 's':
           if (isEditMode) break
           if (!shareFunction) break
+          if (!config.share) break
           event.preventDefault()
           setActiveSidebar((activity) =>
             activity === SIDEBAR_TABS.SHARE
@@ -635,6 +648,9 @@ const Document = ({ data }: IDocumentProps) => {
           if (!editPackage || !isEditMode) break
           event.preventDefault()
           saveLayer()
+        case 'p':
+          if (!config.print) event.preventDefault()
+          break
       }
     }
   }
@@ -695,6 +711,7 @@ const Document = ({ data }: IDocumentProps) => {
         pdfCitation,
         activePage,
         prevActivePage,
+        printDocument,
         setPage,
         nextPage,
         prevPage,

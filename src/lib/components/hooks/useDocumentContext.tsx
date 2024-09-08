@@ -32,6 +32,7 @@ interface IDocumentContext {
   changeCitationFormat: (format: string, type: string) => void
   nextPage: () => void
   prevPage: () => void
+  printDocument: () => void
   searchPage: (n: number) => void
   scale: number
   desiredScale: number

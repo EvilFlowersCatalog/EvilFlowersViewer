@@ -21,27 +21,34 @@ import {
 import { RxQuote, RxShare2 } from 'react-icons/rx'
 import useViewerContext from '../hooks/useViewerContext'
 import { LuLayers } from 'react-icons/lu'
+import { RiPrinterLine } from 'react-icons/ri'
 
 const Help = () => {
   const { t } = useTranslation()
-  const { setShowHelp, theme, homeFunction, shareFunction, editPackage } =
-    useViewerContext()
+  const {
+    setShowHelp,
+    theme,
+    homeFunction,
+    shareFunction,
+    editPackage,
+    config,
+  } = useViewerContext()
   const { screenWidth, screenHeight, TOC, pdfCitation } = useDocumentContext()
   const [index, setIndex] = useState(homeFunction ? 0 : editPackage ? 1 : 2)
   const [indexPosition, setIndexPosition] = useState(0)
   const [yPositions] = useState<string[]>([
-    '23px', // Home
-    '59px', // Layer
-    '92px', // Search
-    '127px', // Citation
-    '163px', // TOC
-    '198px', // Share
-    '232px', // Info
-    '267px', // Help
-    '303px', // Theme change
-    '338px', // Download
-    '373px', // Zoom In
-    '407px', // Zoom out
+    '23px',
+    '59px',
+    '92px',
+    '127px',
+    '163px',
+    '198px',
+    '232px',
+    '267px',
+    '303px',
+    '338px',
+    '373px',
+    '407px',
   ])
 
   // css for each type of help step
@@ -66,19 +73,19 @@ const Help = () => {
           class: `${tailwindcss['container']} ${tailwindcss['left-step']}`,
         }
       : null,
-    // LAYERS
-    editPackage
-      ? {
-          icon: <LuLayers size={30} />,
-          title: t('layersTitle'),
-          description: t('layersDescription'),
-          left: true,
-          positionX: '80px',
-          top: true,
-          positionY: '',
-          class: `${tailwindcss['container']} ${tailwindcss['left-step']}`,
-        }
-      : null,
+    // EDIT
+    // editPackage && config.edit
+    //   ? {
+    //       icon: <LuLayers size={30} />,
+    //       title: t('layersTitle'),
+    //       description: t('layersDescription'),
+    //       left: true,
+    //       positionX: '80px',
+    //       top: true,
+    //       positionY: '',
+    //       class: `${tailwindcss['container']} ${tailwindcss['left-step']}`,
+    //     }
+    //   : null,
     // SEARCH
     {
       icon: <BiSearch size={30} />,
@@ -117,7 +124,7 @@ const Help = () => {
         }
       : null,
     // SHARE
-    shareFunction
+    shareFunction && config.share
       ? {
           icon: <RxShare2 size={30} />,
           title: t('shareTitle'),
@@ -163,16 +170,31 @@ const Help = () => {
       class: `${tailwindcss['container']} ${tailwindcss['left-step']}`,
     },
     // DOWNLOAD
-    {
-      icon: <BiDownload size={30} />,
-      title: t('downloadTitle'),
-      description: t('downloadDescription'),
-      left: true,
-      positionX: '80px',
-      top: true,
-      positionY: '',
-      class: `${tailwindcss['container']} ${tailwindcss['left-step']}`,
-    },
+    config.download
+      ? {
+          icon: <BiDownload size={30} />,
+          title: t('downloadTitle'),
+          description: t('downloadDescription'),
+          left: true,
+          positionX: '80px',
+          top: true,
+          positionY: '',
+          class: `${tailwindcss['container']} ${tailwindcss['left-step']}`,
+        }
+      : null,
+    // PRINT
+    config.print
+      ? {
+          icon: <RiPrinterLine size={30} />,
+          title: t('printTitle'),
+          description: t('printDescription'),
+          left: true,
+          positionX: '80px',
+          top: true,
+          positionY: '',
+          class: `${tailwindcss['container']} ${tailwindcss['left-step']}`,
+        }
+      : null,
     // ZOOM IN
     {
       icon: <AiOutlinePlus size={30} />,

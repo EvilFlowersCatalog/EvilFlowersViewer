@@ -6,14 +6,8 @@ import { useTranslation } from 'react-i18next'
 import { ImExit } from 'react-icons/im'
 import { TypedArray } from 'pdfjs-dist/types/src/display/api'
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js'
-// @ts-ignore
-import * as PDFJSWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry'
 import { ViewerContext } from './hooks/useViewerContext'
-pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJSWorker
-
-// Use on local
-// pdfjsLib.GlobalWorkerOptions.workerSrc =
-//   '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js'
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
 
 // For options in renderViewer
 export interface IViewerOptions {
@@ -48,9 +42,17 @@ export interface IViewerOptions {
   } | null
 }
 
+interface IConfigParams {
+  download?: boolean
+  share?: boolean
+  print?: boolean
+  edit?: boolean
+}
+
 interface IViewerParams {
   data: TypedArray | null
   options: IViewerOptions | null
+  config: IConfigParams | null
 }
 
 /**
@@ -74,6 +76,15 @@ export const Viewer = (viewerParams: IViewerParams) => {
     },
     //given
     ...viewerParams.options,
+  }
+  const config = {
+    ...{
+      download: false,
+      share: false,
+      print: false,
+      edit: false,
+    },
+    ...viewerParams.config,
   }
   const [theme, setTheme] = useState<'dark' | 'light' | undefined>(
     options.theme
@@ -104,6 +115,7 @@ export const Viewer = (viewerParams: IViewerParams) => {
         editPackage: options.editPackage,
         setShowHelp,
         showHelp,
+        config,
         citationBib: options.citationBib,
       }}
     >
@@ -149,15 +161,21 @@ interface IRenderViewerProps {
   rootId: string
   data: TypedArray
   options?: IViewerOptions | null
+  config?: IConfigParams | null
 }
 
 export const renderViewer = ({
   rootId,
   data,
   options = null,
+  config = null,
 }: IRenderViewerProps) => {
   const root = createRoot(document.getElementById(rootId)!)
 
   // render
-  root.render(createElement(() => <Viewer data={data} options={options} />))
+  root.render(
+    createElement(() => (
+      <Viewer data={data} options={options} config={config} />
+    ))
+  )
 }

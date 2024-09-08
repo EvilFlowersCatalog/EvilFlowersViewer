@@ -10,7 +10,7 @@ import {
   BiSearch,
   BiSun,
 } from 'react-icons/bi'
-import { AiOutlinePlus, AiOutlineMinus, AiOutlineEdit } from 'react-icons/ai'
+import { AiOutlinePlus, AiOutlineMinus } from 'react-icons/ai'
 import { SIDEBAR_TABS, SIDEBAR_TAB_NAMES } from '../../../utils/enums'
 import { useEffect, useState } from 'react'
 import { RxQuote, RxShare2 } from 'react-icons/rx'
@@ -23,8 +23,8 @@ import Info from './items/Info'
 import Share from './items/share/Share'
 import useViewerContext from '../hooks/useViewerContext'
 import Button from '../common/Button'
-import { IoLayersOutline } from 'react-icons/io5'
 import Layers from './items/layers/Layers'
+import { RiPrinterLine } from 'react-icons/ri'
 
 const SideMenu = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -46,9 +46,16 @@ const SideMenu = () => {
     tocVisibility,
     setTocVisibility,
     handleModeChange,
+    printDocument,
   } = useDocumentContext()
-  const { theme, shareFunction, homeFunction, setShowHelp, editPackage } =
-    useViewerContext()
+  const {
+    theme,
+    shareFunction,
+    homeFunction,
+    setShowHelp,
+    editPackage,
+    config,
+  } = useViewerContext()
 
   // When sidebar change
   useEffect(() => {
@@ -69,20 +76,20 @@ const SideMenu = () => {
           onClick: () => homeFunction(),
         }
       : null,
-    // LAYERS
-    editPackage
-      ? {
-          name: t('groups'),
-          icon: <IoLayersOutline id="menu-edit" size={23} />,
-          tooltipText: t('layers'),
-          onClick: () =>
-            setActiveSidebar(
-              activeSidebar === SIDEBAR_TABS.LAYERS
-                ? SIDEBAR_TABS.NULL
-                : SIDEBAR_TABS.LAYERS
-            ),
-        }
-      : null,
+    // EDIT
+    // editPackage && config.edit
+    //   ? {
+    //       name: t('groups'),
+    //       icon: <IoLayersOutline id="menu-edit" size={23} />,
+    //       tooltipText: t('layers'),
+    //       onClick: () =>
+    //         setActiveSidebar(
+    //           activeSidebar === SIDEBAR_TABS.LAYERS
+    //             ? SIDEBAR_TABS.NULL
+    //             : SIDEBAR_TABS.LAYERS
+    //         ),
+    //     }
+    //   : null,
     // SEARCH
     {
       name: t('search'),
@@ -121,7 +128,7 @@ const SideMenu = () => {
         }
       : null,
     // SHARE
-    shareFunction
+    shareFunction && config.share
       ? {
           name: t('share'),
           icon: <RxShare2 id="menu-share" size={23} />,
@@ -170,15 +177,29 @@ const SideMenu = () => {
       },
     },
     // DOWNLOAD
-    {
-      name: t('download'),
-      icon: <BiDownload id="menu-download" size={23} />,
-      tooltipText: t('downloadToolTip'),
-      onClick: () => {
-        downloadDocument()
-        setActiveSidebar(SIDEBAR_TABS.NULL)
-      },
-    },
+    config.download
+      ? {
+          name: t('download'),
+          icon: <BiDownload id="menu-download" size={23} />,
+          tooltipText: t('downloadToolTip'),
+          onClick: () => {
+            downloadDocument()
+            setActiveSidebar(SIDEBAR_TABS.NULL)
+          },
+        }
+      : null,
+    // PRINT
+    config.print
+      ? {
+          name: t('print'),
+          icon: <RiPrinterLine id="menu-download" size={23} />,
+          tooltipText: t('printToolTip'),
+          onClick: () => {
+            printDocument()
+            setActiveSidebar(SIDEBAR_TABS.NULL)
+          },
+        }
+      : null,
     // ZOOM IN
     {
       name: t(''),

@@ -62,6 +62,8 @@ export const sk = {
     downloadQR: 'Stiahnúť QR',
     download: 'Stiahnúť',
     downloadToolTip: 'Stiahnúť dokument',
+    print: 'Tlačiť',
+    printToolTip: 'Tlačiť dokument',
     pdfUpDown: 'Zobraziť všetky strany',
     pdfLeftRight: 'Zobraziť 1 stranu so stránkovačom',
     null: 'Null',
@@ -113,6 +115,9 @@ export const sk = {
     downloadTitle: 'Tlačítko stiahnúť',
     downloadDescription:
       "Pre stiahnutie dokumentu stlačte <span class='efw-font-extrabold'>tlačítko stiahnúť</span>.",
+    printTitle: 'Tlačítko tlačiť',
+    printDescription:
+      "Pre tlačenie dokumentu stlačte <span class='efw-font-extrabold'>tlačítko tlačiť</span>.",
     zoomInTitle: 'Tlačítko priblížiť',
     zoomInDescription:
       "Pre priblíženie dokumentu stlačte <span class='efw-font-extrabold'>tlačítko priblížiť</span> alebo klávesu <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>+</span> . Môžete tiež roztiahnuť dva prsty odseba na touchepade <span class='efw-font-bold efw-whitespace-nowrap efw-px-2 efw-border efw-border-white'>< ></span> alebo <span class='efw-font-extrabold'>dvojkliknúť</span> na dokument.",

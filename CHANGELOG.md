@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.9 : 2024-09-08
+
+- **Fixed**: `customUseEffect` returning function
+- **Added**: `Print` option
+- **Added**: `Config` for edit, share, download and print
+- **Changed**: Edit was hidden
+
 ## 0.5.8 : 2024-08-13
 
 - **Fixed**: translation
