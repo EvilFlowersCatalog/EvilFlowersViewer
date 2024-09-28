@@ -44,7 +44,7 @@ export default defineConfig(({ mode }: UserConfig) => {
           fileName: (format) => `evilFlowersViewer.${format}.js`,
         },
         rollupOptions: {
-          external: ['react', 'react-dom'],
+          external: ['react', 'react-dom', '@emotion/react'],
           output: {
             globals: {
               react: 'React',
