@@ -1,6 +1,6 @@
 {
   "name": "@evilflowers/evilflowersviewer",
-  "version": "0.5.10",
+  "version": "0.5.11",
   "type": "module",
   "main": "./dist/evilFlowersViewer.umd.js",
   "module": "./dist/evilFlowersViewer.es.js",
@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@emotion/styled": "^11.13.0",
-    "@mui/material": "^6.0.2",
+    "@mui/material": "^6.1.1",
     "@types/umami": "^2.10.0",
     "@uiw/react-color": "^2.3.0",
     "autoprefixer": "^10.4.19",
