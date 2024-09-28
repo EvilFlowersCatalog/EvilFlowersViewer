@@ -21,7 +21,6 @@ import SinglePage from './single-page/SinglePage'
 import Help from '../helpers/Help'
 import EditPage from './edit-page/EditPage'
 import useViewerContext from '../hooks/useViewerContext'
-import useCustomEffect from '../hooks/useCustomEffect'
 
 /**
  * Document component
@@ -131,7 +130,7 @@ const Document = ({ data }: IDocumentProps) => {
   const [editStage, setEditStage] = useState<EDIT_STAGES>(EDIT_STAGES.NULL)
 
   // Get layer for choosen group and page
-  useCustomEffect(() => {
+  useEffect(() => {
     ;(async () => {
       if (isEditMode) {
         if (groupId) {
@@ -180,7 +179,7 @@ const Document = ({ data }: IDocumentProps) => {
    * Load document on mount
    *
    */
-  useCustomEffect(() => {
+  useEffect(() => {
     ;(async () => {
       await pdfjsLib
         .getDocument({

@@ -1,7 +1,6 @@
-import { MouseEvent } from 'react'
+import { MouseEvent, useEffect } from 'react'
 import { useDocumentContext } from '../../hooks/useDocumentContext'
 import { RENDERING_STATES } from '../../../../utils/enums'
-import useCustomEffect from '../../hooks/useCustomEffect'
 import useRenderPage from '../../hooks/useRenderPage'
 import loader from '../../common/RenderLoader'
 import useViewerContext from '../../hooks/useViewerContext'
@@ -35,7 +34,7 @@ const SinglePage = ({ onDoubleClick }: ISinglePage) => {
 
   const renderPage = useRenderPage()
 
-  useCustomEffect(() => {
+  useEffect(() => {
     // set rendering
     setPaginatorPageRender(RENDERING_STATES.RENDERING)
 

@@ -1,7 +1,6 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDocumentContext } from '../../hooks/useDocumentContext'
 import { EDIT_TOOLS } from '../../../../utils/enums'
-import useCustomEffect from '../../hooks/useCustomEffect'
 
 const PaintingSVG = () => {
   const svgRef: any = useRef(null)
@@ -36,7 +35,7 @@ const PaintingSVG = () => {
   }
 
   // Initialization when something change
-  useCustomEffect(() => {
+  useEffect(() => {
     if (![EDIT_TOOLS.MOUSE, EDIT_TOOLS.ERASER].includes(activeEditTool)) {
       const newEntity = document.createElementNS(
         'http://www.w3.org/2000/svg',
@@ -60,7 +59,7 @@ const PaintingSVG = () => {
   }, [editHexColor, editLineSize, activeEditTool, recreate, editOpacity])
 
   // reactivate hover function in elements
-  useCustomEffect(() => {
+  useEffect(() => {
     for (const child of svgRef.current.children) {
       if (child) {
         // reactivate
@@ -70,7 +69,7 @@ const PaintingSVG = () => {
   }, [isDrawing, activeEditTool])
 
   // Call responsive each time schWidth/Height change
-  useCustomEffect(() => {
+  useEffect(() => {
     const svg = svgRef.current
     const width = svg.width.baseVal.value
     const height = svg.height.baseVal.value
@@ -152,7 +151,7 @@ const PaintingSVG = () => {
   }
 
   // Copy svg editLayer to pating editLayer
-  useCustomEffect(() => {
+  useEffect(() => {
     if (editLayer && svgRef.current) {
       // Clear existing SVG content
       svgRef.current.innerHTML = ''

@@ -1,7 +1,5 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useDocumentContext } from '../../hooks/useDocumentContext'
-import { EDIT_TOOLS } from '../../../../utils/enums'
-import useCustomEffect from '../../hooks/useCustomEffect'
 
 const LayerSVG = () => {
   const svgRef: any = useRef(null)
@@ -9,7 +7,7 @@ const LayerSVG = () => {
   const { layer, svgHeight, svgWidth, resizeElements } = useDocumentContext()
 
   // Call responsive each time schWidth/Height change
-  useCustomEffect(() => {
+  useEffect(() => {
     const svg = svgRef.current
     const width = svg.width.baseVal.value
     const height = svg.height.baseVal.value
@@ -22,7 +20,7 @@ const LayerSVG = () => {
   }, [svgWidth, svgHeight])
 
   // Copy svg layer to pating layer
-  useCustomEffect(() => {
+  useEffect(() => {
     if (layer && svgRef.current) {
       // Clear existing SVG content
       svgRef.current.innerHTML = ''

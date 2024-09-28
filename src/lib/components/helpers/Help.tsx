@@ -318,7 +318,10 @@ const Help = () => {
           {index < steps.length - 1 && (
             <button
               className="efw-text-sm efw-font-bold efw-py-1 efw-px-2 efw-text-sky-200 efw-bg-transparent efw-outline-none efw-cursor-pointer efw-border-b-2 efw-border-transparent efw-duration-200 hover:efw-text-white hover:efw-border-white"
-              onClick={() => setShowHelp(false)}
+              onClick={() => {
+                umami.track('Viewer Skip Button')
+                setShowHelp(false)
+              }}
             >
               {t('helpSkip')}
             </button>
@@ -327,6 +330,11 @@ const Help = () => {
           <button
             className="efw-text-sm efw-font-bold efw-py-1 efw-px-2 efw-text-white efw-bg-transparent efw-rounded-md efw-outline-none efw-cursor-pointer hover:efw-text-blue-dark hover:efw-bg-white efw-duration-200"
             onClick={() => {
+              const name =
+                index === steps.length - 1
+                  ? 'Viewer Done Button'
+                  : 'Viewer Next Button'
+              umami.track(name)
               // find next possible step
               let nextIndex = index
               do {

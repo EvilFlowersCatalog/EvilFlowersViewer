@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FaCheckCircle } from 'react-icons/fa'
 import { IoMdAdd, IoMdRemoveCircle } from 'react-icons/io'
 import useViewerContext from '../../../hooks/useViewerContext'
-import useCustomEffect from '../../../hooks/useCustomEffect'
 import Loader from '../../../common/Loader'
 import LayerItem from './LayerItem'
 import { useDocumentContext } from '../../../hooks/useDocumentContext'
@@ -22,7 +21,7 @@ const Layers = () => {
   const [input, setInput] = useState<string>('')
 
   // GET GROUPS
-  useCustomEffect(() => {
+  useEffect(() => {
     ;(async () => {
       setShowInput(false)
       setInput('')

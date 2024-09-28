@@ -1,6 +1,6 @@
 {
   "name": "@evilflowers/evilflowersviewer",
-  "version": "0.5.9",
+  "version": "0.5.10",
   "type": "module",
   "main": "./dist/evilFlowersViewer.umd.js",
   "module": "./dist/evilFlowersViewer.es.js",
@@ -20,10 +20,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.3",
-    "@emotion/styled": "^11.11.0",
-    "@mui/material": "^5.15.4",
-    "@uiw/react-color": "^2.0.2",
+    "@emotion/styled": "^11.13.0",
+    "@mui/material": "^6.0.2",
+    "@types/umami": "^2.10.0",
+    "@uiw/react-color": "^2.3.0",
     "autoprefixer": "^10.4.19",
     "citation-js": "^0.6.8",
     "postcss": "^8.4.38",
@@ -31,6 +31,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.10.1",
+    "react-router-dom": "^6.26.2",
     "react-use-gesture": "^9.1.3",
     "tailwindcss": "^3.4.4"
   },

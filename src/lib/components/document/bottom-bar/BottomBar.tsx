@@ -72,7 +72,12 @@ const BottomBar = () => {
         <div className="efw-relative efw-flex efw-justify-center">
           <Button
             toolTip={{ text: '', position: 'top' }}
-            onClick={() => setHideBottomBar(!hideBottomBar)}
+            onClick={() => {
+              umami.track('Viewer Hide Preview Button', {
+                hidden: !hideBottomBar,
+              })
+              setHideBottomBar(!hideBottomBar)
+            }}
             icon={
               hideBottomBar ? (
                 <AiOutlineUp size={16} />
@@ -93,7 +98,11 @@ const BottomBar = () => {
                 : '',
             position: 'top',
           }}
-          onClick={prevPage}
+          onClick={() => {
+            activePage !== 1 &&
+              umami.track('Viewer Prev Page Button', { page: activePage })
+            prevPage()
+          }}
           icon={<AiOutlineLeft id="bottom-bar-left" size={15} />}
         />
         {/* INPUT */}
@@ -129,7 +138,11 @@ const BottomBar = () => {
                 : '',
             position: 'top',
           }}
-          onClick={nextPage}
+          onClick={() => {
+            activePage !== totalPages &&
+              umami.track('Viewer Next Page Button', { page: activePage })
+            nextPage()
+          }}
           icon={<AiOutlineRight id="bottom-bar-right" size={15} />}
         />
       </div>
