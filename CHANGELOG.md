@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.12 : 2024-10-28
+
+- **Fixed**: Bug
+
 ## 0.5.11 : 2024-10-28
 
 - **Fixed**: Error with library
