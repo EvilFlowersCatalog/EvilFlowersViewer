@@ -4,6 +4,7 @@ import { BiInfoCircle } from 'react-icons/bi'
 import { RxShare2 } from 'react-icons/rx'
 import useViewerContext from '../../../hooks/useViewerContext'
 import Button from '../../../common/Button'
+import { useParams } from 'react-router-dom'
 
 interface IShareParams {
   setLink: (link: string) => void
@@ -18,6 +19,8 @@ interface IShareParams {
  * @returns - The share component
  */
 const Share = (params: IShareParams) => {
+  const { 'entry-id': entryId } = useParams()
+
   const [input, setInput] = useState<string>('')
   const [expaire, setExpaire] = useState<number>(24)
   const [isInappropriate, setIsInappropriate] = useState<boolean>(false)
@@ -47,6 +50,8 @@ const Share = (params: IShareParams) => {
    */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    umami.track('Viewer Share Document Button', { entryId })
+
     if (isInappropriate) {
       // if it's inappropriate (1,4, or 1,5-), return
       return
@@ -102,6 +107,7 @@ const Share = (params: IShareParams) => {
     value: number
     active: boolean
   }) => {
+    umami.track('Viewer Share Lifespan Button', { lifespan: expaire.name })
     // update expaire
     const updatedExpaireOptions = expaireOptions.map((item) => ({
       ...item,

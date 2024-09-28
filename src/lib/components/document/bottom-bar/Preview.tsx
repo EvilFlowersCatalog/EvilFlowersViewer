@@ -1,8 +1,7 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useDocumentContext } from '../../hooks/useDocumentContext'
 import { RENDERING_STATES } from '../../../../utils/enums'
 import { debounce } from '../../../../utils'
-import useCustomEffect from '../../hooks/useCustomEffect'
 import loader from '../../common/RenderLoader'
 
 const Preview = () => {
@@ -60,6 +59,7 @@ const Preview = () => {
       canvas.height = viewport.height
       canvas.width = viewport.width
       canvas.onclick = () => {
+        umami.track('Viewer Preview Page Button', { page })
         setPage(givenPage)
       }
 
@@ -80,7 +80,7 @@ const Preview = () => {
     [pdf, totalPages]
   )
 
-  useCustomEffect(() => {
+  useEffect(() => {
     setPreviewRender(RENDERING_STATES.RENDERING)
 
     // func for creating pages
@@ -132,7 +132,7 @@ const Preview = () => {
     })
   }, [pdf, totalPages, start, end, positions])
 
-  useCustomEffect(() => {
+  useEffect(() => {
     // Reset when pdf changes
     const previewBar = document.getElementById('previewBarContainer') // get container
     previewBar?.replaceChildren()
@@ -141,7 +141,7 @@ const Preview = () => {
     setEnd(Math.min(NEXT_PREVIEW, totalPages))
   }, [pdf, totalPages])
 
-  useCustomEffect(() => {
+  useEffect(() => {
     if (previewRender === RENDERING_STATES.RENDERED) {
       // update onclick function each time active page change
       for (let page = 1; page <= end; page++) {
@@ -152,6 +152,7 @@ const Preview = () => {
           const canvas = div.querySelector('canvas')
           if (canvas) {
             canvas.onclick = () => {
+              umami.track('Viewer Preview Page Button', { page })
               setPage(page)
             }
           }
@@ -199,7 +200,7 @@ const Preview = () => {
     }
   }, [activePage, prevActivePage, previewRender, positions])
 
-  useCustomEffect(() => {
+  useEffect(() => {
     if (activePage > end) {
       setStart(end + 1)
       setEnd(Math.min(activePage + NEXT_PREVIEW, totalPages))

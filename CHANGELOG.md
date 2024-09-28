@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.10 : 2024-10-28
+
+- **Added**: umami trackers
+- **Removed**: useCustomEffect
+
 ## 0.5.9 : 2024-09-08
 
 - **Fixed**: `customUseEffect` returning function

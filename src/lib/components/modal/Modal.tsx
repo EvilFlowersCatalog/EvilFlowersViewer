@@ -83,7 +83,15 @@ const ModalWrapper = ({
                   {label} {icon}
                 </button>
               )}
-              {onClose && <Button icon={t('close')} onClick={onClose} />}
+              {onClose && (
+                <Button
+                  icon={t('close')}
+                  onClick={() => {
+                    umami.track('Viewer Modal Close Button')
+                    onClose()
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>

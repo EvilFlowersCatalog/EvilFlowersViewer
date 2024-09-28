@@ -1,4 +1,4 @@
-import { MouseEvent, useState } from 'react'
+import { MouseEvent, useEffect, useState } from 'react'
 import { useDocumentContext } from '../../hooks/useDocumentContext'
 import {
   EDIT_STAGES,
@@ -6,7 +6,6 @@ import {
   RENDERING_STATES,
 } from '../../../../utils/enums'
 import PaintingSVG from './PaintingSVG'
-import useCustomEffect from '../../hooks/useCustomEffect'
 import useRenderPage from '../../hooks/useRenderPage'
 import EditMenu from './edit-items/EditMenu'
 import loader from '../../common/RenderLoader'
@@ -48,7 +47,7 @@ const EditPage = ({ onDoubleClick }: ISinglePage) => {
 
   const renderPage = useRenderPage()
 
-  useCustomEffect(() => {
+  useEffect(() => {
     // start rendering
     setPaginatorPageRender(RENDERING_STATES.RENDERING)
 

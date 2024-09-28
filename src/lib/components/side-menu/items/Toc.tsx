@@ -61,14 +61,24 @@ const Toc = ({ setTocVisibility }: IOutlineProps) => {
                 onClick={
                   item.pageNumber === -1
                     ? undefined
-                    : () => handleItemClick(item.pageNumber)
+                    : () => {
+                        umami.track('Viewer TOC title Button', {
+                          title: item.title,
+                        })
+                        handleItemClick(item.pageNumber)
+                      }
                 }
                 icon={item.title}
               />
               {/* Expand button */}
               {item.children.length > 0 && (
                 <Button
-                  onClick={() => handleToggleExpand(item)}
+                  onClick={() => {
+                    umami.track('Viewer TOC Expand Button', {
+                      title: item.title,
+                    })
+                    handleToggleExpand(item)
+                  }}
                   icon={
                     item.isExpanded ? (
                       <AiOutlineDown size={15} />
