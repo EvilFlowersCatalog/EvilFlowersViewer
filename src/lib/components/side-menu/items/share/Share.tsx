@@ -5,6 +5,7 @@ import { RxShare2 } from 'react-icons/rx'
 import useViewerContext from '../../../hooks/useViewerContext'
 import Button from '../../../common/Button'
 import { useParams } from 'react-router-dom'
+import { useDocumentContext } from '../../../hooks/useDocumentContext'
 
 interface IShareParams {
   setLink: (link: string) => void
@@ -43,6 +44,7 @@ const Share = (params: IShareParams) => {
   ])
   const { t } = useTranslation()
   const { shareFunction } = useViewerContext()
+  const { umamiTrack } = useDocumentContext()
 
   /**
    * function for handling submit form
@@ -50,7 +52,7 @@ const Share = (params: IShareParams) => {
    */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    umami.track('Viewer Share Document Button', { entryId })
+    umamiTrack('Viewer Share Document Button', { entryId })
 
     if (isInappropriate) {
       // if it's inappropriate (1,4, or 1,5-), return
@@ -107,7 +109,7 @@ const Share = (params: IShareParams) => {
     value: number
     active: boolean
   }) => {
-    umami.track('Viewer Share Lifespan Button', { lifespan: expaire.name })
+    umamiTrack('Viewer Share Lifespan Button', { lifespan: expaire.name })
     // update expaire
     const updatedExpaireOptions = expaireOptions.map((item) => ({
       ...item,

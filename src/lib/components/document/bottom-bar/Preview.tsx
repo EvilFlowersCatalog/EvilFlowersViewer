@@ -13,6 +13,7 @@ const Preview = () => {
     prevActivePage,
     previewRender,
     setPage,
+    umamiTrack,
   } = useDocumentContext()
   const NEXT_PREVIEW = 50
 
@@ -59,7 +60,7 @@ const Preview = () => {
       canvas.height = viewport.height
       canvas.width = viewport.width
       canvas.onclick = () => {
-        umami.track('Viewer Preview Page Button', { page })
+        umamiTrack('Viewer Preview Page Button', { page })
         setPage(givenPage)
       }
 
@@ -152,7 +153,7 @@ const Preview = () => {
           const canvas = div.querySelector('canvas')
           if (canvas) {
             canvas.onclick = () => {
-              umami.track('Viewer Preview Page Button', { page })
+              umamiTrack('Viewer Preview Page Button', { page })
               setPage(page)
             }
           }

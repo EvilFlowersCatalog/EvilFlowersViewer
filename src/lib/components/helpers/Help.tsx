@@ -33,7 +33,8 @@ const Help = () => {
     editPackage,
     config,
   } = useViewerContext()
-  const { screenWidth, screenHeight, TOC, pdfCitation } = useDocumentContext()
+  const { screenWidth, screenHeight, TOC, pdfCitation, umamiTrack } =
+    useDocumentContext()
   const [index, setIndex] = useState(homeFunction ? 0 : editPackage ? 1 : 2)
   const [indexPosition, setIndexPosition] = useState(0)
   const [yPositions] = useState<string[]>([
@@ -319,7 +320,7 @@ const Help = () => {
             <button
               className="efw-text-sm efw-font-bold efw-py-1 efw-px-2 efw-text-sky-200 efw-bg-transparent efw-outline-none efw-cursor-pointer efw-border-b-2 efw-border-transparent efw-duration-200 hover:efw-text-white hover:efw-border-white"
               onClick={() => {
-                umami.track('Viewer Skip Button')
+                umamiTrack('Viewer Skip Button')
                 setShowHelp(false)
               }}
             >
@@ -334,7 +335,7 @@ const Help = () => {
                 index === steps.length - 1
                   ? 'Viewer Done Button'
                   : 'Viewer Next Button'
-              umami.track(name)
+              umamiTrack(name)
               // find next possible step
               let nextIndex = index
               do {

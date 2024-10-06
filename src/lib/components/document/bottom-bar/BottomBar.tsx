@@ -34,6 +34,7 @@ const BottomBar = () => {
     isEditMode,
     hideBottomBar,
     setHideBottomBar,
+    umamiTrack,
   } = useDocumentContext()
   const { t } = useTranslation()
 
@@ -73,7 +74,7 @@ const BottomBar = () => {
           <Button
             toolTip={{ text: '', position: 'top' }}
             onClick={() => {
-              umami.track('Viewer Hide Preview Button', {
+              umamiTrack('Viewer Hide Preview Button', {
                 hidden: !hideBottomBar,
               })
               setHideBottomBar(!hideBottomBar)
@@ -100,7 +101,7 @@ const BottomBar = () => {
           }}
           onClick={() => {
             activePage !== 1 &&
-              umami.track('Viewer Prev Page Button', { page: activePage })
+              umamiTrack('Viewer Prev Page Button', { page: activePage })
             prevPage()
           }}
           icon={<AiOutlineLeft id="bottom-bar-left" size={15} />}
@@ -140,7 +141,7 @@ const BottomBar = () => {
           }}
           onClick={() => {
             activePage !== totalPages &&
-              umami.track('Viewer Next Page Button', { page: activePage })
+              umamiTrack('Viewer Next Page Button', { page: activePage })
             nextPage()
           }}
           icon={<AiOutlineRight id="bottom-bar-right" size={15} />}

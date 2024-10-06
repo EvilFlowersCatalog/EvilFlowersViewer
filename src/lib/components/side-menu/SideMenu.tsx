@@ -44,6 +44,7 @@ const SideMenu = () => {
     handleModeChange,
     printDocument,
     scale,
+    umamiTrack,
   } = useDocumentContext()
   const { theme, shareFunction, homeFunction, setShowHelp, config } =
     useViewerContext()
@@ -71,7 +72,7 @@ const SideMenu = () => {
           icon: <BiHome id="menu-home" size={23} />,
           tooltipText: t('homeToolTip'),
           onClick: () => {
-            umami.track('Viewer Home Button')
+            umamiTrack('Viewer Home Button')
             homeFunction()
           },
         }
@@ -83,7 +84,7 @@ const SideMenu = () => {
     //       icon: <IoLayersOutline id="menu-edit" size={23} />,
     //       tooltipText: t('layers'),
     //       onClick: () =>{
-    //         umami.track('Viewer Edit Button')
+    //         umamiTrack('Viewer Edit Button')
     //         setActiveSidebar(
     //           activeSidebar === SIDEBAR_TABS.LAYERS
     //             ? SIDEBAR_TABS.NULL
@@ -97,7 +98,7 @@ const SideMenu = () => {
       icon: <BiSearch id="menu-search" size={23} />,
       tooltipText: t('fullTextSearch'),
       onClick: () => {
-        umami.track('Viewer Search Button')
+        umamiTrack('Viewer Search Button')
         setActiveSidebar(
           activeSidebar === SIDEBAR_TABS.SEARCH
             ? SIDEBAR_TABS.NULL
@@ -112,7 +113,7 @@ const SideMenu = () => {
           icon: <RxQuote id="menu-citation" size={23} />,
           tooltipText: t('citationsToolTip'),
           onClick: () => {
-            umami.track('Viewer Citation Button', { entryId })
+            umamiTrack('Viewer Citation Button', { entryId })
 
             setCitationVisible(true)
             setActiveSidebar(SIDEBAR_TABS.NULL)
@@ -126,7 +127,7 @@ const SideMenu = () => {
           icon: <BiMenuAltLeft id="menu-toc" size={23} />,
           tooltipText: t('tocToolTip'),
           onClick: () => {
-            umami.track('Viewer TOC Button')
+            umamiTrack('Viewer TOC Button')
 
             setTocVisibility(true)
             setActiveSidebar(SIDEBAR_TABS.NULL)
@@ -140,7 +141,7 @@ const SideMenu = () => {
           icon: <RxShare2 id="menu-share" size={23} />,
           tooltipText: t('shareToolTip'),
           onClick: () => {
-            umami.track('Viewer Share Button', { entryId })
+            umamiTrack('Viewer Share Button', { entryId })
 
             setActiveSidebar(
               activeSidebar === SIDEBAR_TABS.SHARE
@@ -156,7 +157,7 @@ const SideMenu = () => {
       icon: <BiInfoCircle id="menu-info" size={23} />,
       tooltipText: t('infoToolTip'),
       onClick: () => {
-        umami.track('Viewer Info Button')
+        umamiTrack('Viewer Info Button')
 
         setActiveSidebar(
           activeSidebar === SIDEBAR_TABS.INFO
@@ -171,7 +172,7 @@ const SideMenu = () => {
       icon: <BiHelpCircle id="menu-help" size={23} />,
       tooltipText: t('help'),
       onClick: () => {
-        umami.track('Viewer Help Button')
+        umamiTrack('Viewer Help Button')
 
         setShowHelp(true)
       },
@@ -187,7 +188,7 @@ const SideMenu = () => {
         ),
       tooltipText: theme === 'light' ? t('lightMode') : t('darkMode'),
       onClick: () => {
-        umami.track('Viewer Theme Button', { theme })
+        umamiTrack('Viewer Theme Button', { theme })
 
         handleModeChange()
       },
@@ -199,7 +200,7 @@ const SideMenu = () => {
           icon: <BiDownload id="menu-download" size={23} />,
           tooltipText: t('downloadToolTip'),
           onClick: () => {
-            umami.track('Viewer Download Button', { entryId })
+            umamiTrack('Viewer Download Button', { entryId })
 
             downloadDocument()
             setActiveSidebar(SIDEBAR_TABS.NULL)
@@ -213,7 +214,7 @@ const SideMenu = () => {
           icon: <RiPrinterLine id="menu-download" size={23} />,
           tooltipText: t('printToolTip'),
           onClick: () => {
-            umami.track('Viewer Print Button', { entryId })
+            umamiTrack('Viewer Print Button', { entryId })
 
             printDocument()
             setActiveSidebar(SIDEBAR_TABS.NULL)
@@ -228,7 +229,7 @@ const SideMenu = () => {
       onClick: () => {
         // updated value
         scale < 3 &&
-          umami.track('Viewer Zoom in Button', {
+          umamiTrack('Viewer Zoom in Button', {
             scale,
           })
 
@@ -242,7 +243,7 @@ const SideMenu = () => {
       tooltipText: t('zoomOut'),
       onClick: () => {
         scale > 0.25 &&
-          umami.track('Viewer Zoom out Button', {
+          umamiTrack('Viewer Zoom out Button', {
             scale,
           })
 

@@ -1,6 +1,7 @@
 import { ReactNode, KeyboardEvent, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import Button from '../common/Button'
+import { useDocumentContext } from '../hooks/useDocumentContext'
 
 /**
  * ModalWrapper
@@ -41,6 +42,8 @@ const ModalWrapper = ({
   title,
 }: Props) => {
   const { t } = useTranslation()
+  const { umamiTrack } = useDocumentContext()
+
   const ref: any = useRef(null)
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -87,7 +90,7 @@ const ModalWrapper = ({
                 <Button
                   icon={t('close')}
                   onClick={() => {
-                    umami.track('Viewer Modal Close Button')
+                    umamiTrack('Viewer Modal Close Button')
                     onClose()
                   }}
                 />

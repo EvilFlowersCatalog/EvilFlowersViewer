@@ -357,6 +357,11 @@ const Document = ({ data }: IDocumentProps) => {
     }
   }
 
+  // Track umami analytics
+  const umamiTrack = (title: string, data?: Object) => {
+    if (typeof umami !== 'undefined') umami.track(title, data)
+  }
+
   /**
    * Copy pdf citation
    */
@@ -764,6 +769,7 @@ const Document = ({ data }: IDocumentProps) => {
         editStage,
         setEditStage,
         resizeElements,
+        umamiTrack,
       }}
     >
       <div
