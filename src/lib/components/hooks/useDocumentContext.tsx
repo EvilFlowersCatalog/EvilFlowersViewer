@@ -83,6 +83,7 @@ interface IDocumentContext {
   editStage: EDIT_STAGES
   setEditStage: (editStage: EDIT_STAGES) => void
   resizeElements: (children: any, width: number, height: number) => void
+  umamiTrack: (title: string, data?: Object) => void
 }
 
 export const DocumentContext = createContext<IDocumentContext | null>(null)

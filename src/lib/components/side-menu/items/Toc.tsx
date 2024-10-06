@@ -18,7 +18,7 @@ interface IOutlineProps {
 
 const Toc = ({ setTocVisibility }: IOutlineProps) => {
   const { t } = useTranslation()
-  const { TOC, setPage } = useDocumentContext()
+  const { TOC, setPage, umamiTrack } = useDocumentContext()
   const [toc, setToc] = useState(() => {
     // Add isExpanded property to each item in outline
     const newOutline = TOC?.map((item) => ({
@@ -62,7 +62,7 @@ const Toc = ({ setTocVisibility }: IOutlineProps) => {
                   item.pageNumber === -1
                     ? undefined
                     : () => {
-                        umami.track('Viewer TOC title Button', {
+                        umamiTrack('Viewer TOC title Button', {
                           title: item.title,
                         })
                         handleItemClick(item.pageNumber)
@@ -74,7 +74,7 @@ const Toc = ({ setTocVisibility }: IOutlineProps) => {
               {item.children.length > 0 && (
                 <Button
                   onClick={() => {
-                    umami.track('Viewer TOC Expand Button', {
+                    umamiTrack('Viewer TOC Expand Button', {
                       title: item.title,
                     })
                     handleToggleExpand(item)

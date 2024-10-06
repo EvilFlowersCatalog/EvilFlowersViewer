@@ -1,14 +1,18 @@
 # Changelog
 
-## 0.5.12 : 2024-10-28
+## 0.5.13 : 2024-10-06
+
+- **Fixed**: Umami tracker
+
+## 0.5.12 : 2024-09-28
 
 - **Fixed**: Bug
 
-## 0.5.11 : 2024-10-28
+## 0.5.11 : 2024-09-28
 
 - **Fixed**: Error with library
 
-## 0.5.10 : 2024-10-28
+## 0.5.10 : 2024-09-28
 
 - **Added**: umami trackers
 - **Removed**: useCustomEffect
