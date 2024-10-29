@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.15 : 2024-10-29
+
+- **Fixed**: One step back button
+
 ## 0.5.14 : 2024-10-29
 
 - **Added**: One step back button

@@ -82,7 +82,7 @@ const SideMenu = () => {
           tooltipText: t('closeToolTip'),
           onClick: () => {
             umamiTrack('Viewer Close Viewer Button')
-            closeFunction(entryId!)
+            closeFunction()
           },
         }
       : null,
