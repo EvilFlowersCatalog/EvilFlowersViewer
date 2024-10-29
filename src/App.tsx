@@ -18,8 +18,8 @@ import {
 const homeFunction = () => {
   console.log('home')
 }
-const closeFunction = (id: string) => {
-  console.log('close ', id)
+const closeFunction = () => {
+  console.log('close')
 }
 
 const App = () => {

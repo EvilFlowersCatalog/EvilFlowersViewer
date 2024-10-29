@@ -18,7 +18,7 @@ export interface IViewerOptions {
     | ((pages: string | null, expaireDate: string) => Promise<string>)
     | null
   homeFunction?: (() => void) | null
-  closeFunction?: ((id: string) => void) | null
+  closeFunction?: (() => void) | null
   editPackage?: {
     saveLayerFunc: (
       svg: string,
