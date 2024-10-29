@@ -22,6 +22,7 @@ import { RxQuote, RxShare2 } from 'react-icons/rx'
 import useViewerContext from '../hooks/useViewerContext'
 import { LuLayers } from 'react-icons/lu'
 import { RiPrinterLine } from 'react-icons/ri'
+import { FaRegWindowClose } from 'react-icons/fa'
 
 const Help = () => {
   const { t } = useTranslation()
@@ -32,10 +33,13 @@ const Help = () => {
     shareFunction,
     editPackage,
     config,
+    closeFunction,
   } = useViewerContext()
   const { screenWidth, screenHeight, TOC, pdfCitation, umamiTrack } =
     useDocumentContext()
-  const [index, setIndex] = useState(homeFunction ? 0 : editPackage ? 1 : 2)
+  const [index, setIndex] = useState(
+    closeFunction ? 0 : homeFunction ? 1 : editPackage ? 2 : 3
+  )
   const [indexPosition, setIndexPosition] = useState(0)
   const [yPositions] = useState<string[]>([
     '23px',
@@ -50,6 +54,8 @@ const Help = () => {
     '338px',
     '373px',
     '407px',
+    '441px',
+    // '478px',
   ])
 
   // css for each type of help step
@@ -61,6 +67,19 @@ const Help = () => {
     'bottom-left-step': `efw-rounded-md efw-rounded-bl-none befor:efw-content-[''] before:efw-absolute before:-efw-bottom-10 before:-efw-left-0.5 before:efw-h-[45px] before:efw-border-l-2 before:efw-border-blue-dark`,
   })
   const [steps] = useState([
+    // CLOSE
+    closeFunction
+      ? {
+          icon: <FaRegWindowClose size={30} />,
+          title: t('closeTitle'),
+          description: t('closeDescription'),
+          left: true,
+          positionX: '80px',
+          top: true,
+          positionY: '',
+          class: `${tailwindcss['container']} ${tailwindcss['left-step']}`,
+        }
+      : null,
     // HOME
     homeFunction
       ? {
@@ -75,7 +94,7 @@ const Help = () => {
         }
       : null,
     // EDIT
-    // editPackage && config.edit
+    // editPackage && config.edit
     //   ? {
     //       icon: <LuLayers size={30} />,
     //       title: t('layersTitle'),
@@ -265,8 +284,8 @@ const Help = () => {
     const bounding = document
       .getElementById('bottom-bar-left')
       ?.getBoundingClientRect()!
-    steps[steps.length - 1]!.positionX = bounding.x + 8 + 'px'
-    steps[steps.length - 1]!.positionY =
+    steps[steps.length - 2]!.positionX = bounding.x + 8 + 'px'
+    steps[steps.length - 2]!.positionY =
       screenHeight - bounding.bottom + 60 + 'px'
   }, [
     document.getElementById('bottom-bar-left')?.getBoundingClientRect().x,
