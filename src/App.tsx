@@ -18,6 +18,9 @@ import {
 const homeFunction = () => {
   console.log('home')
 }
+const closeFunction = (id: string) => {
+  console.log('close ', id)
+}
 
 const App = () => {
   const [data, setData] = useState<TypedArray | null>(null)
@@ -43,7 +46,8 @@ const App = () => {
       options={{
         citationBib: exampleCitation,
         shareFunction: exampleShareFunction,
-        homeFunction: homeFunction,
+        homeFunction,
+        closeFunction,
         editPackage: {
           saveLayerFunc,
           saveGroupFunc,

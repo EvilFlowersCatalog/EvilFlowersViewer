@@ -18,6 +18,7 @@ export interface IViewerOptions {
     | ((pages: string | null, expaireDate: string) => Promise<string>)
     | null
   homeFunction?: (() => void) | null
+  closeFunction?: ((id: string) => void) | null
   editPackage?: {
     saveLayerFunc: (
       svg: string,
@@ -112,6 +113,7 @@ export const Viewer = (viewerParams: IViewerParams) => {
         setTheme,
         shareFunction: options.shareFunction,
         homeFunction: options.homeFunction,
+        closeFunction: options.closeFunction,
         editPackage: options.editPackage,
         setShowHelp,
         showHelp,

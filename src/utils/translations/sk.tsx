@@ -22,6 +22,8 @@ export const sk = {
     previewToggle: 'Zobraziť/skryť náhľady strán',
     loadPDFerror: 'Prepáčte, váš PDF súbor sa nedá zobraziť',
     home: 'Domov',
+    closeName: 'Zatvoriť',
+    closeToolTip: 'Zatvoriť viewer',
     homeToolTip: 'Domov',
     homeNoneToolTip: 'Domov nieje k dispozícií',
     menuToolTip: 'Otvoriť menu',
@@ -85,6 +87,9 @@ export const sk = {
     helpNext: 'Ďalej',
     helpSkip: 'Preskočiť',
     helpDone: 'Ukončiť',
+    closeTitle: 'Tlačítko zatvoriť viewer',
+    closeDescription:
+      "Keď je <span class='efw-font-extrabold'>tlačítko zatvoriť viewer</span> stlačené, vráti vás na predošlú stránku.",
     homeTitle: 'Tlačítko domov',
     homeDescription:
       "Keď je <span class='efw-font-extrabold'>tlačítko domov</span> stlačené, vráti vás na hlavnú domovskú stránku.",

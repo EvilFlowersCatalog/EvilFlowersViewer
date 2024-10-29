@@ -26,6 +26,8 @@ import Button from '../common/Button'
 import Layers from './items/layers/Layers'
 import { RiPrinterLine } from 'react-icons/ri'
 import { useParams } from 'react-router-dom'
+import { IoLayersOutline } from 'react-icons/io5'
+import { FaRegWindowClose } from 'react-icons/fa'
 
 const SideMenu = () => {
   const { t } = useTranslation()
@@ -46,8 +48,15 @@ const SideMenu = () => {
     scale,
     umamiTrack,
   } = useDocumentContext()
-  const { theme, shareFunction, homeFunction, setShowHelp, config } =
-    useViewerContext()
+  const {
+    theme,
+    shareFunction,
+    homeFunction,
+    setShowHelp,
+    config,
+    closeFunction,
+    editPackage,
+  } = useViewerContext()
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [link, setLink] = useState<string>('')
@@ -65,6 +74,18 @@ const SideMenu = () => {
   }, [activeSidebar])
 
   const SideMenuItems = [
+    // CLOSE
+    closeFunction
+      ? {
+          name: t('closeName'),
+          icon: <FaRegWindowClose id="menu-close" color="red" size={23} />,
+          tooltipText: t('closeToolTip'),
+          onClick: () => {
+            umamiTrack('Viewer Close Viewer Button')
+            closeFunction(entryId!)
+          },
+        }
+      : null,
     // HOME
     homeFunction
       ? {
@@ -78,18 +99,19 @@ const SideMenu = () => {
         }
       : null,
     // EDIT
-    // editPackage && config.edit
+    // editPackage && config.edit
     //   ? {
     //       name: t('groups'),
     //       icon: <IoLayersOutline id="menu-edit" size={23} />,
     //       tooltipText: t('layers'),
-    //       onClick: () =>{
+    //       onClick: () => {
     //         umamiTrack('Viewer Edit Button')
     //         setActiveSidebar(
     //           activeSidebar === SIDEBAR_TABS.LAYERS
     //             ? SIDEBAR_TABS.NULL
     //             : SIDEBAR_TABS.LAYERS
-    //         )}
+    //         )
+    //       },
     //     }
     //   : null,
     // SEARCH

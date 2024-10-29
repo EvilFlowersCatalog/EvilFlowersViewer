@@ -22,6 +22,8 @@ export const en = {
     previewToggle: 'Show/hide page previews',
     loadPDFerror: 'Sorry, your PDF file cannot be viewed',
     home: 'Home',
+    closeName: 'Close',
+    closeToolTip: 'Close viewer',
     homeToolTip: 'Home',
     menuToolTip: 'Open menu',
     menuCloseToolTip: 'Close menu',
@@ -85,6 +87,9 @@ export const en = {
     helpNext: 'Next',
     helpSkip: 'Skip',
     helpDone: 'Done',
+    closeTitle: 'Close viewer button',
+    closeDescription:
+      "When <span class='efw-font-extrabold'>close button</span> is pressed, it will return you to the previous page",
     homeTitle: 'Home button',
     homeDescription:
       "When <span class='efw-font-extrabold'>home button</span> is pressed, it will return you to the main home page.",
