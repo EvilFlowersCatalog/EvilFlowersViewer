@@ -12,7 +12,7 @@ const app = createApp(App);
 
 app.use(i18n);
 app.use(createPinia());
-app.mount('#app');
+app.mount('#elvira-viewer-app');
 
 const renderPDFViewer = ({
   rootId,
