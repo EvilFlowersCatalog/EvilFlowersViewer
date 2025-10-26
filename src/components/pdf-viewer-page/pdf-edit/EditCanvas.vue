@@ -3,7 +3,7 @@ import { EDIT_TOOL, LAYER_STATE } from '@/assets/utils/enums';
 import { resizeElements } from '@/assets/utils/functions';
 import { useDocumentStore, useViewerStore } from '@/stores';
 import type { ILayer } from '@/assets/utils/interfaces';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
@@ -19,88 +19,170 @@ const lastRectCords = ref<{ x: number; y: number }>({
 });
 const recreatElement = ref<boolean>(true);
 const path = ref<string>('M');
-const isSaving = ref<boolean>(false);
-const pendingSave = ref<boolean>(false);
 const layerCache = ref<Map<string, ILayer | null>>(new Map());
 const currentLoadingPage = ref<number | null>(null);
 const currentPageForSvg = ref<number | null>(null);
-const savingPages = ref<Set<number>>(new Set());
+const savingPages = ref<Map<number, boolean>>(new Map()); // Track which pages are saving
+const pendingSaves = ref<Map<number, { svgContent: string; timestamp: number }>>(new Map()); // Track pending saves with content
+const pageLayerMap = ref<Map<number, ILayer | null>>(new Map());
+const saveQueue = ref<Map<number, Promise<void>>>(new Map()); // Track ongoing save promises
+const autoSaveTimeouts = ref<Map<number, number>>(new Map()); // Debounce timeouts for auto-save
+
+const debouncedAutoSave = (immediate: boolean = false) => {
+  if (!svgRef.value || !docStore.groupId || currentPageForSvg.value === null) return;
+  
+  const pageToSave = currentPageForSvg.value;
+  
+  // Clear existing timeout for this page
+  const existingTimeout = autoSaveTimeouts.value.get(pageToSave);
+  if (existingTimeout) {
+    clearTimeout(existingTimeout);
+  }
+  
+  if (immediate) {
+    autoSave();
+  } else {
+    // Debounce the save by 300ms
+    const timeout = setTimeout(() => {
+      autoSave();
+      autoSaveTimeouts.value.delete(pageToSave);
+    }, 300);
+    
+    autoSaveTimeouts.value.set(pageToSave, timeout);
+  }
+};
 
 const autoSave = async () => {
   if (!svgRef.value || !docStore.groupId || currentPageForSvg.value === null) return;
   
-  // Capture the current page and SVG content at the moment save is initiated
   const pageToSave = currentPageForSvg.value;
   const svgContent = svgRef.value.outerHTML;
-  const layerToSave = docStore.layer;
+  const timestamp = Date.now();
   
-  // If this page is already being saved, mark pending
-  if (savingPages.value.has(pageToSave)) {
-    pendingSave.value = true;
+  // IMMEDIATELY update local cache with the latest content
+  await updateCacheForPage(pageToSave, svgContent);
+  
+  // If there's already a save in progress for this page, queue this content for later
+  if (saveQueue.value.has(pageToSave)) {
+    pendingSaves.value.set(pageToSave, { svgContent, timestamp });
     return;
   }
-
-  savingPages.value.add(pageToSave);
-  docStore.setLayerState(LAYER_STATE.SAVING);
-
+  
+  // Start the save process
+  const savePromise = performSave(pageToSave, svgContent, timestamp);
+  saveQueue.value.set(pageToSave, savePromise);
+  
   try {
-    // If layer exist, update
-    if (layerToSave) {
+    await savePromise;
+  } finally {
+    saveQueue.value.delete(pageToSave);
+    
+    // Check if there's a pending save with newer content
+    const pendingSave = pendingSaves.value.get(pageToSave);
+    if (pendingSave) {
+      pendingSaves.value.delete(pageToSave);
+      // Recursively save the newer content
+      const recursivePromise = performSave(pageToSave, pendingSave.svgContent, pendingSave.timestamp);
+      saveQueue.value.set(pageToSave, recursivePromise);
+      await recursivePromise;
+      saveQueue.value.delete(pageToSave);
+    }
+  }
+};
+
+const updateCacheForPage = async (pageNum: number, svgContent: string) => {
+  if (!docStore.groupId) return;
+  
+  const cacheKey = `${docStore.groupId}-${pageNum}`;
+  const existingLayer = pageLayerMap.value.get(pageNum);
+  
+  if (existingLayer) {
+    const updatedLayer = { ...existingLayer, svg: svgContent };
+    layerCache.value.set(cacheKey, updatedLayer);
+    pageLayerMap.value.set(pageNum, updatedLayer);
+    
+    // Update the store if this is the currently active page
+    if (currentPageForSvg.value === pageNum) {
+      docStore.setLayer(updatedLayer);
+    }
+  } else {
+    const tempLayer = { id: `temp-${pageNum}`, svg: svgContent };
+    layerCache.value.set(cacheKey, tempLayer);
+    pageLayerMap.value.set(pageNum, tempLayer);
+    
+    // Update the store if this is the currently active page
+    if (currentPageForSvg.value === pageNum) {
+      docStore.setLayer(tempLayer);
+    }
+  }
+};
+
+const performSave = async (pageNum: number, svgContent: string, timestamp: number) => {
+  if (!docStore.groupId) return;
+  
+  const cacheKey = `${docStore.groupId}-${pageNum}`;
+  const layerToSave = pageLayerMap.value.get(pageNum);
+  
+  // Set saving state only if this is the current page
+  if (currentPageForSvg.value === pageNum) {
+    docStore.setLayerState(LAYER_STATE.SAVING);
+  }
+  
+  try {
+    let resultLayer: ILayer | null = null;
+    
+    if (layerToSave && layerToSave.id && !layerToSave.id.startsWith('temp-')) {
+      // Update existing layer
       await viewerStore.editPackage!.updateLayerFunc(
         layerToSave.id,
         svgContent,
         docStore.groupId,
-        pageToSave
+        pageNum
       );
-      
-      // Only update docStore.layer if we're still on the same page
-      if (currentPageForSvg.value === pageToSave) {
-        const updatedLayer = { ...layerToSave, svg: svgContent };
-        docStore.setLayer(updatedLayer);
-      }
-    }
-    // Save new layer
-    else {
-      const layer = await viewerStore.editPackage!.saveLayerFunc(
+      resultLayer = { ...layerToSave, svg: svgContent };
+    } else {
+      // Create new layer
+      resultLayer = await viewerStore.editPackage!.saveLayerFunc(
         svgContent,
         docStore.groupId,
-        pageToSave
+        pageNum
       );
-
-      // Update cache with the new layer
-      const cacheKey = `${docStore.groupId}-${pageToSave}`;
-      layerCache.value.set(cacheKey, layer);
-      
-      // Only update docStore.layer if we're still on the same page
-      if (currentPageForSvg.value === pageToSave) {
-        docStore.setLayer(layer);
+    }
+    
+    // Update cache with the final result only if this save is still relevant
+    if (resultLayer) {
+      // Check if we have a newer pending save
+      const pendingSave = pendingSaves.value.get(pageNum);
+      if (!pendingSave || pendingSave.timestamp <= timestamp) {
+        layerCache.value.set(cacheKey, resultLayer);
+        pageLayerMap.value.set(pageNum, resultLayer);
+        
+        // Update the store if this is still the current page
+        if (currentPageForSvg.value === pageNum) {
+          docStore.setLayer(resultLayer);
+        }
       }
     }
+  } catch (error) {
+    console.error(`Failed to save layer for page ${pageNum}:`, error);
+    // On error, keep the cache as is - user's work is still preserved locally
   } finally {
-    savingPages.value.delete(pageToSave);
-    
-    // Only update state if we're still on the same page
-    if (currentPageForSvg.value === pageToSave) {
+    // Only update layer state if this is still the current page
+    if (currentPageForSvg.value === pageNum) {
       docStore.setLayerState(LAYER_STATE.READY);
-    }
-    
-    // If there was a pending save request for this page, execute it now
-    if (pendingSave.value && currentPageForSvg.value === pageToSave) {
-      pendingSave.value = false;
-      autoSave();
     }
   }
 };
 
 // Function for starting the drawing
 const startDrawing = ({ clientX, clientY }: MouseEvent) => {
-  // Block drawing only when not initialized or loading
   if (
     docStore.editTool === EDIT_TOOL.MOUSE ||
     docStore.layerState === LAYER_STATE.NOT_READY ||
     docStore.layerState === LAYER_STATE.LOADING
   )
     return;
+    
   if (docStore.editTool === EDIT_TOOL.ERASER) {
     isDrawing.value = true;
     return;
@@ -158,44 +240,33 @@ const draw = ({ clientX, clientY }: MouseEvent) => {
     path.value = path.value + `L${x},${y} `;
     entity.value?.setAttribute('d', path.value);
   }
+  
+  // Use debounced save during drawing for better performance
+  debouncedAutoSave();
 };
 
 // Function for ending the drawing
 const endDrawing = async () => {
   if (!isDrawing.value) return;
+  
+  const pageNum = currentPageForSvg.value;
+  if (pageNum === null || !docStore.groupId || !svgRef.value) return;
+  
+  isDrawing.value = false;
+  
   if (docStore.editTool === EDIT_TOOL.ERASER) {
-    isDrawing.value = false;
-    
-    // Update cache immediately
-    if (svgRef.value && docStore.groupId && currentPageForSvg.value !== null) {
-      const cacheKey = `${docStore.groupId}-${currentPageForSvg.value}`;
-      const svgContent = svgRef.value.outerHTML;
-      if (docStore.layer) {
-        const updatedLayer = { ...docStore.layer, svg: svgContent };
-        layerCache.value.set(cacheKey, updatedLayer);
-      }
-    }
-    
-    await autoSave();
+    // For eraser, save immediately as content has changed
+    debouncedAutoSave(true);
     return;
   }
 
+  // Clean up drawing state
   entity.value = null;
-  isDrawing.value = false;
   path.value = 'M';
-  recreatElement.value = !recreatElement.value; // for trigger createing new entity
+  recreatElement.value = !recreatElement.value;
   
-  // Update cache immediately BEFORE autosave
-  if (svgRef.value && docStore.groupId && currentPageForSvg.value !== null) {
-    const cacheKey = `${docStore.groupId}-${currentPageForSvg.value}`;
-    const svgContent = svgRef.value.outerHTML;
-    if (docStore.layer) {
-      const updatedLayer = { ...docStore.layer, svg: svgContent };
-      layerCache.value.set(cacheKey, updatedLayer);
-    }
-  }
-  
-  await autoSave();
+  // Save the drawing immediately when drawing ends
+  debouncedAutoSave(true);
 };
 
 const handleMouseOver = (event: Event) => {
@@ -208,6 +279,8 @@ const handleMouseOver = (event: Event) => {
   ) {
     // Remove from svg
     svgRef.value?.removeChild(target);
+    // Use debounced save during erasing for better performance
+    debouncedAutoSave();
   }
 };
 
@@ -264,47 +337,127 @@ onMounted(async () => {
   }
 });
 
+onUnmounted(async () => {
+  // Clear all pending timeouts
+  for (const timeout of autoSaveTimeouts.value.values()) {
+    clearTimeout(timeout);
+  }
+  autoSaveTimeouts.value.clear();
+  
+  // Save any pending changes before unmounting
+  if (currentPageForSvg.value !== null && svgRef.value && svgRef.value.children.length > 0) {
+    await updateCacheForPage(currentPageForSvg.value, svgRef.value.outerHTML);
+  }
+  
+  // Wait for any ongoing saves to complete
+  const allSavePromises = Array.from(saveQueue.value.values());
+  if (allSavePromises.length > 0) {
+    try {
+      await Promise.all(allSavePromises);
+    } catch (error) {
+      console.error('Some saves failed during cleanup:', error);
+    }
+  }
+});
+
 watch(
   () => [docStore.activePage, svgRef.value, docStore.groupId],
   async () => {
     if (!docStore.groupId) return;
     
-    // Capture the page we're loading for
     const pageToLoad = docStore.activePage;
+    
+    // If we're already loading this page, don't start another load
+    if (currentLoadingPage.value === pageToLoad && currentPageForSvg.value === pageToLoad) {
+      return;
+    }
+    
     currentLoadingPage.value = pageToLoad;
     
-    // Reset svg
+    // Save current page content before switching if there's unsaved work
+    if (currentPageForSvg.value !== null && 
+        currentPageForSvg.value !== pageToLoad && 
+        svgRef.value && 
+        svgRef.value.children.length > 0) {
+      await updateCacheForPage(currentPageForSvg.value, svgRef.value.outerHTML);
+    }
+    
+    // Clear the SVG and update current page reference
     svgRef.value?.replaceChildren();
     docStore.setLayer(null);
-    
-    // Set the current page for SVG (so autoSave knows which page this content belongs to)
     currentPageForSvg.value = pageToLoad;
 
-    // Check cache first
     const cacheKey = `${docStore.groupId}-${pageToLoad}`;
     const cachedLayer = layerCache.value.get(cacheKey);
     
+    // Load from cache if available
     if (cachedLayer !== undefined) {
-      // Use cached layer (can be null if no layer exists for this page)
-      if (cachedLayer && svgRef.value) {
-        docStore.setLayer(cachedLayer);
-        
-        // Parse SVG string into a DOM object
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(cachedLayer.svg, 'image/svg+xml');
-        const parsedSvg = doc.documentElement;
+      await loadLayerIntoSvg(cachedLayer, pageToLoad);
+      docStore.setLayerState(LAYER_STATE.READY);
+      return;
+    }
 
-        // Get width and height from parsed SVG
-        const width = parseFloat(parsedSvg.getAttribute('width')!);
-        const height = parseFloat(parsedSvg.getAttribute('height')!);
+    // Load from server
+    docStore.setLayerState(LAYER_STATE.LOADING);
+    
+    try {
+      const layer = await viewerStore.editPackage!.getLayerFunc(
+        pageToLoad,
+        docStore.groupId
+      );
+      
+      // Check if we're still loading the same page (user might have switched again)
+      if (currentLoadingPage.value !== pageToLoad) {
+        return;
+      }
 
-        // Append child nodes to the SVG element
-        if (parsedSvg) {
-          Array.from(parsedSvg.children).forEach((child) => {
-            svgRef.value!.appendChild(child);
-          });
+      // Cache the loaded layer
+      layerCache.value.set(cacheKey, layer);
+      
+      // Load into SVG
+      await loadLayerIntoSvg(layer, pageToLoad);
+      
+    } catch (error) {
+      console.error(`Failed to load layer for page ${pageToLoad}:`, error);
+      // Set empty layer on error
+      layerCache.value.set(cacheKey, null);
+      pageLayerMap.value.set(pageToLoad, null);
+    } finally {
+      // Only update state if we're still on the same page
+      if (currentLoadingPage.value === pageToLoad && currentPageForSvg.value === pageToLoad) {
+        docStore.setLayerState(LAYER_STATE.READY);
+      }
+    }
+  }
+);
 
-          // Resize to current width and height
+const loadLayerIntoSvg = async (layer: ILayer | null, pageNum: number) => {
+  if (!svgRef.value) return;
+  
+  if (layer) {
+    const layerClone = { ...layer };
+    pageLayerMap.value.set(pageNum, layerClone);
+    docStore.setLayer(layerClone);
+    
+    try {
+      // Parse SVG string into a DOM object
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(layer.svg, 'image/svg+xml');
+      const parsedSvg = doc.documentElement;
+
+      // Get width and height from parsed SVG
+      const width = parseFloat(parsedSvg.getAttribute('width') || '0');
+      const height = parseFloat(parsedSvg.getAttribute('height') || '0');
+
+      // Clear existing content and append new child nodes
+      svgRef.value.replaceChildren();
+      if (parsedSvg && parsedSvg.children.length > 0) {
+        Array.from(parsedSvg.children).forEach((child) => {
+          svgRef.value!.appendChild(child.cloneNode(true));
+        });
+
+        // Resize to current dimensions if we have valid dimensions
+        if (width > 0 && height > 0) {
           resizeElements(
             svgRef.value.children,
             docStore.canvasWidth,
@@ -314,58 +467,18 @@ watch(
           );
         }
       }
-      docStore.setLayerState(LAYER_STATE.READY);
-      return;
+    } catch (error) {
+      console.error(`Failed to parse SVG for page ${pageNum}:`, error);
+      // Clear the SVG on parse error
+      svgRef.value.replaceChildren();
     }
-
-    // Set layer loading
-    docStore.setLayerState(LAYER_STATE.LOADING);
-    
-    // Get layer if there is any for active page
-    const layer = await viewerStore.editPackage!.getLayerFunc(
-      pageToLoad,
-      docStore.groupId
-    );
-    
-    // Check if we're still on the same page - if not, abort
-    if (currentLoadingPage.value !== pageToLoad) {
-      return;
-    }
-
-    // Cache the result (even if null)
-    layerCache.value.set(cacheKey, layer);
-
-    if (layer && svgRef.value) {
-      docStore.setLayer(layer);
-      // Parse SVG string into a DOM object
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(layer.svg, 'image/svg+xml');
-      const parsedSvg = doc.documentElement;
-
-      // Get width and height from parsed SVG
-      const width = parseFloat(parsedSvg.getAttribute('width')!);
-      const height = parseFloat(parsedSvg.getAttribute('height')!);
-
-      // Append child nodes to the SVG element
-      if (parsedSvg) {
-        Array.from(parsedSvg.children).forEach((child) => {
-          svgRef.value!.appendChild(child);
-        });
-
-        // Resize to current width and height
-        resizeElements(
-          svgRef.value.children,
-          docStore.canvasWidth,
-          docStore.canvasHeight,
-          width,
-          height
-        );
-      }
-    }
-    // DONE
-    docStore.setLayerState(LAYER_STATE.READY);
+  } else {
+    // No layer for this page
+    pageLayerMap.value.set(pageNum, null);
+    docStore.setLayer(null);
+    svgRef.value.replaceChildren();
   }
-);
+};
 
 // Watch for size change
 watch(

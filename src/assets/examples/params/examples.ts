@@ -3,10 +3,10 @@ import type { ILayer } from '@/assets/utils/interfaces';
 const delay = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
-let nieco =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="362" height="549"><rect stroke="#ff0000" opacity="1" stroke-width="16" stroke-linecap="round" fill="none" rx="50%" x="101" y="189" width="167" height="205"></rect></svg>';
-let nieco1 =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="362" height="549"><rect stroke="#ff0000" opacity="1" stroke-width="16" stroke-linecap="round" fill="none" rx="50%" x="101" y="189" width="167" height="205"></rect></svg>';
+
+// Store layers per page, keyed by groupId-pageNumber
+const layerStore = new Map<string, ILayer>();
+let layerIdCounter = 0;
 
 export const saveLayerFunc = async (
   svg: string,
@@ -15,8 +15,15 @@ export const saveLayerFunc = async (
 ): Promise<ILayer> => {
   await delay(2000);
 
-  return { id: 'nieco', svg: nieco };
+  const layerId = `layer-${++layerIdCounter}`;
+  const layer: ILayer = { id: layerId, svg };
+  const key = `${groupId}-${page}`;
+  
+  layerStore.set(key, layer);
+  
+  return layer;
 };
+
 export const updateLayerFunc = async (
   id: string,
   svg: string,
@@ -25,31 +32,22 @@ export const updateLayerFunc = async (
 ) => {
   await delay(2000);
 
-  nieco = svg;
+  const key = `${groupId}-${page}`;
+  const layer: ILayer = { id, svg };
+  
+  layerStore.set(key, layer);
 };
+
 export const getLayerFunc = async (
   page: number,
   groupId: string
 ): Promise<{ id: string; svg: string } | null> => {
   await delay(2000);
 
-  if (page === 1)
-    return {
-      id: '1',
-      svg: nieco,
-    };
-  else if (page === 2)
-    return {
-      id: '2',
-      svg: nieco1,
-    };
-  else if (page === 10) {
-    return {
-      id: '1',
-      svg: nieco,
-    };
-  }
-  return null;
+  const key = `${groupId}-${page}`;
+  const layer = layerStore.get(key);
+  
+  return layer || null;
 };
 export const saveGroupFunc = async (name: string) => {
   await delay(2000);
