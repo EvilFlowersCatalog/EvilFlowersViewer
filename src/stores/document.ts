@@ -36,17 +36,14 @@ export const useDocumentStore = defineStore('document', () => {
   const isMobile = ref<boolean>(
     window.innerWidth <= MOBILE_SIZE || window.innerHeight <= MOBILE_SIZE
   );
-  const layerState = ref<LAYER_STATE>(LAYER_STATE.DONE);
+  const layerState = ref<LAYER_STATE>(LAYER_STATE.NOT_READY);
   const layer = ref<ILayer | null>(null);
   const groupId = ref<string | null>(null);
   const edit = ref<boolean>(true);
 
-  // Check if everything is isLoaded
+  // Check if page is rendered (don't block on layer state)
   const isLoaded = () => {
-    return (
-      renderState.value === RENDER_STATE.RENDERED &&
-      layerState.value === LAYER_STATE.DONE
-    );
+    return renderState.value === RENDER_STATE.RENDERED;
   };
 
   // Setters
@@ -57,19 +54,15 @@ export const useDocumentStore = defineStore('document', () => {
     previewPdf.value = val;
   };
   const setActivePage = (val: number) => {
-    if (isLoaded()) activePage.value = val;
+    activePage.value = val;
   };
   const nextPage = () => {
-    if (isLoaded()) {
-      const page = activePage.value + 1;
-      activePage.value = page > totalPages.value ? totalPages.value : page;
-    }
+    const page = activePage.value + 1;
+    activePage.value = page > totalPages.value ? totalPages.value : page;
   };
   const previousPage = () => {
-    if (isLoaded()) {
-      const page = activePage.value - 1;
-      activePage.value = page < 1 ? 1 : page;
-    }
+    const page = activePage.value - 1;
+    activePage.value = page < 1 ? 1 : page;
   };
   const setTotalPages = (val: number) => {
     totalPages.value = val;

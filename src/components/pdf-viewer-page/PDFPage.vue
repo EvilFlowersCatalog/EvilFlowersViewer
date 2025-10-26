@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, toRaw, watch } from 'vue';
+import { onMounted, ref, toRaw, watch } from 'vue';
 import { useDocumentStore } from '@/stores';
 import { TextLayer } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { EDIT_TOOL, RENDER_STATE } from '@/assets/utils/enums';
@@ -9,6 +9,7 @@ import { EditCanvas } from './pdf-edit';
 // Data
 const docStore = useDocumentStore();
 let pdf = toRaw(docStore.pdf);
+const currentRenderTask = ref<any>(null);
 
 // Handling dobe clicking
 const handleDoubleClick = () => {
@@ -27,6 +28,11 @@ const handleDoubleClick = () => {
 const renderPage = async (renderTextContent: boolean = true) => {
   if (!pdf) return;
 
+  // Cancel previous render if it exists
+  if (currentRenderTask.value) {
+    currentRenderTask.value.cancel();
+  }
+
   docStore.setRenderState(RENDER_STATE.RENDERING);
 
   const page = await pdf.getPage(docStore.activePage);
@@ -44,10 +50,22 @@ const renderPage = async (renderTextContent: boolean = true) => {
   canvas.style.height = `${viewport.height}px`;
 
   // Render page content to the canvas
-  await page.render({
+  const renderTask = page.render({
     canvasContext: canvas.getContext('2d') as CanvasRenderingContext2D,
     viewport,
-  }).promise;
+  });
+  
+  currentRenderTask.value = renderTask;
+
+  try {
+    await renderTask.promise;
+  } catch (error: any) {
+    // Ignore cancellation errors
+    if (error.name === 'RenderingCancelledException') {
+      return;
+    }
+    throw error;
+  }
 
   if (renderTextContent) {
     // Render text layer for the page
@@ -64,6 +82,7 @@ const renderPage = async (renderTextContent: boolean = true) => {
   }
 
   // Set state to rendered
+  currentRenderTask.value = null;
   docStore.setRenderState(RENDER_STATE.RENDERED);
 };
 

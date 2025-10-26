@@ -4,9 +4,10 @@ export enum RENDER_STATE {
 }
 
 export enum LAYER_STATE {
-  SAVING = 'save',
+  NOT_READY = 'not-ready',
   LOADING = 'load',
-  DONE = 'done',
+  READY = 'ready',
+  SAVING = 'save',
 }
 
 export enum SIDEBAR_STATE {

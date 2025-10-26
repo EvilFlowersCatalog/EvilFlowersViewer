@@ -2,6 +2,7 @@
 import { EDIT_TOOL, LAYER_STATE } from '@/assets/utils/enums';
 import { resizeElements } from '@/assets/utils/functions';
 import { useDocumentStore, useViewerStore } from '@/stores';
+import type { ILayer } from '@/assets/utils/interfaces';
 import { onMounted, ref, watch } from 'vue';
 
 const docStore = useDocumentStore();
@@ -18,39 +19,86 @@ const lastRectCords = ref<{ x: number; y: number }>({
 });
 const recreatElement = ref<boolean>(true);
 const path = ref<string>('M');
+const isSaving = ref<boolean>(false);
+const pendingSave = ref<boolean>(false);
+const layerCache = ref<Map<string, ILayer | null>>(new Map());
+const currentLoadingPage = ref<number | null>(null);
+const currentPageForSvg = ref<number | null>(null);
+const savingPages = ref<Set<number>>(new Set());
 
 const autoSave = async () => {
-  if (!svgRef.value || !docStore.groupId) return;
+  if (!svgRef.value || !docStore.groupId || currentPageForSvg.value === null) return;
+  
+  // Capture the current page and SVG content at the moment save is initiated
+  const pageToSave = currentPageForSvg.value;
+  const svgContent = svgRef.value.outerHTML;
+  const layerToSave = docStore.layer;
+  
+  // If this page is already being saved, mark pending
+  if (savingPages.value.has(pageToSave)) {
+    pendingSave.value = true;
+    return;
+  }
+
+  savingPages.value.add(pageToSave);
   docStore.setLayerState(LAYER_STATE.SAVING);
 
-  // If layer exist, update
-  if (docStore.layer) {
-    await viewerStore.editPackage!.updateLayerFunc(
-      docStore.layer.id,
-      svgRef.value.outerHTML,
-      docStore.groupId,
-      docStore.activePage
-    );
-  }
-  // Save
-  else {
-    // Save layer
-    const layer = await viewerStore.editPackage!.saveLayerFunc(
-      svgRef.value.outerHTML,
-      docStore.groupId,
-      docStore.activePage
-    );
+  try {
+    // If layer exist, update
+    if (layerToSave) {
+      await viewerStore.editPackage!.updateLayerFunc(
+        layerToSave.id,
+        svgContent,
+        docStore.groupId,
+        pageToSave
+      );
+      
+      // Only update docStore.layer if we're still on the same page
+      if (currentPageForSvg.value === pageToSave) {
+        const updatedLayer = { ...layerToSave, svg: svgContent };
+        docStore.setLayer(updatedLayer);
+      }
+    }
+    // Save new layer
+    else {
+      const layer = await viewerStore.editPackage!.saveLayerFunc(
+        svgContent,
+        docStore.groupId,
+        pageToSave
+      );
 
-    docStore.setLayer(layer);
+      // Update cache with the new layer
+      const cacheKey = `${docStore.groupId}-${pageToSave}`;
+      layerCache.value.set(cacheKey, layer);
+      
+      // Only update docStore.layer if we're still on the same page
+      if (currentPageForSvg.value === pageToSave) {
+        docStore.setLayer(layer);
+      }
+    }
+  } finally {
+    savingPages.value.delete(pageToSave);
+    
+    // Only update state if we're still on the same page
+    if (currentPageForSvg.value === pageToSave) {
+      docStore.setLayerState(LAYER_STATE.READY);
+    }
+    
+    // If there was a pending save request for this page, execute it now
+    if (pendingSave.value && currentPageForSvg.value === pageToSave) {
+      pendingSave.value = false;
+      autoSave();
+    }
   }
-  docStore.setLayerState(LAYER_STATE.DONE);
 };
 
 // Function for starting the drawing
 const startDrawing = ({ clientX, clientY }: MouseEvent) => {
+  // Block drawing only when not initialized or loading
   if (
     docStore.editTool === EDIT_TOOL.MOUSE ||
-    docStore.layerState !== LAYER_STATE.DONE
+    docStore.layerState === LAYER_STATE.NOT_READY ||
+    docStore.layerState === LAYER_STATE.LOADING
   )
     return;
   if (docStore.editTool === EDIT_TOOL.ERASER) {
@@ -117,6 +165,17 @@ const endDrawing = async () => {
   if (!isDrawing.value) return;
   if (docStore.editTool === EDIT_TOOL.ERASER) {
     isDrawing.value = false;
+    
+    // Update cache immediately
+    if (svgRef.value && docStore.groupId && currentPageForSvg.value !== null) {
+      const cacheKey = `${docStore.groupId}-${currentPageForSvg.value}`;
+      const svgContent = svgRef.value.outerHTML;
+      if (docStore.layer) {
+        const updatedLayer = { ...docStore.layer, svg: svgContent };
+        layerCache.value.set(cacheKey, updatedLayer);
+      }
+    }
+    
     await autoSave();
     return;
   }
@@ -125,6 +184,17 @@ const endDrawing = async () => {
   isDrawing.value = false;
   path.value = 'M';
   recreatElement.value = !recreatElement.value; // for trigger createing new entity
+  
+  // Update cache immediately BEFORE autosave
+  if (svgRef.value && docStore.groupId && currentPageForSvg.value !== null) {
+    const cacheKey = `${docStore.groupId}-${currentPageForSvg.value}`;
+    const svgContent = svgRef.value.outerHTML;
+    if (docStore.layer) {
+      const updatedLayer = { ...docStore.layer, svg: svgContent };
+      layerCache.value.set(cacheKey, updatedLayer);
+    }
+  }
+  
   await autoSave();
 };
 
@@ -198,17 +268,72 @@ watch(
   () => [docStore.activePage, svgRef.value, docStore.groupId],
   async () => {
     if (!docStore.groupId) return;
+    
+    // Capture the page we're loading for
+    const pageToLoad = docStore.activePage;
+    currentLoadingPage.value = pageToLoad;
+    
     // Reset svg
     svgRef.value?.replaceChildren();
     docStore.setLayer(null);
+    
+    // Set the current page for SVG (so autoSave knows which page this content belongs to)
+    currentPageForSvg.value = pageToLoad;
+
+    // Check cache first
+    const cacheKey = `${docStore.groupId}-${pageToLoad}`;
+    const cachedLayer = layerCache.value.get(cacheKey);
+    
+    if (cachedLayer !== undefined) {
+      // Use cached layer (can be null if no layer exists for this page)
+      if (cachedLayer && svgRef.value) {
+        docStore.setLayer(cachedLayer);
+        
+        // Parse SVG string into a DOM object
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(cachedLayer.svg, 'image/svg+xml');
+        const parsedSvg = doc.documentElement;
+
+        // Get width and height from parsed SVG
+        const width = parseFloat(parsedSvg.getAttribute('width')!);
+        const height = parseFloat(parsedSvg.getAttribute('height')!);
+
+        // Append child nodes to the SVG element
+        if (parsedSvg) {
+          Array.from(parsedSvg.children).forEach((child) => {
+            svgRef.value!.appendChild(child);
+          });
+
+          // Resize to current width and height
+          resizeElements(
+            svgRef.value.children,
+            docStore.canvasWidth,
+            docStore.canvasHeight,
+            width,
+            height
+          );
+        }
+      }
+      docStore.setLayerState(LAYER_STATE.READY);
+      return;
+    }
 
     // Set layer loading
     docStore.setLayerState(LAYER_STATE.LOADING);
+    
     // Get layer if there is any for active page
     const layer = await viewerStore.editPackage!.getLayerFunc(
-      docStore.activePage,
+      pageToLoad,
       docStore.groupId
     );
+    
+    // Check if we're still on the same page - if not, abort
+    if (currentLoadingPage.value !== pageToLoad) {
+      return;
+    }
+
+    // Cache the result (even if null)
+    layerCache.value.set(cacheKey, layer);
 
     if (layer && svgRef.value) {
       docStore.setLayer(layer);
@@ -238,7 +363,7 @@ watch(
       }
     }
     // DONE
-    docStore.setLayerState(LAYER_STATE.DONE);
+    docStore.setLayerState(LAYER_STATE.READY);
   }
 );
 

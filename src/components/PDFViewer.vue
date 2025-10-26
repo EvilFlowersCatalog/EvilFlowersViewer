@@ -230,12 +230,12 @@ function useSpring(motionProperties: any): { set: any } {
 
     <!-- Layer state -->
     <div
-      v-if="docStore.layerState !== LAYER_STATE.DONE && docStore.edit"
-      class="fixed top-2 left-0 w-full flex justify-center z-20 pointer-events-none select-none"
+      v-if="docStore.layerState !== LAYER_STATE.READY && docStore.layerState !== LAYER_STATE.NOT_READY && docStore.edit"
+      class="fixed top-2 left-0 w-full flex justify-center z-20 pointer-events-none select-none transition-opacity hover:opacity-30"
     >
-      <div class="bg-primary flex flex-col gap-2 items-center p-4 rounded-md">
-        <Loader :size="50" color="#36BA98" />
-        <span class="text-secondary">{{ $t(docStore.layerState) }}</span>
+      <div class="bg-primary flex flex-row gap-2 items-center px-3 py-2 rounded-md">
+        <Loader :size="20" color="#36BA98" />
+        <span class="text-secondary text-xs font-medium">{{ $t(docStore.layerState) }}</span>
       </div>
     </div>
 
