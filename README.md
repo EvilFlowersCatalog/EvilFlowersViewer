@@ -15,19 +15,14 @@ efficient PDF viewer that is easy to use and customize.
 - Page navigation through a page thumbnail view
 - Text search within documents
 - Share the entire document or with selected pages
-  - Select wanted pages (1, 3-5, 10) or none (means whole document)
-  - Choose lifespan expectancy (1 day, 7 days, 30 days)
-  - Click on share where your function will take care of given inputs
-  - Your function returns link for your shared document
-  - Our viewer will generate QR Code of given link
 - Citation export in BibTeX, BibLaTeX, RIS and bibliography
+- Print the entire document or with selected pages
+- Downdload document
 - Changing themes
+- Fullscreen mode
+- Editing document
 
 ## Features Under Development
-
-- Annotation tools for highlighting and commenting on text
-- Editing with pen
-- and more...
 
 ## Getting started
 
@@ -39,91 +34,48 @@ To get started with EvilFlowersViewer, follow these steps:
 npm install @evilflowers/evilflowersviewer
 ```
 
-2. Update your project architecture (.json)
-
-```json
-"architect": {
-    "build": {
-        "options": {
-            "assets": [
-                {
-                    "glob": "**/*",
-                    "input": "node_modules/@evilflowers/evilflowersviewer/dist/assets/",
-                    "output": "/assets/"
-                }
-            ],
-            "styles": [
-                "node_modules/@evilflowers/evilflowersviewer/dist/style.css"
-            ]
-        }
-    }
-}
-```
-
-3. Import the renderViewer function into your project:
+2. Import the renderViewer function into your project:
 
 ```ts
-import { renderViewer } from '@evilflowers/evilflowersviewer'
+import { renderPDFViewer } from '@evilflowers/evilflowersviewer';
 ```
 
-4. Use renderViewer function:
+3. Use renderViewer function:
 
 ```tsx
-renderViewer(rootId, base64, options)
+renderPDFViewer(rootId, base64, options, config);
 ```
 
-| Input                     | Description                                                                         |
-| ------------------------- | ----------------------------------------------------------------------------------- |
-| rootId                    | id of your component where you use renderViewer func                                |
-| base64                    | string that contains base64 formatt of pdf                                          |
-| options                   | not required object consisting of theme, lang, citationBib, shareFunction           |
-| options.theme             | 'dark' or 'light'                                                                   |
-| options.lang              | 'sk' or 'en'                                                                        |
-| options.citationBib       | string containing bib citation of given document examaple: '@article{name,\n ....}' |
-| options.shareFunction     | type: (pages: string / null, expaireDate: string) => Promise<string>                |
-| options.homeFunction      | type: () => void                                                                    |
-| shareFunction.pages       | string containing selected pages (1,3-6,10) or null (means it's empty)              |
-| shareFunction.expaireDate | string containing lifespan of shared document, the end. ISO                         |
-| shareFunction => return   | link for your shared document as string                                             |
+# Viewer Options and Properties Documentation
 
-## Examples
+| Input                         | Description                                                                         |
+| -------------------------     | ----------------------------------------------------------------------------------- |
+| rootId                        | ID of your component where you use the `renderViewer` function.                     |
+| base64                        | String containing the Base64 format of the PDF.                                     |
+| options                       | Optional object consisting of theme, language, citationBib, homeFunction, etc.      |
+| options.theme                 | 'dark' or 'light'. Determines the viewer's theme.                                   |
+| options.lang                  | 'sk' or 'en'. Specifies the language of the viewer.                                 |
+| options.citationBib           | String or null. Contains the citation of the document (e.g., `@article{name, ...}`). |
+| options.homeFunction          | Function (type: `() => void`) or null. Redirects to the home view.                  |
+| options.closeFunction         | Function (type: `() => void`) or null. Closes the viewer.                           |
+| options.shareFunction         | Function (type: `(pages: string | null, expaireDate: string) => Promise<string>`) or null. Generates a shareable link for the document. |
+| shareFunction.pages           | String with selected pages (e.g., '1,3-6,10') or null (indicating no pages).        |
+| shareFunction.expaireDate     | ISO string specifying the lifespan of the shared document.                          |
+| shareFunction => return       | Returns a string containing the link to the shared document.                        |
+| options.printFunction         | Function (type: `(pages: string | null) => Promise<string>`) or null. Generates a printable version of the selected pages. |
+| options.editPackage           | Optional object for managing edit features, containing the following functions:     |
+| editPackage.saveGroupFunc     | Function (type: `(name: string) => Promise<{ response: { id: string } }>`). Saves a new group and returns its ID. |
+| editPackage.getGroupsFunc     | Function (type: `() => Promise<{ id: string; name: string }[]>`). Retrieves all available groups. |
+| editPackage.saveLayerFunc     | Function (type: `(svg: string, groupId: string, page: number) => Promise<ILayer | null>`). Saves a new layer to a group on a specific page. |
+| editPackage.updateLayerFunc | Function (type: `(id: string, svg: string, groupId: string, page: number) => Promise<void>`). Updates an existing layer in a group on a specific page. |
+| editPackage.getLayerFunc  | Function (type: `(page: number, groupId: string) => Promise<ILayer | null> | null`). Retrieves a layer from a group on a specific page. |
+| config                    | Optional configuration object controlling viewer features.                          |
+| config.download           | Boolean. Enables or disables the download feature.                                  |
+| config.share              | Boolean. Enables or disables the share feature.                                     |
+| config.print              | Boolean. Enables or disables the print feature.                                     |
+| config.edit               | Boolean. Enables or disables the edit feature.                                      |
 
-Examples of functions shareFunction and homeFunction
 
-1. shareFunction:
-
-```ts
-private shareFunction = async (pages: string | null, expireDate: string) => {
-    // creat whatever object
-    const yourObject = {
-      range: pages,
-      expires_at: expireDate,
-    };
-    let link = '';
-
-    // yout endpoint
-    await this.yourService
-      .yourFunction(yourObject)
-      .toPromise()
-      .then((res) => {
-        link = res.url;
-      })
-      .catch((err) => {
-        console.log('Error:', err);
-      });
-
-    // returned your link
-    return link;
-  };
-```
-
-2. homeFunction:
-
-```ts
-private homeFunction = () => {
-    this.router.navigateByUrl('/path-to/whatever-you-want');
-};
-```
 
 ## Contributing
 

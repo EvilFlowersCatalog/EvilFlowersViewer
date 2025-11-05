@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0 : 2024-12-30
+
+- **Changed**: Design of whole viewer
+- **Changed**: Language from React to Vue
+- **Added**: Edit
+- **Added**: Print
+- **Added**: Fullscreen
+
 ## 0.5.15 : 2024-10-29
 
 - **Fixed**: One step back button
