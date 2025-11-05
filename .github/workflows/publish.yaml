@@ -17,7 +17,7 @@ jobs:
       - name: Install
         run: npx pnpm@7.15.0 install 
       - name: Install Dev
-        run: npx pnpm@7.15.0 --save-dev @types/node
+        run: npm install --save-dev @types/node
       - name: Build
         run: npx pnpm@7.15.0 build
       - name: Publish
