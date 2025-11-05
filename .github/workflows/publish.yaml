@@ -15,7 +15,9 @@ jobs:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
       - name: Install
-        run: npx pnpm@7.15.0 install
+        run: npx pnpm@7.15.0 install 
+      - name: Install Dev
+        run: npx pnpm@7.15.0 --save-dev @types/node
       - name: Build
         run: npx pnpm@7.15.0 build
       - name: Publish
