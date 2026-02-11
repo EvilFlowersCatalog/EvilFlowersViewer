@@ -50,7 +50,7 @@ const handleUsageChange = () => {
     <div class="flex gap-2 justify-between items-center">
       <input
         name="share-input"
-        class="input"
+        class="input text-black"
         type="text"
         :placeholder="$t('pages')"
         @keydown.stop

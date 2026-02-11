@@ -88,7 +88,7 @@ onMounted(() => {
             modalHolder[docStore.modalContent]?.func &&
             modalHolder[docStore.modalContent]?.label
           "
-          class="text-white text-lg p-2 py-1 rounded-md text-blue-light hover:bg-transparent bg-secondary duration-200 font-extrabold"
+          class="text-white text-lg p-2 py-1 rounded-md text-blue-light hover:bg-secondary/80 bg-secondary duration-200 font-extrabold"
           @click="modalHolder[docStore.modalContent]?.func"
         >
           {{ $t(modalHolder[docStore.modalContent]?.label!) }}

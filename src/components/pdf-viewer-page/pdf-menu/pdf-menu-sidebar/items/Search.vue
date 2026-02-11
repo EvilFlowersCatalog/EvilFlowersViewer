@@ -172,7 +172,7 @@ watch(
     <!-- Input -->
     <input
       name="search-pattern"
-      class="input"
+      class="input text-black"
       type="text"
       :value="inputValue"
       placeholder="Search"
@@ -214,7 +214,7 @@ watch(
           :key="index"
           @click="handleSelect(index, match!.page)"
         >
-          <span class="text-sm font-thin text-left">{{ match?.text }}</span>
+          <span class="text-sm font-medium text-left">{{ match?.text }}</span>
           <span class="text-md font-bold text-right w-full"
             >Page {{ match?.page }}</span
           >

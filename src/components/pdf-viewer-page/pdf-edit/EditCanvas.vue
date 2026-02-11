@@ -493,7 +493,7 @@ watch(
   <svg
     id="pdf-viewer-edit-canvas"
     :xmlns="'http://www.w3.org/2000/svg'"
-    class="absolute top-0 left-0 w-full h-full z-10"
+    class="absolute top-0 left-0 w-full h-full z-2"
     :class="
       docStore.editTool === EDIT_TOOL.MOUSE
         ? 'cursor-default'
