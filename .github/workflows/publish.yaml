@@ -27,5 +27,6 @@ jobs:
       - name: Build
         run: npx pnpm@7.15.0 build
       - name: Publish
-        run: npm publish --access public
+        run: npm publish
+
 
