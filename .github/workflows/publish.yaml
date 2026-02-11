@@ -3,17 +3,23 @@ on:
   release:
     types: [published]
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Code checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
       - name: Node setup
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
+      - name: Setup
+        run: npm ci
       - name: Install
         run: npx pnpm@7.15.0 install 
       - name: Install Dev
@@ -22,3 +28,4 @@ jobs:
         run: npx pnpm@7.15.0 build
       - name: Publish
         run: npm publish --access public
+
