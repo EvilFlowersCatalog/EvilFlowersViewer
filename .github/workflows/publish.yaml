@@ -19,7 +19,8 @@ jobs:
           node-version: '24' 
           registry-url: 'https://registry.npmjs.org'
       - name: Setup
-        run: npm ci
+        run: rm -rf node_modules pnpm-lock.yaml package-lock.json .npm/_cacache
+          npm ci
       - name: Install
         run: npx pnpm@7.15.0 install 
       - name: Install Dev
