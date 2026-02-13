@@ -2,7 +2,7 @@
   "extends": "@vue/tsconfig/tsconfig.dom.json", 
   "compilerOptions": {
     "skipLibCheck": true,
-    "lib": ["es2020", "dom"]
+    "lib": ["es2020", "dom", "WebWorker"]
   },
   "files": [],
   "references": [
