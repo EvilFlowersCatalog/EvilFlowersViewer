@@ -80,8 +80,7 @@ const toggleFullScreen = () => {
           @click="viewerStore.closeFunction"
           class="relative flex justify-center items-center"
         >
-          <div class="absolute bg-white w-3 h-3 -z-10"></div>
-          <AnFilledCloseCircle class="icon text-secondary" />
+          <AnFilledCloseCircle class="icon text-secondary w-full" />
         </button>
       </ToolTip>
 
