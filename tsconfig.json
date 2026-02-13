@@ -1,8 +1,7 @@
 {
-  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "extends": "@vue/tsconfig/tsconfig.dom.json", 
   "compilerOptions": {
-    "lib": ["es2020", "dom"],
-    "types": ["node"]
+    "lib": ["es2020", "dom"]
   },
   "files": [],
   "references": [
