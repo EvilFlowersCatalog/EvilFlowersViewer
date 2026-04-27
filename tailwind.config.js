@@ -21,10 +21,13 @@ export default {
         height: 'height',
         left: 'left',
         top: 'top',
+        width: 'width',
       },
       colors: {
         secondary: '#36BA98',
         primary: '#1A2130',
+        'viewer-bg': '#525252',
+        'topbar-bg': '#2C2C2C',
         red: '#ff0000',
       },
     },

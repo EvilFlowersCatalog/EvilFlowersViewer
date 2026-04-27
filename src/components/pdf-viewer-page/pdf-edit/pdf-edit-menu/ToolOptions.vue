@@ -16,7 +16,7 @@ const value = ref(docStore.toolSize);
 <template>
   <!-- Wrapper -->
   <div
-    class="absolute top-0 right-12 bg-primary rounded-md cursor-default text-white"
+    class="absolute top-0 right-12 bg-white dark:bg-[#1E1E1E] rounded-xl cursor-default text-gray-800 dark:text-white shadow-xl border border-gray-200 dark:border-white/10"
   >
     <!-- Container -->
     <div class="flex flex-col w-full h-full p-4 gap-4 text-left">

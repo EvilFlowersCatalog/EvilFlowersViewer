@@ -7,7 +7,6 @@ const docStore = useDocumentStore();
 const metadata = ref<Partial<IPDFMetadataProps>>({});
 let pdf = toRaw(docStore.pdf);
 
-// Get wanted metadata
 const filteredMetadata = computed(() => {
   const result: Partial<IPDFMetadataProps> = {
     Author: metadata.value.Author,
@@ -29,7 +28,6 @@ const filteredMetadata = computed(() => {
   );
 });
 
-// Formate date
 const formatDate = (dateString: string): string => {
   const year = Number(dateString.substring(2, 4)) + 2000;
   const month = Number(dateString.substring(6, 8)) - 1;
@@ -50,16 +48,12 @@ const formatDate = (dateString: string): string => {
   });
 };
 
-// On mount, get metada from pdf
 onMounted(async () => {
   if (pdf?.getMetadata) {
     const meta = (await pdf.getMetadata()) as any;
-
-    // Get creation date, if exists
     if (meta.info?.CreationDate?.startsWith('D:')) {
       meta.info.CreationDate = formatDate(meta.info.CreationDate);
     }
-    // Get modified date, if exists
     if (meta.info?.ModDate?.startsWith('D:')) {
       meta.info.ModDate = formatDate(meta.info.ModDate);
     }
@@ -67,25 +61,21 @@ onMounted(async () => {
   }
 });
 
-// When pdf change, update variable
 watch(
   () => docStore.pdf,
-  () => {
-    pdf = docStore.pdf;
-  }
+  () => { pdf = docStore.pdf; }
 );
 </script>
 
 <template>
-  <div class="flex flex-1 flex-col gap-2">
-    <!-- Each metadata info -->
+  <div class="flex flex-col gap-4">
     <div
       v-for="(value, key) in filteredMetadata"
       :key="key"
-      class="flex flex-col"
+      class="flex flex-col gap-0.5"
     >
-      <h1 class="text-lg text-secondary">{{ $t(key.toString()) }}</h1>
-      <span class="text-[15px] break-words">{{ value }}</span>
+      <span class="sidebar-label">{{ $t(key.toString()) }}</span>
+      <span class="sidebar-value">{{ value }}</span>
     </div>
   </div>
 </template>

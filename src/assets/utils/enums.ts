@@ -15,6 +15,7 @@ export enum SIDEBAR_STATE {
   SHARE = 'share',
   INFO = 'info',
   PRINT = 'print',
+  TOC = 'table-of-content',
   NULL = 'NULL',
 }
 

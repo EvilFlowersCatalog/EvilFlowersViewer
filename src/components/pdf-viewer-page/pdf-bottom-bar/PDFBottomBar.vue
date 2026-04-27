@@ -1,56 +1,22 @@
 <script setup lang="ts">
 import { useDocumentStore } from '@/stores';
-import {
-  AkTriangleLeftFill,
-  AkTriangleRightFill,
-  AkTriangleUpFill,
-  AkTriangleDownFill,
-  FaSquarePlus,
-  FaSquareMinus,
-  MdRoundCenterFocusStrong,
-} from '@kalimahapps/vue-icons';
-import { ref } from 'vue';
-import { DEFAULT_PAGE } from '@/assets/utils/constans';
+import { ref, inject, computed, type Ref } from 'vue';
 import { PDFPreview } from '.';
-import ToolTip from '@/components/pdf-aids/ToolTip.vue';
 
-// Data
+const isDark = inject<Ref<boolean>>('isDark', ref(false));
+const barBg = computed(() => (isDark.value ? '#111111' : '#FFFFFF'));
+const tabBg = computed(() => (isDark.value ? '#1A1A1A' : '#F3F4F6'));
+const tabText = computed(() => (isDark.value ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.7)'));
+
 const docStore = useDocumentStore();
 
 const hidePreview = ref<boolean>(false);
-const showButton = ref<boolean>(false);
-const startPage = ref<number>(DEFAULT_PAGE);
-const endPage = ref<number>(DEFAULT_PAGE);
-const inputValue = ref<string>('');
+const showCenterButton = ref<boolean>(false);
+const startPage = ref<number>(1);
+const endPage = ref<number>(1);
 
 const togglePreview = () => {
   hidePreview.value = !hidePreview.value;
-};
-
-const handleInputChange = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const value = target.value;
-
-  // Check if it's valid and less than total pages
-  if (
-    /^\d*$/.test(value) &&
-    Number(value) <= docStore.totalPages &&
-    Number(value) > 0
-  )
-    inputValue.value = value;
-  // Check if value is 0 or empty, set to empty
-  else if (Number(value) === 0) target.value = '';
-  // If it's not a valid number reset
-  else target.value = inputValue.value;
-};
-
-const handleKeyDown = (event: KeyboardEvent) => {
-  event.stopPropagation();
-  if (event.key === 'Enter' && inputValue.value) {
-    docStore.setActivePage(Number(inputValue.value));
-    inputValue.value = '';
-    (event.target as HTMLInputElement).value = '';
-  }
 };
 
 const centerPreview = async () => {
@@ -68,20 +34,13 @@ const centerPreview = async () => {
     const pageLeft = pageContainer.offsetLeft;
     const pageWidth = pageContainer.offsetWidth;
     const previewWidth = previewContainer.clientWidth;
-
-    // Center the active canvas within the container
     const scrollLeft = pageLeft - previewWidth / 2 + pageWidth / 2;
-    previewContainer.scrollTo({
-      left: scrollLeft,
-      behavior: 'smooth',
-    });
+    previewContainer.scrollTo({ left: scrollLeft, behavior: 'smooth' });
   }
 };
 
 const handleEmit = (show: boolean, start: number, end: number) => {
-  // Set value to show button
-  if (showButton.value !== show) showButton.value = show;
-  // Only if activ canvas is hidden set numbers
+  if (showCenterButton.value !== show) showCenterButton.value = show;
   if (show) {
     if (startPage.value !== start) startPage.value = start;
     if (endPage.value !== end) endPage.value = end;
@@ -90,107 +49,61 @@ const handleEmit = (show: boolean, start: number, end: number) => {
 </script>
 
 <template>
-  <div
-    class="relative w-full flex flex-col bg-primary px-4 py-2 gap-2 transition-height duration-200"
-    :class="
-      docStore.isFullscreenMode ? 'h-[40px]' : hidePreview ? 'h-[75px]' : 'h-64'
-    "
-  >
-    <!-- Closing preview button -->
+  <div class="relative shrink-0 w-full" v-if="!docStore.isFullscreenMode">
+
+    <!-- Floating toggle tab — right-anchored, sits above the bar -->
     <button
-      v-if="!docStore.isFullscreenMode"
-      class="w-fit mx-auto"
       @click="togglePreview"
+      class="absolute right-4 -top-7 flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg transition-all duration-200 text-xs font-medium select-none group"
+      :style="{ backgroundColor: tabBg, color: tabText }"
     >
-      <ToolTip v-if="hidePreview" position="top" :text="$t('show-bottom-bar')">
-        <AkTriangleUpFill class="icon" />
-      </ToolTip>
-      <ToolTip v-else position="top" :text="$t('hide-bottom-bar')">
-        <AkTriangleDownFill class="icon hover:text-secondary" />
-      </ToolTip>
+      <svg
+        class="size-3 transition-transform duration-300"
+        :class="hidePreview ? '' : 'rotate-180'"
+        viewBox="0 0 12 8"
+        fill="none"
+      >
+        <path d="M1 7L6 2L11 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="opacity-70 group-hover:opacity-100 transition-opacity">
+        {{ hidePreview ? $t('show-bottom-bar') : $t('hide-bottom-bar') }}
+      </span>
     </button>
 
-    <!-- Pagination -->
-    <div class="flex w-full justify-center items-center gap-2">
-      <span class="flex-1"></span>
-
-      <!-- Previous page button -->
-      <ToolTip position="top" :text="$t('previous-page')">
-        <button @click="docStore.previousPage">
-          <AkTriangleLeftFill
-            :class="
-              docStore.activePage === 1
-                ? 'disabled-icon'
-                : 'icon hover:text-secondary'
-            "
-          />
-        </button>
-      </ToolTip>
-
-      <!-- Input page -->
-      <input
-        name="search-page"
-        class="w-28 rounded-md px-2 outline-none text-center"
-        type="text"
-        :placeholder="docStore.activePage + ' / ' + docStore.totalPages"
-        @keydown="handleKeyDown"
-        @input="handleInputChange"
-      />
-
-      <!-- Next page button -->
-      <ToolTip position="top" :text="$t('next-page')">
-        <button @click="docStore.nextPage">
-          <AkTriangleRightFill
-            :class="
-              docStore.activePage === docStore.totalPages
-                ? 'disabled-icon'
-                : 'icon hover:text-secondary'
-            "
-          />
-        </button>
-      </ToolTip>
-      <span class="flex-1"></span>
-    </div>
-
-    <!-- Zooming -->
-    <div class="absolute flex gap-2 top-2 right-2">
-      <ToolTip position="left" :text="$t('zoom-in')">
-        <button @click="docStore.zoomIn">
-          <FaSquarePlus
-            :class="
-              docStore.scale === 3
-                ? 'disabled-icon'
-                : 'icon hover:text-secondary'
-            "
-          />
-        </button>
-      </ToolTip>
-      <ToolTip position="left" :text="$t('zoom-out')">
-        <button @click="docStore.zoomOut">
-          <FaSquareMinus
-            :class="
-              docStore.scale === 0.25
-                ? 'disabled-icon'
-                : 'icon hover:text-secondary'
-            "
-          />
-        </button>
-      </ToolTip>
-    </div>
-
-    <!-- Centering button -->
+    <!-- Preview strip — animated height -->
     <div
-      v-if="showButton && !docStore.isFullscreenMode"
-      class="absolute flex -top-16 right-2 p-2 pb-0.5 z-30 bg-primary rounded-md"
+      class="w-full overflow-hidden transition-all duration-300 ease-in-out border-t"
+      :class="[
+        hidePreview ? 'h-0 opacity-0' : 'h-40 opacity-100',
+        isDark ? 'border-white/10' : 'border-gray-200'
+      ]"
+      :style="{ backgroundColor: barBg }"
     >
-      <ToolTip position="left" :text="$t('center')">
-        <button @click="centerPreview">
-          <MdRoundCenterFocusStrong class="icon size-9" />
-        </button>
-      </ToolTip>
+      <PDFPreview @handleEmit="handleEmit" />
     </div>
 
-    <!-- Preview -->
-    <PDFPreview @handleEmit="handleEmit" />
+    <!-- Center-page button (floating above bar) -->
+    <Transition
+      enter-active-class="transition-all duration-200"
+      enter-from-class="opacity-0 translate-y-1"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition-all duration-150"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 translate-y-1"
+    >
+      <div v-if="showCenterButton && !hidePreview" class="absolute right-28 -top-7">
+        <button
+          @click="centerPreview"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg transition-all duration-200 text-xs font-medium hover:text-secondary"
+          :style="{ backgroundColor: tabBg, color: tabText }"
+        >
+          <svg class="size-3.5" viewBox="0 0 20 20" fill="none">
+            <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M10 2V5M10 15V18M2 10H5M15 10H18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <span>{{ $t('center') }}</span>
+        </button>
+      </div>
+    </Transition>
   </div>
 </template>
