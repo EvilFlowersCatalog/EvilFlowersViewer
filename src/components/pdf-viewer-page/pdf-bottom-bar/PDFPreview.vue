@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { DESIRED_HEIGHT, MAX_VISIBLE_PAGE } from '@/assets/utils/constans';
 import { useDocumentStore } from '@/stores';
-import { computed, onMounted, ref, toRaw, watch } from 'vue';
+import { computed, inject, onMounted, ref, toRaw, watch, type Ref } from 'vue';
+
+const isDark = inject<Ref<boolean>>('isDark', ref(false));
 
 // Data
 const docStore = useDocumentStore();
@@ -171,9 +173,11 @@ watch(
       <!-- Canvas -->
       <canvas
         :id="`preview-canvas-${key}`"
-        class="ring-4 w-24 border border-black cursor-pointer"
+        class="ring-2 w-24 cursor-pointer shadow-sm"
         :class="[
-          docStore.activePage === key ? 'ring-secondary' : 'ring-transparent',
+          docStore.activePage === key
+            ? 'ring-secondary'
+            : isDark ? 'ring-white/10' : 'ring-gray-200',
         ]"
         :style="{ height: `${DESIRED_HEIGHT}px` }"
         @click="docStore.setActivePage(key)"
@@ -183,7 +187,9 @@ watch(
       <!-- Page -->
       <span
         class="w-fit mx-auto font-extrabold text-sm select-none mt-1"
-        :class="docStore.activePage === key ? 'text-secondary' : 'text-white'"
+        :class="docStore.activePage === key
+          ? 'text-secondary'
+          : isDark ? 'text-white/60' : 'text-gray-500'"
       >
         {{ key }}
       </span>

@@ -5,10 +5,16 @@ import svgr from 'vite-plugin-svgr';
 import tailwindcss from 'tailwindcss';
 import { defineConfig, UserConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import vueDevTools from 'vite-plugin-vue-devtools';
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }: UserConfig) => {
+type StorageLike = {
+  getItem: (key: string) => string | null;
+  setItem: (key: string, value: string) => void;
+  removeItem: (key: string) => void;
+  clear: () => void;
+};
+
+export default defineConfig(async ({ mode }: UserConfig) => {
   if (mode === 'production') {
     return {
       plugins: [
@@ -46,15 +52,31 @@ export default defineConfig(({ mode }: UserConfig) => {
       },
     };
   } else {
+    const plugins = [
+      vue(),
+      dts({
+        insertTypesEntry: true,
+      }),
+      svgr(),
+    ];
+
+    const globalAny = globalThis as typeof globalThis & {
+      localStorage?: StorageLike;
+    };
+
+    if (!globalAny.localStorage || typeof globalAny.localStorage.getItem !== 'function') {
+      globalAny.localStorage = {
+        getItem: () => null,
+        setItem: () => {},
+        removeItem: () => {},
+        clear: () => {},
+      };
+    }
+
+    const { default: vueDevTools } = await import('vite-plugin-vue-devtools');
+
     return {
-      plugins: [
-        vue(),
-        dts({
-          insertTypesEntry: true,
-        }),
-        svgr(),
-        vueDevTools(),
-      ],
+      plugins: [...plugins, vueDevTools()],
       css: {
         postcss: {
           plugins: [tailwindcss],

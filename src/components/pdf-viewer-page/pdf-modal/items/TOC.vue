@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { MODAL_CONTENT } from '@/assets/utils/enums';
+import { MODAL_CONTENT, SIDEBAR_STATE } from '@/assets/utils/enums';
 import type { ITOCItem } from '@/assets/utils/interfaces';
 import { useDocumentStore } from '@/stores';
-
 import { TOCItem } from '.';
-import { onMounted } from 'vue';
 
 const docStore = useDocumentStore();
 
@@ -12,15 +10,12 @@ const handleItemClick = (page: number) => {
   if (page === -1) return;
   docStore.setActivePage(page);
   docStore.setModalContent(MODAL_CONTENT.NULL);
+  docStore.setSidebarState(SIDEBAR_STATE.NULL);
 };
 
 const handleToggleExpand = (item: ITOCItem) => {
   item.isExpanded = !item.isExpanded;
 };
-
-onMounted(() => {
-  console.log(docStore.toc);
-});
 </script>
 
 <template>

@@ -1,52 +1,63 @@
 <script lang="ts" setup>
 import type { ITOCItem } from '@/assets/utils/interfaces';
-import { MdKeyboardArrowDown, MdKeyboardArrowUp } from '@kalimahapps/vue-icons';
 
-// Props
-const { item } = defineProps<{
-  item: ITOCItem;
-}>();
+const { item } = defineProps<{ item: ITOCItem }>();
 
-// Define emits
 const emit = defineEmits<{
   (event: 'item-click', page: number): void;
   (event: 'toggle-expand', item: ITOCItem): void;
 }>();
 
-// Event handlers
 const handleItemClick = (page: number) => emit('item-click', page);
 const handleToggleExpand = () => emit('toggle-expand', item);
 </script>
 
 <template>
-  <div class="flex w-full items-end gap-2 border-transparent mb-2">
+  <div
+    class="flex w-full items-baseline gap-2 mb-2"
+    :style="{ paddingLeft: `${item.level * 12}px` }"
+  >
     <!-- Title -->
     <button
       @click="handleItemClick(item.pageNumber)"
-      class="text-white hover:text-secondary"
+      class="text-sm text-left text-gray-800 dark:text-gray-200 hover:text-secondary dark:hover:text-secondary transition-colors shrink-0 max-w-[70%] truncate"
+      :class="item.level === 0 ? 'font-semibold' : 'font-normal text-gray-600 dark:text-gray-400'"
     >
       {{ item.title }}
     </button>
 
-    <span class="border border-dashed h-full flex flex-1 mb-1.5"></span>
+    <!-- Dotted line -->
+    <span class="border-b border-dashed border-gray-300 dark:border-gray-600 flex-1 mb-0.5"></span>
 
-    <template v-if="item.children.length > 0">
-      <!-- Expand button -->
-      <MdKeyboardArrowDown
-        v-if="!item.isExpanded"
-        @click="handleToggleExpand"
-        class="icon hover:text-secondary"
-      />
-      <MdKeyboardArrowUp
-        v-else
-        @click="handleToggleExpand"
-        class="icon hover:text-secondary"
-      />
-    </template>
+    <!-- Page number -->
+    <button
+      v-if="item.pageNumber !== -1"
+      @click="handleItemClick(item.pageNumber)"
+      class="text-xs text-gray-500 dark:text-gray-400 hover:text-secondary transition-colors shrink-0 font-medium"
+    >
+      {{ item.pageNumber }}
+    </button>
+
+    <!-- Expand toggle -->
+    <button
+      v-if="item.children.length > 0"
+      @click="handleToggleExpand"
+      class="text-gray-400 dark:text-gray-500 hover:text-secondary dark:hover:text-secondary transition-colors shrink-0"
+    >
+      <svg class="size-3.5" viewBox="0 0 12 12" fill="none">
+        <path
+          :d="item.isExpanded ? 'M2 8L6 4L10 8' : 'M2 4L6 8L10 4'"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
   </div>
 
-  <!-- Nested items -->
-  <div v-if="item.isExpanded && item.children.length > 0" class="pl-5">
+  <!-- Children -->
+  <div v-if="item.isExpanded && item.children.length > 0">
     <TOCItem
       v-for="(child, j) in item.children"
       :key="`${child.title}-${j}`"

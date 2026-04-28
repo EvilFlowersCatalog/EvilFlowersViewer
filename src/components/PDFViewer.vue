@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, computed, watch, provide } from 'vue';
 import { useDocumentStore, useViewerStore } from '@/stores';
 import {
   GlobalWorkerOptions,
@@ -29,13 +29,22 @@ import { PDFMenu } from './pdf-viewer-page/pdf-menu';
 import i18n from '@/assets/lang/i18n';
 GlobalWorkerOptions.workerSrc = PDFWorker;
 
-// Props
 const { data, options, config } = defineProps<IViewerProps>();
 const viewerStore = useViewerStore();
 const docStore = useDocumentStore();
 const failed = ref<boolean>(false);
+const isDark = ref<boolean>(false);
+const viewerBg = computed(() => isDark.value ? '#1A1A1A' : '#525252');
+const topbarBg = computed(() => isDark.value ? '#111111' : '#FFFFFF');
 
-// Load table of contents via pdfjs-dist from pdf file
+const toggleDark = () => {
+  isDark.value = !isDark.value;
+};
+
+provide('topbarBg', topbarBg);
+provide('viewerBg', viewerBg);
+provide('isDark', isDark);
+
 const getTOC = async (
   outline: IPDFOutlineItem[],
   level: number,
@@ -46,7 +55,6 @@ const getTOC = async (
   for (let i = 0; i < outline.length; i++) {
     const item = outline[i];
     const title = item.title ?? 'Untitled';
-
     const children = item.items ? await getTOC(item.items, level + 1, pdf) : [];
 
     let pageNumber;
@@ -55,9 +63,7 @@ const getTOC = async (
         if (typeof item.dest === 'string') {
           let ref: any;
           const dest = await pdf.getDestination(item.dest);
-          if (dest) {
-            ref = dest[0];
-          }
+          if (dest) ref = dest[0];
           const index = await pdf.getPageIndex(ref);
           pageNumber = index + 1;
         } else {
@@ -79,7 +85,6 @@ const getTOC = async (
 
 const loadDocument = async () => {
   try {
-    // Dynamically set the language
     if (options?.lang) i18n.global.locale = options.lang;
 
     const [pdf, previewPdf] = await Promise.all([
@@ -87,19 +92,14 @@ const loadDocument = async () => {
       getDocument({ data: new Uint8Array(data) }).promise,
     ]);
 
-    // Set for preview PDF
     docStore.setPreviewPdf(previewPdf);
 
-    // Get and set TOC
     const outline = await pdf.getOutline();
-    // Case where we have outlines
     if (outline) {
       const toc = await getTOC(outline, 0, pdf);
-
       docStore.setTOC(toc);
     }
 
-    // Set docStore info to docStore
     docStore.setPdf(pdf);
     docStore.setActivePage(1);
     docStore.setTotalPages(pdf.numPages);
@@ -122,7 +122,6 @@ const handleEscape = () => {
 };
 
 onMounted(() => {
-  // Set optional props
   viewerStore.setCitation(options?.citationBib ?? null);
   viewerStore.setBasedCitation(options?.citationBib ?? null);
   viewerStore.setCloseFunction(options?.closeFunction ?? null);
@@ -141,10 +140,8 @@ onMounted(() => {
     ...config,
   });
 
-  // Load data
   loadDocument();
 
-  // Handling key events
   const handleKeydown = async (event: KeyboardEvent) => {
     const keyActions: { [key: string]: (...props: any) => any } = {
       ['arrowleft']: () => docStore.previousPage(),
@@ -155,7 +152,7 @@ onMounted(() => {
       ['f']: () => docStore.setSidebarState(SIDEBAR_STATE.SEARCH),
       ['s']: () => docStore.setSidebarState(SIDEBAR_STATE.SHARE),
       ['i']: () => docStore.setSidebarState(SIDEBAR_STATE.INFO),
-      ['t']: () => docStore.setModalContent(MODAL_CONTENT.TOC),
+      ['t']: () => docStore.setSidebarState(SIDEBAR_STATE.TOC),
       ['c']: () => docStore.setModalContent(MODAL_CONTENT.CITATE),
     };
 
@@ -166,48 +163,40 @@ onMounted(() => {
     }
   };
 
-  // Handle fullscreen change
   const handleFullscreenChange = () => {
     if (document.fullscreenElement) docStore.setIsFullscreenMode(true);
     else docStore.setIsFullscreenMode(false);
   };
 
-  // Handle resizing
   const handleResize = () => {
     const isMobile: boolean =
       window.innerWidth <= MOBILE_SIZE || window.innerHeight <= MOBILE_SIZE;
     docStore.setIsMobile(isMobile);
   };
 
-  // Attach the event listener
   window.addEventListener('keydown', handleKeydown);
   window.addEventListener('resize', handleResize);
   document.addEventListener('fullscreenchange', handleFullscreenChange);
 
-  // Cleanup the event
   onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleKeydown);
     window.removeEventListener('resize', handleResize);
     document.removeEventListener('fullscreenchange', handleFullscreenChange);
   });
 
-  // If data change, load document again
   watch(
     () => data,
     () => loadDocument()
   );
 });
-
-function useSpring(motionProperties: any): { set: any } {
-  throw new Error('Function not implemented.');
-}
 </script>
 
 <template>
   <!-- Failed container -->
   <div
     v-if="failed"
-    class="flex flex-col h-screen w-screen bg-zinc-200 justify-center items-center text-4xl uppercase font-extrabold text-gray-dark font-serif"
+    class="flex flex-col h-screen w-screen justify-center items-center text-4xl uppercase font-extrabold text-white font-serif"
+    :style="{ backgroundColor: viewerBg }"
   >
     {{ $t('failed-load-pdf') }}
   </div>
@@ -215,53 +204,59 @@ function useSpring(motionProperties: any): { set: any } {
   <!-- Loading -->
   <div
     v-else-if="!failed && !docStore.pdf"
-    class="flex w-screen h-screen justify-center items-center"
+    class="flex w-screen h-screen justify-center items-center text-white"
+    :style="{ backgroundColor: viewerBg }"
   >
-    <Loader :size="100" color="#4a9cff" />
+    <Loader :size="100" color="#36BA98" />
   </div>
 
   <!-- Success container -->
   <div
     v-else
-    class="flex flex-col h-screen w-screen bg-zinc-200 text-white overflow-hidden"
+    class="flex flex-col h-screen w-screen overflow-hidden text-white"
+    :style="{ backgroundColor: viewerBg }"
+    :class="{ dark: isDark }"
   >
     <!-- Modal -->
     <PDFModal v-if="docStore.modalContent !== MODAL_CONTENT.NULL" />
 
-    <!-- Layer state -->
+    <!-- Layer state indicator -->
     <div
       v-if="docStore.layerState !== LAYER_STATE.READY && docStore.layerState !== LAYER_STATE.NOT_READY && docStore.edit"
-      class="fixed top-2 left-0 w-full flex justify-center z-20 pointer-events-none select-none transition-opacity hover:opacity-30"
+      class="fixed top-14 left-0 w-full flex justify-center z-20 pointer-events-none select-none transition-opacity hover:opacity-30"
     >
-      <div class="bg-primary flex flex-row gap-2 items-center px-3 py-2 rounded-md">
+      <div class="flex flex-row gap-2 items-center px-3 py-2 rounded-md shadow-lg" :style="{ backgroundColor: topbarBg }">
         <Loader :size="20" color="#36BA98" />
         <span class="text-secondary text-xs font-medium">{{ $t(docStore.layerState) }}</span>
       </div>
     </div>
 
-    <!-- Inner container -->
-    <div class="relative flex w-full h-full overflow-hidden">
-      <!-- Menu -->
-      <PDFMenu />
+    <!-- Top bar -->
+    <PDFMenu :is-dark="isDark" :topbar-bg="topbarBg" @toggle-dark="toggleDark" />
 
-      <!-- Edit menu -->
-      <PDFEditMenu
-        v-if="
-          viewerStore.config.edit &&
-          viewerStore.editPackage &&
-          !docStore.isMobile &&
-          docStore.edit
-        "
-      />
-
-      <!-- Sidebar -->
+    <!-- Main content area -->
+    <div class="flex flex-1 overflow-hidden">
+      <!-- Sidebar panel (full height left panel) -->
       <PDFMenuSidebar />
 
-      <!-- Main content -->
-      <PDFPage v-if="docStore.pdf" />
-    </div>
+      <!-- Content column -->
+      <div class="relative flex flex-col flex-1 overflow-hidden" :style="{ backgroundColor: viewerBg }">
+        <!-- Edit menu -->
+        <PDFEditMenu
+          v-if="
+            viewerStore.config.edit &&
+            viewerStore.editPackage &&
+            !docStore.isMobile &&
+            docStore.edit
+          "
+        />
 
-    <!-- Preview bar -->
-    <PDFBottomBar />
+        <!-- PDF page -->
+        <PDFPage v-if="docStore.pdf" />
+
+        <!-- Bottom preview bar -->
+        <PDFBottomBar />
+      </div>
+    </div>
   </div>
 </template>

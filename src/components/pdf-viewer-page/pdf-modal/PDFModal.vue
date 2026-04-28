@@ -1,32 +1,31 @@
 <script setup lang="ts">
 import { MODAL_CONTENT } from '@/assets/utils/enums';
 import { ref, onMounted } from 'vue';
-import { Citation, TOC, QRCode } from './items';
+import { Citation, QRCode } from './items';
 import { useDocumentStore, useViewerStore } from '@/stores';
 
-// Data
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
 const modalRef = ref<HTMLDivElement | null>(null);
 
-// Map content types to components
 const modalHolder: {
   [key in MODAL_CONTENT]: {
     content?: any;
     label?: string;
+    title?: string;
     func?: () => void;
   } | null;
 } = {
   [MODAL_CONTENT.NULL]: null,
-  [MODAL_CONTENT.TOC]: { content: TOC },
+  [MODAL_CONTENT.TOC]: null,
   [MODAL_CONTENT.CITATE]: {
     content: Citation,
+    title: 'citation',
     label: 'download',
     func: () => {
       const fileName = 'document-citation.' + `${viewerStore.citationType}`;
       const link = document.createElement('a');
       const blob = new Blob([viewerStore.citation!], { type: 'text/plain' });
-
       link.href = URL.createObjectURL(blob);
       link.download = fileName;
       link.click();
@@ -34,6 +33,7 @@ const modalHolder: {
   },
   [MODAL_CONTENT.QRCode]: {
     content: QRCode,
+    title: 'qr-code',
     label: 'download',
     func: () => {
       const canvas: any = document.getElementById('QRCode');
@@ -57,47 +57,59 @@ const handleClose = () => {
 };
 
 onMounted(() => {
-  if (modalRef.value) {
-    modalRef.value.focus();
-  }
+  if (modalRef.value) modalRef.value.focus();
 });
 </script>
 
 <template>
+  <!-- Backdrop -->
   <div
     ref="modalRef"
-    class="fixed top-0 left-0 right-0 bottom-0 p-4 flex bg-white bg-opacity-80 z-50 overflow-auto"
+    class="fixed inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm p-4"
     tabindex="-1"
     @click="handleClose"
   >
+    <!-- Modal card -->
     <div
-      class="w-5/6 rounded-md max-w-[600px] p-4 m-auto h-fit max-h-[max(90%,_500px)] bg-primary flex flex-col shadow-[0_0_40px_10px_rgba(0,0,0,0.5)]"
+      class="relative w-full max-w-lg bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-2xl flex flex-col max-h-[88vh] overflow-hidden"
       @click.stop
     >
-      <h2 class="text-center mb-4 text-2xl font-extrabold text-secondary">
-        {{ $t(docStore.modalContent) }}
-      </h2>
-
-      <!-- Dynamic content rendering -->
-      <component :is="modalHolder[docStore.modalContent]?.content" />
-
-      <!-- Action buttons -->
-      <div class="flex justify-end items-center mt-4 gap-4">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 shrink-0">
+        <h2 class="text-base font-bold text-gray-900 dark:text-white">
+          {{ $t(modalHolder[docStore.modalContent]?.title ?? docStore.modalContent) }}
+        </h2>
         <button
-          v-if="
-            modalHolder[docStore.modalContent]?.func &&
-            modalHolder[docStore.modalContent]?.label
-          "
-          class="text-white text-lg p-2 py-1 rounded-md text-blue-light hover:bg-secondary/80 bg-secondary duration-200 font-extrabold"
+          @click="handleClose"
+          class="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-200 transition-colors p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10"
+        >
+          <svg class="size-4" viewBox="0 0 20 20" fill="none">
+            <path d="M4.5 4.5L15.5 15.5M15.5 4.5L4.5 15.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Content -->
+      <div class="flex-1 overflow-auto px-6 py-4">
+        <component :is="modalHolder[docStore.modalContent]?.content" />
+      </div>
+
+      <!-- Footer actions -->
+      <div
+        v-if="modalHolder[docStore.modalContent]?.func && modalHolder[docStore.modalContent]?.label"
+        class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-white/10 shrink-0"
+      >
+        <button
+          @click="handleClose"
+          class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+        >
+          {{ $t('close') }}
+        </button>
+        <button
+          class="px-5 py-2 bg-secondary hover:bg-secondary/80 text-white text-sm font-semibold rounded-lg transition-colors"
           @click="modalHolder[docStore.modalContent]?.func"
         >
           {{ $t(modalHolder[docStore.modalContent]?.label!) }}
-        </button>
-        <button
-          class="hover:underline text-[15px] text-white"
-          @click="handleClose"
-        >
-          {{ $t('close') }}
         </button>
       </div>
     </div>
