@@ -2,108 +2,177 @@
 import { useDocumentStore } from '@/stores';
 import { ref, inject, computed, type Ref } from 'vue';
 import { PDFPreview } from '.';
+import { SIDEBAR_STATE } from '@/assets/utils/enums';
 
 const isDark = inject<Ref<boolean>>('isDark', ref(false));
 const barBg = computed(() => (isDark.value ? '#111111' : '#FFFFFF'));
-const tabBg = computed(() => (isDark.value ? '#1A1A1A' : '#F3F4F6'));
-const tabText = computed(() => (isDark.value ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.7)'));
 
 const docStore = useDocumentStore();
 
 const hidePreview = ref<boolean>(false);
-const showCenterButton = ref<boolean>(false);
-const startPage = ref<number>(1);
-const endPage = ref<number>(1);
+const inputValue = ref<string>('');
 
 const togglePreview = () => {
   hidePreview.value = !hidePreview.value;
 };
 
-const centerPreview = async () => {
-  if (docStore.activePage > endPage.value) {
-    startPage.value = endPage.value + 1;
-    endPage.value = docStore.activePage;
-  }
+const handleInputChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const value = target.value;
+  if (
+    /^\d*$/.test(value) &&
+    Number(value) <= docStore.totalPages &&
+    Number(value) > 0
+  )
+    inputValue.value = value;
+  else if (Number(value) === 0) target.value = '';
+  else target.value = inputValue.value;
+};
 
-  const previewContainer = document.getElementById('preview-container');
-  const pageContainer = document.getElementById(
-    `preview-page-container-${docStore.activePage}`
+const handleKeyDown = (event: KeyboardEvent) => {
+  event.stopPropagation();
+  if (event.key === 'Enter' && inputValue.value) {
+    docStore.setActivePage(Number(inputValue.value));
+    inputValue.value = '';
+    (event.target as HTMLInputElement).value = '';
+  }
+};
+
+const toggleSidebar = (state: SIDEBAR_STATE) => {
+  docStore.setSidebarState(
+    docStore.sidebarState === state ? SIDEBAR_STATE.NULL : state
   );
-
-  if (previewContainer && pageContainer) {
-    const pageLeft = pageContainer.offsetLeft;
-    const pageWidth = pageContainer.offsetWidth;
-    const previewWidth = previewContainer.clientWidth;
-    const scrollLeft = pageLeft - previewWidth / 2 + pageWidth / 2;
-    previewContainer.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-  }
 };
 
-const handleEmit = (show: boolean, start: number, end: number) => {
-  if (showCenterButton.value !== show) showCenterButton.value = show;
-  if (show) {
-    if (startPage.value !== start) startPage.value = start;
-    if (endPage.value !== end) endPage.value = end;
-  }
-};
+const btn = computed(() => {
+  const base = 'w-7 h-7 flex items-center justify-center rounded transition-colors';
+  return isDark.value
+    ? `${base} text-white/70 hover:text-white hover:bg-white/10`
+    : `${base} text-gray-500 hover:text-gray-900 hover:bg-black/5`;
+});
 </script>
 
 <template>
   <div class="relative shrink-0 w-full" v-if="!docStore.isFullscreenMode">
 
-    <!-- Floating toggle tab — right-anchored, sits above the bar -->
+    <!-- Odporúčania chip — floats above the bar -->
     <button
-      @click="togglePreview"
-      class="absolute right-4 -top-7 flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg transition-all duration-200 text-xs font-medium select-none group"
-      :style="{ backgroundColor: tabBg, color: tabText }"
+      @click="toggleSidebar(SIDEBAR_STATE.RECOMMENDATIONS)"
+      class="absolute flex items-center text-xs font-medium text-gray-700 z-10"
+      style="right: 10px; top: -31px; width: 108px; height: 24px; padding: 0 5px 0 7px; gap: 6px; border-radius: 4px; background: #E6F3FF; box-shadow: 0 4px 12px 0 rgba(0,0,0,0.10);"
     >
-      <svg
-        class="size-3 transition-transform duration-300"
-        :class="hidePreview ? '' : 'rotate-180'"
-        viewBox="0 0 12 8"
-        fill="none"
-      >
-        <path d="M1 7L6 2L11 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <span class="flex-1 text-left truncate">{{ $t('recommendations') }}</span>
+      <svg class="shrink-0" width="14" height="14" viewBox="0 0 20 20" fill="none">
+        <path d="M5 2H15C15.5523 2 16 2.44772 16 3V18L10 15L4 18V3C4 2.44772 4.44772 2 5 2Z" stroke="#1E6FBA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <span class="opacity-70 group-hover:opacity-100 transition-opacity">
-        {{ hidePreview ? $t('show-bottom-bar') : $t('hide-bottom-bar') }}
-      </span>
     </button>
 
-    <!-- Preview strip — animated height -->
+    <!-- Row 1: hide toggle (center) + zoom (right) -->
     <div
-      class="w-full overflow-hidden transition-all duration-300 ease-in-out border-t"
-      :class="[
-        hidePreview ? 'h-0 opacity-0' : 'h-40 opacity-100',
-        isDark ? 'border-white/10' : 'border-gray-200'
-      ]"
+      class="flex items-center h-8 border-t px-2"
+      :class="isDark ? 'border-white/10' : 'border-gray-200'"
       :style="{ backgroundColor: barBg }"
     >
-      <PDFPreview @handleEmit="handleEmit" />
+      <!-- Left spacer -->
+      <div class="flex-1" />
+
+      <!-- Center: hide/show toggle -->
+      <button @click="togglePreview" :class="btn">
+        <svg
+          class="size-4 transition-transform duration-300"
+          :class="hidePreview ? '' : 'rotate-180'"
+          viewBox="0 0 20 20"
+          fill="none"
+        >
+          <path d="M4 13L10 7L16 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <!-- Right: zoom + - -->
+      <div class="flex-1 flex items-center justify-end gap-0.5">
+        <button
+          @click="docStore.zoomIn"
+          :class="[btn, docStore.scale >= 3 ? 'opacity-30 cursor-not-allowed' : '']"
+          :disabled="docStore.scale >= 3"
+          class="text-base font-semibold"
+        >+</button>
+        <button
+          @click="docStore.zoomOut"
+          :class="[btn, docStore.scale <= 0.25 ? 'opacity-30 cursor-not-allowed' : '']"
+          :disabled="docStore.scale <= 0.25"
+          class="text-base font-semibold"
+        >−</button>
+      </div>
     </div>
 
-    <!-- Center-page button (floating above bar) -->
-    <Transition
-      enter-active-class="transition-all duration-200"
-      enter-from-class="opacity-0 translate-y-1"
-      enter-to-class="opacity-100 translate-y-0"
-      leave-active-class="transition-all duration-150"
-      leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 translate-y-1"
+    <!-- Row 2: pagination (center) -->
+    <div
+      class="flex items-center justify-center h-8 gap-2"
+      :style="{ backgroundColor: barBg }"
     >
-      <div v-if="showCenterButton && !hidePreview" class="absolute right-28 -top-7">
-        <button
-          @click="centerPreview"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg transition-all duration-200 text-xs font-medium hover:text-secondary"
-          :style="{ backgroundColor: tabBg, color: tabText }"
-        >
-          <svg class="size-3.5" viewBox="0 0 20 20" fill="none">
-            <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.4"/>
-            <path d="M10 2V5M10 15V18M2 10H5M15 10H18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-          </svg>
-          <span>{{ $t('center') }}</span>
-        </button>
+      <button
+        @click="docStore.previousPage"
+        :class="[btn, docStore.activePage === 1 ? 'opacity-30 cursor-not-allowed' : '']"
+        :disabled="docStore.activePage === 1"
+      >
+        <svg class="size-3" viewBox="0 0 8 12" fill="none">
+          <path d="M7 1L2 6L7 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="flex items-center gap-1">
+        <input
+          name="search-page"
+          class="w-10 h-6 rounded text-center text-xs font-medium outline-none focus:border-secondary transition-colors tabular-nums"
+          :class="isDark
+            ? 'bg-white/10 text-white border border-white/20 placeholder:text-white/50'
+            : 'bg-black/5 text-gray-800 border border-black/15 placeholder:text-gray-400'"
+          type="text"
+          :placeholder="String(docStore.activePage)"
+          @keydown="handleKeyDown"
+          @input="handleInputChange"
+        />
+        <span class="text-xs select-none tabular-nums" :class="isDark ? 'text-white/40' : 'text-gray-400'">/ {{ docStore.totalPages }}</span>
       </div>
-    </Transition>
+
+      <button
+        @click="docStore.nextPage"
+        :class="[btn, docStore.activePage === docStore.totalPages ? 'opacity-30 cursor-not-allowed' : '']"
+        :disabled="docStore.activePage === docStore.totalPages"
+      >
+        <svg class="size-3" viewBox="0 0 8 12" fill="none">
+          <path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Row 3: thumbnail strip -->
+    <div
+      class="w-full overflow-hidden transition-all duration-300 ease-in-out"
+      :class="hidePreview ? 'h-0 opacity-0' : 'h-[120px] opacity-100'"
+      :style="{ backgroundColor: barBg }"
+    >
+      <div class="h-full overflow-x-auto overflow-y-hidden thin-scrollbar">
+        <PDFPreview />
+      </div>
+    </div>
+
   </div>
 </template>
+
+<style scoped>
+.thin-scrollbar::-webkit-scrollbar {
+  height: 3px;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+}
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+</style>

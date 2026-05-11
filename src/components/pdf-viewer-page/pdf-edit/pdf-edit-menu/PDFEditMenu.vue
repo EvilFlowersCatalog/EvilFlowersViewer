@@ -49,7 +49,7 @@ onBeforeUnmount(() => {
 <template>
   <!-- Edit menu -->
   <div
-    class="fixed top-14 right-4 transition-opacity duration-200 z-20"
+    class="fixed top-4 right-4 transition-opacity duration-200 z-20"
     :class="
       showEditBar
         ? 'opacity-1 pointer-events-auto'
@@ -59,7 +59,7 @@ onBeforeUnmount(() => {
     <div
       @mouseover="handleHover(true)"
       @mouseleave="handleHover(false)"
-      class="relative flex flex-col justify-center items-center bg-white dark:bg-[#1E1E1E] p-1 mx-auto rounded-xl gap-2 shadow-xl border border-gray-200 dark:border-white/10"
+      class="relative flex flex-row justify-center items-center bg-white dark:bg-[#1E1E1E] p-1 mx-auto rounded-xl gap-2 shadow-xl border border-gray-200 dark:border-white/10"
     >
       <!-- Tools options -->
       <ToolOptions
