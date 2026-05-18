@@ -3,13 +3,10 @@ import { ERROR_LINK, KB } from '@/assets/utils/constans';
 import { debounce } from '@/assets/utils/functions';
 import { useDocumentStore, useViewerStore } from '@/stores';
 import printJS from 'print-js';
-import { ref, toRaw } from 'vue';
-import { AnFilledPrinter } from '@kalimahapps/vue-icons';
-import { ValidationInput } from '@/components/pdf-aids';
+import { ref } from 'vue';
 import Loader from '@/components/pdf-aids/Loader.vue';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
-// Data
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
 const showLoading = ref<boolean>(false);
@@ -18,7 +15,21 @@ const isInappropriate = ref<boolean>(false);
 const error = ref<boolean>(false);
 const useEdit = ref<boolean>(false);
 
-// Convert pdf to base64
+const handlePagesInput = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const eventInput = target.value;
+  const pattern = /^((([0-9]+),?)*|(([0-9]+)-?))*$/;
+  const pattern2 = /^.*(([0-9]+)-([0-9]+)-)+$/;
+
+  if (pattern.test(eventInput) && !pattern2.test(eventInput)) {
+    inputValue.value = eventInput;
+    const last = eventInput[eventInput.length - 1];
+    isInappropriate.value = last === ',' || last === '-';
+  } else {
+    target.value = inputValue.value;
+  }
+};
+
 const convert = debounce(async () => {
   error.value = false;
 
@@ -36,27 +47,21 @@ const convert = debounce(async () => {
       const data = await doc.getData();
 
       try {
-        const chunkSize = 64 * KB; // 64KB chunk size
+        const chunkSize = 64 * KB;
         let binaryString = '';
 
-        // Set loading state to true when the process starts
         showLoading.value = true;
 
-        // Process the Uint8Array in chunks to avoid exceeding the call stack
         for (let i = 0; i < data.length; i += chunkSize) {
           const chunk: any = data.slice(i, i + chunkSize);
           binaryString += String.fromCharCode.apply(null, chunk);
         }
 
-        // Encode the entire binary string to base64
         const base64 = btoa(binaryString);
-
-        // Print using PrintJS library
         printJS({ printable: base64, type: 'pdf', base64: true });
       } catch {
         error.value = true;
       } finally {
-        // Hide loading state after 0.5s
         setTimeout(() => (showLoading.value = false), 500);
       }
     } else {
@@ -65,7 +70,6 @@ const convert = debounce(async () => {
   }
 });
 
-// Using PrintJS library to print PDF
 const print = () => {
   showLoading.value = true;
   convert();
@@ -73,33 +77,43 @@ const print = () => {
 </script>
 
 <template>
-  <!-- Print loader -->
+  <Loader v-if="showLoading" class="m-auto" :size="40" color="#0077cc" />
 
-  <Loader v-if="showLoading" class="m-auto" :size="50" color="white" />
+  <div v-else class="flex flex-col gap-[10px] h-full">
+    <!-- Page range input -->
+    <div class="flex items-center bg-white dark:bg-white/5 rounded-[7px] shadow-[0px_4px_12px_rgba(0,0,0,0.1)] px-[8px] h-[28px]">
+      <span class="text-[10px] text-[#333] dark:text-gray-300 tracking-[0.1px] leading-[20px] shrink-0">{{ $t('pages') }}:</span>
+      <input
+        name="print-input"
+        class="flex-1 min-w-0 ml-[4px] bg-transparent text-[10px] font-light text-[#333] dark:text-gray-200 placeholder:text-[#b1b1b1] tracking-[0.1px] outline-none"
+        type="text"
+        :placeholder="'1, 4-7, 10'"
+        @keydown.stop
+        @input="handlePagesInput"
+      />
+    </div>
 
-  <div v-else class="flex h-full flex-col gap-2">
-    <ValidationInput
-      @updated-input="(value: string) => inputValue = value"
-      @is-inappropriate="(value: boolean)=>isInappropriate = value"
-      @edit-usage="(value: boolean)=> useEdit = value"
-    />
+    <!-- Add edits radio -->
+    <label class="flex items-center gap-[6px] cursor-pointer select-none pl-[5px]">
+      <span class="size-[11px] rounded-full border border-[#333] dark:border-gray-400 flex items-center justify-center shrink-0">
+        <span v-if="useEdit" class="size-[5px] rounded-full bg-[#333] dark:bg-gray-200"></span>
+      </span>
+      <input type="checkbox" v-model="useEdit" class="hidden" />
+      <span class="text-[10px] text-[#333] dark:text-gray-300 leading-[1.4]">{{ $t('enable-edit') }}</span>
+    </label>
 
-    <!-- Spacer -->
-    <span class="flex flex-1"></span>
+    <span v-if="error" class="text-center text-[10px] text-red-500">{{ $t('went-wrong') }}</span>
 
-    <!-- Error message -->
-    <span class="text-center" v-if="error">{{ $t('went-wrong') }}</span>
+    <span class="flex-1"></span>
 
-    <!-- Spacer -->
-    <span class="flex flex-1"></span>
-
-    <!-- Submit button -->
-    <button
-      v-if="!isInappropriate"
-      class="w-full bg-secondary py-2 flex items-center justify-center rounded-md"
-      @click="print"
-    >
-      <AnFilledPrinter class="icon size-8" />
-    </button>
+    <div class="flex justify-center">
+      <button
+        v-if="!isInappropriate"
+        class="bg-[#0077cc] hover:bg-[#0066b3] text-[#f5f7fa] text-[10px] font-semibold leading-[1.4] rounded-[7px] px-[14px] h-[20px] shadow-[0px_4px_6px_rgba(0,0,0,0.1)] transition-colors"
+        @click="print"
+      >
+        {{ $t('print') }}
+      </button>
+    </div>
   </div>
 </template>

@@ -152,7 +152,7 @@ watch(
 <template>
   <div
     id="preview-container"
-    class="relative h-full flex gap-2 p-4 overflow-x-auto overflow-y-hidden"
+    class="relative h-full flex items-start gap-[27px] px-4 py-[2px] overflow-x-auto overflow-y-hidden hide-scrollbar"
     @scroll="handleScroll"
   >
     <!-- Preview for loop -->
@@ -160,7 +160,7 @@ watch(
       v-for="key in pageNumbers"
       :key="key"
       :id="`preview-page-container-${key}`"
-      class="relative h-fit flex flex-col"
+      class="relative shrink-0 flex flex-col w-[92px]"
       :class="[key > endPage && 'hidden']"
     >
       <!-- Loader -->
@@ -173,23 +173,23 @@ watch(
       <!-- Canvas -->
       <canvas
         :id="`preview-canvas-${key}`"
-        class="ring-2 w-24 cursor-pointer shadow-sm"
+        class="w-[92px] cursor-pointer shadow-sm rounded-[2px]"
         :class="[
           docStore.activePage === key
-            ? 'ring-secondary'
-            : isDark ? 'ring-white/10' : 'ring-gray-200',
+            ? 'ring-[1.5px] ring-[#0077CC]'
+            : isDark ? 'ring-1 ring-white/10' : 'ring-1 ring-gray-200',
         ]"
         :style="{ height: `${DESIRED_HEIGHT}px` }"
         @click="docStore.setActivePage(key)"
       >
       </canvas>
 
-      <!-- Page -->
+      <!-- Page number -->
       <span
-        class="w-fit mx-auto font-extrabold text-sm select-none mt-1"
+        class="block text-center text-[11px] leading-4 select-none tabular-nums h-4 mt-0.5"
         :class="docStore.activePage === key
-          ? 'text-secondary'
-          : isDark ? 'text-white/60' : 'text-gray-500'"
+          ? 'font-medium text-[#0077CC]'
+          : isDark ? 'font-normal text-white/60' : 'font-normal text-[#333]'"
       >
         {{ key }}
       </span>
