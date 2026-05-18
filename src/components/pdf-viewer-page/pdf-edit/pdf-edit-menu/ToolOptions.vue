@@ -16,43 +16,50 @@ const value = ref(docStore.toolSize);
 <template>
   <!-- Wrapper -->
   <div
-    class="absolute top-0 right-12 bg-white dark:bg-[#1E1E1E] rounded-xl cursor-default text-gray-800 dark:text-white shadow-xl border border-gray-200 dark:border-white/10"
+    class="absolute top-full right-0 mt-[7px] w-[133px] bg-white dark:bg-[#1E1E1E] rounded-md cursor-default text-gray-800 dark:text-white shadow-[0px_4px_12px_0px_rgba(0,0,0,0.1)]"
   >
     <!-- Container -->
-    <div class="flex flex-col w-full h-full p-4 gap-4 text-left">
+    <div class="flex flex-col p-[7px] gap-2 text-left">
       <!-- Width -->
-      <div class="w-full flex flex-col gap-2">
-        <span class="text-sm font-bold">{{ $t('size') }}: {{ value }}</span>
+      <div class="flex flex-col gap-1">
+        <span class="text-[10px] font-medium">{{ $t('size') }}: {{ value }}</span>
         <VueSlider
           v-model="value"
           :min="MIN_TOOL_SIZE"
           :max="MAX_TOOL_SIZE"
           :interval="INTERVAL"
+          :height="4"
+          :dot-size="12"
+          :rail-style="{ backgroundColor: '#E5E7EB', borderRadius: '40px' }"
+          :process-style="{ backgroundColor: '#0077cc', borderRadius: '40px' }"
+          :dot-style="{
+            backgroundColor: '#0a3a66',
+            border: 'none',
+            boxShadow: 'none',
+          }"
           clickable
           dragOnClick
           silent
-          class="bg-secondary rounded-md"
+          class="tool-size-slider !my-1"
           @change="(e: number) => docStore.setToolSize(e)"
           tooltip="none"
-        >
-          <template #dot="{ value }">
-            <div class="w-full h-full rounded-full bg-white"></div> </template
-        ></VueSlider>
+        />
       </div>
 
       <!-- Colors -->
-      <div class="flex flex-col gap-2">
-        <span class="text-sm font-bold">{{ $t('colors') }}</span>
-        <div class="grid grid-cols-3 w-40 h-40 gap-1 bg-white p-1 rounded-md">
+      <div class="flex flex-col gap-1">
+        <span class="text-[10px] font-medium">{{ $t('colors') }}</span>
+        <div class="grid grid-cols-3 gap-x-[12px] gap-y-[7px] px-[5px] py-1">
           <div
             v-for="color of colors"
             :key="color.value"
-            class="w-full h-full rounded-md border-4 cursor-pointer"
-            :class="{
-              [color.color]: true,
-              'border-white': docStore.toolColor === color.value,
-              'border-transparent': docStore.toolColor !== color.value,
-            }"
+            class="size-[27px] rounded-[5px] border-2 cursor-pointer shadow-[0px_4px_12px_0px_rgba(0,0,0,0.1)]"
+            :class="
+              docStore.toolColor === color.value
+                ? 'border-white ring-1 ring-gray-300'
+                : 'border-transparent'
+            "
+            :style="{ backgroundColor: color.value }"
             @click="docStore.setToolColor(color.value)"
           ></div>
         </div>
@@ -60,3 +67,4 @@ const value = ref(docStore.toolSize);
     </div>
   </div>
 </template>
+

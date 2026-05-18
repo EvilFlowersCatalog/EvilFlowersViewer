@@ -68,11 +68,11 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-[10px]">
     <div
       v-for="(value, key) in filteredMetadata"
       :key="key"
-      class="flex flex-col gap-0.5"
+      class="flex flex-col gap-[5px] py-px"
     >
       <span class="sidebar-label">{{ $t(key.toString()) }}</span>
       <span class="sidebar-value">{{ value }}</span>

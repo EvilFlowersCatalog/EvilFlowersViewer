@@ -1,14 +1,28 @@
-import { ref } from 'vue';
+import { defineComponent, h, ref } from 'vue';
 import { CITATION_FORMAT, CITATION_TYPE, EDIT_TOOL } from '../utils/enums';
-import {
-  BxSolidPencil,
-  FlFilledHighlight,
-  AkSquare,
-  AkCircle,
-  BsEraserFill,
-  ClLineXl,
-  BxSolidPointer,
-} from '@kalimahapps/vue-icons';
+import { BxSolidPointer, AkSquare } from '@kalimahapps/vue-icons';
+import pencilSvg from '@/assets/icons/pencil.svg?raw';
+import highlighterSvg from '@/assets/icons/highlighter.svg?raw';
+import eraserSvg from '@/assets/icons/eraser.svg?raw';
+import circleSvg from '@/assets/icons/circle.svg?raw';
+import lineSvg from '@/assets/icons/line.svg?raw';
+
+const svgIcon = (raw: string) =>
+  defineComponent({
+    inheritAttrs: true,
+    render() {
+      return h('span', {
+        class: 'inline-flex items-center justify-center',
+        innerHTML: raw,
+      });
+    },
+  });
+
+const PencilIcon = svgIcon(pencilSvg);
+const HighlighterIcon = svgIcon(highlighterSvg);
+const EraserIcon = svgIcon(eraserSvg);
+const CircleIcon = svgIcon(circleSvg);
+const LineIcon = svgIcon(lineSvg);
 
 export const DEFAULT_PAGE: number = 1;
 export const ERROR_LINK: string = 'link-failed';
@@ -23,27 +37,32 @@ export const INTERVAL: number = 1;
 export const DEFAULT_TOOL_COLOR: string = '#000000';
 export const tools = ref<{ tool: EDIT_TOOL; icon: any }[]>([
   { tool: EDIT_TOOL.MOUSE, icon: BxSolidPointer },
-  { tool: EDIT_TOOL.ERASER, icon: BsEraserFill },
-  { tool: EDIT_TOOL.PEN, icon: BxSolidPencil },
-  { tool: EDIT_TOOL.HIGHLIGHTER, icon: FlFilledHighlight },
-  { tool: EDIT_TOOL.CIRCLE, icon: AkCircle },
+  { tool: EDIT_TOOL.ERASER, icon: EraserIcon },
+  { tool: EDIT_TOOL.PEN, icon: PencilIcon },
+  { tool: EDIT_TOOL.HIGHLIGHTER, icon: HighlighterIcon },
+  { tool: EDIT_TOOL.CIRCLE, icon: CircleIcon },
   { tool: EDIT_TOOL.RECT, icon: AkSquare },
-  { tool: EDIT_TOOL.LINE, icon: ClLineXl },
+  { tool: EDIT_TOOL.LINE, icon: LineIcon },
 ]);
 export const colors = ref([
-  { color: 'bg-red', value: '#ff0000' },
-  { color: 'bg-orange-500', value: '#f97316' },
-  { color: 'bg-yellow-500', value: '#eab308' },
-  { color: 'bg-lime-500', value: '#84cc16' },
-  { color: 'bg-sky-500', value: '#0ea5e9' },
-  { color: 'bg-purple-500', value: '#a855f7' },
-  { color: 'bg-pink-500', value: '#ec4899' },
-  { color: 'bg-amber-800', value: '#92400e' },
-  { color: 'bg-black', value: '#000000' },
+  { color: '', value: '#f02727' },
+  { color: '', value: '#ff7f00' },
+  { color: '', value: '#ffe100' },
+  { color: '', value: '#36f82c' },
+  { color: '', value: '#50aaff' },
+  { color: '', value: '#c64aff' },
+  { color: '', value: '#ff61ef' },
+  { color: '', value: '#ba6300' },
+  { color: '', value: '#1d1d1d' },
 ]);
 export const citations = ref<
   { name: string; type: CITATION_TYPE; format: CITATION_FORMAT }[]
 >([
+  {
+    name: 'Plain Text',
+    type: CITATION_TYPE.TXT,
+    format: CITATION_FORMAT.TXT,
+  },
   {
     name: 'BibTeX',
     type: CITATION_TYPE.BIB,
@@ -58,10 +77,5 @@ export const citations = ref<
     name: 'RIS',
     type: CITATION_TYPE.RIS,
     format: CITATION_FORMAT.RIS,
-  },
-  {
-    name: 'Plain-Text',
-    type: CITATION_TYPE.TXT,
-    format: CITATION_FORMAT.TXT,
   },
 ]);

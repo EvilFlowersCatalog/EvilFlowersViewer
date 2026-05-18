@@ -59,7 +59,7 @@ onBeforeUnmount(() => {
     <div
       @mouseover="handleHover(true)"
       @mouseleave="handleHover(false)"
-      class="relative flex flex-row justify-center items-center bg-white dark:bg-[#1E1E1E] p-1 mx-auto rounded-xl gap-2 shadow-xl border border-gray-200 dark:border-white/10"
+      class="relative flex flex-row justify-center items-center bg-white dark:bg-[#1E1E1E] pl-2 pr-[13px] py-1 mx-auto rounded-[5px] gap-[10px] shadow-[0px_4px_6px_0px_rgba(0,0,0,0.1)]"
     >
       <!-- Tools options -->
       <ToolOptions
@@ -70,7 +70,7 @@ onBeforeUnmount(() => {
       <button
         v-for="item of tools"
         :key="item.tool"
-        class="p-1 rounded-md"
+        class="size-5 flex items-center justify-center rounded-[4px]"
         :class="
           item.tool === docStore.editTool
             ? 'bg-secondary'
