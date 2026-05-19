@@ -90,7 +90,7 @@ const zoomBtnClass = (disabled: boolean) => {
     </button>
 
     <!-- Zoom buttons — absolutely positioned top-right -->
-    <div class="absolute right-[6px] top-[8px] flex gap-[3px]">
+    <div class="absolute right-[6px] top-[8px] flex gap-[3px] z-10">
       <button
         @click="docStore.zoomIn"
         :class="zoomBtnClass(docStore.scale >= 3)"
