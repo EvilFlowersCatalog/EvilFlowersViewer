@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,7 +10,7 @@
   box-sizing: border-box !important;
   scrollbar-width: thin !important;
   scrollbar-color: #555 transparent !important;
-  font-family: sans-serif !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
 /* Custom Scrollbar for WebKit Browsers */
@@ -109,9 +111,9 @@
     @apply appearance-none w-3 h-3 bg-white rounded-full hover:ring hover:ring-secondary focus:outline-none cursor-pointer checked:bg-secondary;
   }
   .sidebar-label {
-    @apply text-[12px] font-medium text-[#333] dark:text-gray-200 tracking-[0.1px];
+    @apply text-[12px] leading-none font-medium text-[#333] dark:text-gray-200 tracking-[0.1px];
   }
   .sidebar-value {
-    @apply text-[11px] font-light text-[#333] dark:text-gray-400 break-words;
+    @apply text-[11px] leading-none font-light text-[#333] dark:text-gray-400 break-words;
   }
 }

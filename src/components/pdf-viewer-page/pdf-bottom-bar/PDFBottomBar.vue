@@ -90,13 +90,13 @@ const zoomBtnClass = (disabled: boolean) => {
     </button>
 
     <!-- Zoom buttons — absolutely positioned top-right -->
-    <div class="absolute right-[6px] top-[8px] flex gap-[3px]">
+    <div class="absolute right-[6px] top-[8px] flex gap-[3px] z-10">
       <button
         @click="docStore.zoomIn"
         :class="zoomBtnClass(docStore.scale >= 3)"
         :disabled="docStore.scale >= 3"
       >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round">
           <path d="M7 2v10M2 7h10"/>
         </svg>
       </button>
@@ -105,7 +105,7 @@ const zoomBtnClass = (disabled: boolean) => {
         :class="zoomBtnClass(docStore.scale <= 0.25)"
         :disabled="docStore.scale <= 0.25"
       >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round">
           <path d="M2 7h10"/>
         </svg>
       </button>

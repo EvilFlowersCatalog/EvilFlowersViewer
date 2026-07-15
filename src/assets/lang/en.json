@@ -22,6 +22,7 @@
   "Language": "Language",
   "PDFFormatVersion": "Formatter version",
   "input-search-pattern": "Input a search pattern you want to be searched",
+  "input-search-pattern-intelligent": "what is software architecture",
   "results": "Results",
   "not-found": "With given input, nothing was found",
   "lifespan-1": "Lifespan for 1 day",

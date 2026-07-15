@@ -1,6 +1,6 @@
 {
   "name": "@evilflowers/evilflowersviewer",
-  "version": "0.5.19",
+  "version": "0.5.2",
   "main": "dist/evilFlowersViewer.umd.js",
   "module": "dist/evilFlowersViewer.es.js",
   "types": "dist/main.d.ts",
