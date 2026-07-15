@@ -40,6 +40,10 @@ export const useDocumentStore = defineStore('document', () => {
   const layer = ref<ILayer | null>(null);
   const groupId = ref<string | null>(null);
   const edit = ref<boolean>(true);
+  const canUndo = ref<boolean>(false);
+  const canRedo = ref<boolean>(false);
+  const undoFn = ref<(() => void) | null>(null);
+  const redoFn = ref<(() => void) | null>(null);
 
   // Check if page is rendered (don't block on layer state)
   const isLoaded = () => {
@@ -132,6 +136,24 @@ export const useDocumentStore = defineStore('document', () => {
   const setGroupId = (value: string) => {
     groupId.value = value;
   };
+  const setCanUndo = (value: boolean) => {
+    canUndo.value = value;
+  };
+  const setCanRedo = (value: boolean) => {
+    canRedo.value = value;
+  };
+  const setUndoFn = (value: (() => void) | null) => {
+    undoFn.value = value;
+  };
+  const setRedoFn = (value: (() => void) | null) => {
+    redoFn.value = value;
+  };
+  const undo = () => {
+    if (canUndo.value) undoFn.value?.();
+  };
+  const redo = () => {
+    if (canRedo.value) redoFn.value?.();
+  };
 
   return {
     pdf,
@@ -155,9 +177,17 @@ export const useDocumentStore = defineStore('document', () => {
     layer,
     edit,
     groupId,
+    canUndo,
+    canRedo,
     setGroupId,
     setEdit,
     setLayer,
+    setCanUndo,
+    setCanRedo,
+    setUndoFn,
+    setRedoFn,
+    undo,
+    redo,
     setPdf,
     setPreviewPdf,
     setActivePage,

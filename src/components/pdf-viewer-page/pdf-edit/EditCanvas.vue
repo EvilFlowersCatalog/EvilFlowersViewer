@@ -27,6 +27,8 @@ const pendingSaves = ref<Map<number, { svgContent: string; timestamp: number }>>
 const pageLayerMap = ref<Map<number, ILayer | null>>(new Map());
 const saveQueue = ref<Map<number, Promise<void>>>(new Map()); // Track ongoing save promises
 const autoSaveTimeouts = ref<Map<number, number>>(new Map()); // Debounce timeouts for auto-save
+const undoStacks = ref<Map<number, string[]>>(new Map()); // Per-page undo history (SVG innerHTML snapshots)
+const redoStacks = ref<Map<number, string[]>>(new Map()); // Per-page redo history
 
 const debouncedAutoSave = (immediate: boolean = false) => {
   if (!svgRef.value || !docStore.groupId || currentPageForSvg.value === null) return;
@@ -174,6 +176,73 @@ const performSave = async (pageNum: number, svgContent: string, timestamp: numbe
   }
 };
 
+const getPageStacks = (pageNum: number) => {
+  if (!undoStacks.value.has(pageNum)) undoStacks.value.set(pageNum, []);
+  if (!redoStacks.value.has(pageNum)) redoStacks.value.set(pageNum, []);
+  return { undo: undoStacks.value.get(pageNum)!, redo: redoStacks.value.get(pageNum)! };
+};
+
+// Reflect the current page's history state into the shared store so the toolbar can enable/disable undo/redo
+const syncHistoryFlags = () => {
+  const pageNum = currentPageForSvg.value;
+  if (pageNum === null) {
+    docStore.setCanUndo(false);
+    docStore.setCanRedo(false);
+    return;
+  }
+  const { undo, redo } = getPageStacks(pageNum);
+  docStore.setCanUndo(undo.length > 0);
+  docStore.setCanRedo(redo.length > 0);
+};
+
+// Snapshot the current SVG content before a mutating action begins
+const pushUndoSnapshot = () => {
+  const pageNum = currentPageForSvg.value;
+  if (pageNum === null || !svgRef.value) return;
+  const { undo, redo } = getPageStacks(pageNum);
+  undo.push(svgRef.value.outerHTML);
+  redo.length = 0;
+  syncHistoryFlags();
+};
+
+// Reuses the same DOMParser-based approach as loadLayerIntoSvg, since assigning
+// innerHTML directly on an SVGElement is inconsistent across browsers.
+const restoreSnapshot = (snapshot: string) => {
+  if (!svgRef.value) return;
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(snapshot, 'image/svg+xml');
+  const parsedSvg = doc.documentElement;
+
+  svgRef.value.replaceChildren();
+  Array.from(parsedSvg.children).forEach((child) => {
+    svgRef.value!.appendChild(child.cloneNode(true));
+  });
+
+  debouncedAutoSave(true);
+};
+
+const performUndo = () => {
+  const pageNum = currentPageForSvg.value;
+  if (pageNum === null || !svgRef.value) return;
+  const { undo, redo } = getPageStacks(pageNum);
+  const previous = undo.pop();
+  if (previous === undefined) return;
+  redo.push(svgRef.value.outerHTML);
+  restoreSnapshot(previous);
+  syncHistoryFlags();
+};
+
+const performRedo = () => {
+  const pageNum = currentPageForSvg.value;
+  if (pageNum === null || !svgRef.value) return;
+  const { undo, redo } = getPageStacks(pageNum);
+  const next = redo.pop();
+  if (next === undefined) return;
+  undo.push(svgRef.value.outerHTML);
+  restoreSnapshot(next);
+  syncHistoryFlags();
+};
+
 // Function for starting the drawing
 const startDrawing = ({ clientX, clientY }: MouseEvent) => {
   if (
@@ -182,7 +251,9 @@ const startDrawing = ({ clientX, clientY }: MouseEvent) => {
     docStore.layerState === LAYER_STATE.LOADING
   )
     return;
-    
+
+  pushUndoSnapshot();
+
   if (docStore.editTool === EDIT_TOOL.ERASER) {
     isDrawing.value = true;
     return;
@@ -335,6 +406,10 @@ onMounted(async () => {
     // else assigne existing one
     docStore.setGroupId(groups[0].id);
   }
+
+  docStore.setUndoFn(performUndo);
+  docStore.setRedoFn(performRedo);
+  syncHistoryFlags();
 });
 
 onUnmounted(async () => {
@@ -343,12 +418,12 @@ onUnmounted(async () => {
     clearTimeout(timeout);
   }
   autoSaveTimeouts.value.clear();
-  
+
   // Save any pending changes before unmounting
   if (currentPageForSvg.value !== null && svgRef.value && svgRef.value.children.length > 0) {
     await updateCacheForPage(currentPageForSvg.value, svgRef.value.outerHTML);
   }
-  
+
   // Wait for any ongoing saves to complete
   const allSavePromises = Array.from(saveQueue.value.values());
   if (allSavePromises.length > 0) {
@@ -358,6 +433,11 @@ onUnmounted(async () => {
       console.error('Some saves failed during cleanup:', error);
     }
   }
+
+  docStore.setUndoFn(null);
+  docStore.setRedoFn(null);
+  docStore.setCanUndo(false);
+  docStore.setCanRedo(false);
 });
 
 watch(
@@ -386,6 +466,7 @@ watch(
     svgRef.value?.replaceChildren();
     docStore.setLayer(null);
     currentPageForSvg.value = pageToLoad;
+    syncHistoryFlags();
 
     const cacheKey = `${docStore.groupId}-${pageToLoad}`;
     const cachedLayer = layerCache.value.get(cacheKey);

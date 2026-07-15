@@ -1,11 +1,12 @@
 import { defineComponent, h, ref } from 'vue';
 import { CITATION_FORMAT, CITATION_TYPE, EDIT_TOOL } from '../utils/enums';
-import { BxSolidPointer, AkSquare } from '@kalimahapps/vue-icons';
+import { BxSolidPointer } from '@kalimahapps/vue-icons';
 import pencilSvg from '@/assets/icons/pencil.svg?raw';
 import highlighterSvg from '@/assets/icons/highlighter.svg?raw';
 import eraserSvg from '@/assets/icons/eraser.svg?raw';
 import circleSvg from '@/assets/icons/circle.svg?raw';
 import lineSvg from '@/assets/icons/line.svg?raw';
+import rectSvg from '@/assets/icons/rect.svg?raw';
 
 const svgIcon = (raw: string) =>
   defineComponent({
@@ -23,6 +24,7 @@ const HighlighterIcon = svgIcon(highlighterSvg);
 const EraserIcon = svgIcon(eraserSvg);
 const CircleIcon = svgIcon(circleSvg);
 const LineIcon = svgIcon(lineSvg);
+const RectIcon = svgIcon(rectSvg);
 
 export const DEFAULT_PAGE: number = 1;
 export const ERROR_LINK: string = 'link-failed';
@@ -41,7 +43,7 @@ export const tools = ref<{ tool: EDIT_TOOL; icon: any }[]>([
   { tool: EDIT_TOOL.PEN, icon: PencilIcon },
   { tool: EDIT_TOOL.HIGHLIGHTER, icon: HighlighterIcon },
   { tool: EDIT_TOOL.CIRCLE, icon: CircleIcon },
-  { tool: EDIT_TOOL.RECT, icon: AkSquare },
+  { tool: EDIT_TOOL.RECT, icon: RectIcon },
   { tool: EDIT_TOOL.LINE, icon: LineIcon },
 ]);
 export const colors = ref([

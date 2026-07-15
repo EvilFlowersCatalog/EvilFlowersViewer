@@ -207,7 +207,7 @@ onMounted(() => {
     class="flex w-screen h-screen justify-center items-center text-white"
     :style="{ backgroundColor: viewerBg }"
   >
-    <Loader :size="100" color="#36BA98" />
+    <Loader :size="100" color="#0077CC" />
   </div>
 
   <!-- Success container -->
@@ -226,7 +226,7 @@ onMounted(() => {
       class="fixed top-4 left-14 w-full flex justify-center z-20 pointer-events-none select-none transition-opacity hover:opacity-30"
     >
       <div class="flex flex-row gap-2 items-center px-3 py-2 rounded-md shadow-lg" :style="{ backgroundColor: topbarBg }">
-        <Loader :size="20" color="#36BA98" />
+        <Loader :size="20" color="#0077CC" />
         <span class="text-secondary text-xs font-medium">{{ $t(docStore.layerState) }}</span>
       </div>
     </div>
@@ -234,23 +234,26 @@ onMounted(() => {
     <!-- Left nav -->
     <PDFMenu :is-dark="isDark" :topbar-bg="topbarBg" @toggle-dark="toggleDark" />
 
-    <!-- Sidebar panel (full height left panel) -->
-    <PDFMenuSidebar />
-
     <!-- Content column -->
     <div class="relative flex flex-col flex-1 overflow-hidden" :style="{ backgroundColor: viewerBg }">
-      <!-- Edit menu -->
-      <PDFEditMenu
-        v-if="
-          viewerStore.config.edit &&
-          viewerStore.editPackage &&
-          !docStore.isMobile &&
-          docStore.edit
-        "
-      />
+      <!-- Page area: floating sidebar panel is scoped to here so it never reaches the bottom bar -->
+      <div class="relative flex-1 overflow-hidden">
+        <!-- Edit menu -->
+        <PDFEditMenu
+          v-if="
+            viewerStore.config.edit &&
+            viewerStore.editPackage &&
+            !docStore.isMobile &&
+            docStore.edit
+          "
+        />
 
-      <!-- PDF page -->
-      <PDFPage v-if="docStore.pdf" />
+        <!-- PDF page -->
+        <PDFPage v-if="docStore.pdf" />
+
+        <!-- Floating sidebar panel (Search, Share, Info, Print, TOC, ...) -->
+        <PDFMenuSidebar />
+      </div>
 
       <!-- Bottom bar -->
       <PDFBottomBar />

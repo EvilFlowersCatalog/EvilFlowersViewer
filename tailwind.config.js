@@ -5,7 +5,7 @@ export default {
     extend: {
       keyframes: {
         blinkBorder: {
-          '0%': { border: '4px solid #36BA98' },
+          '0%': { border: '4px solid #0077CC' },
           '100%': { border: '4px solid white' },
         },
         blinkIcon: {
@@ -24,7 +24,7 @@ export default {
         width: 'width',
       },
       colors: {
-        secondary: '#36BA98',
+        secondary: '#0077CC',
         primary: '#1A2130',
         'viewer-bg': '#525252',
         'topbar-bg': '#2C2C2C',
