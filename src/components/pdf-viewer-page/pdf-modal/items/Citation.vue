@@ -13,8 +13,8 @@ const isCopied = ref<boolean>(false);
 const isChecked = ref<boolean>(false);
 
 const setCitation = (type: CITATION_TYPE, format: CITATION_FORMAT) => {
-  viewerStore.setCitationType(type);
-  viewerStore.setCitationFormat(format);
+  viewerStore.citationType = type;
+  viewerStore.citationFormat = format;
 };
 
 const copyCitation = () => {
@@ -41,13 +41,13 @@ const togglePage = () => {
         pagesPattern,
         `pages = {${isChecked.value ? docStore.activePage : ''}}`
       ) ?? null;
-    viewerStore.setBasedCitation(updatedCitation);
+    viewerStore.basedCitation = updatedCitation;
   } else {
     const lastIndex = tmp!.lastIndexOf('}');
     const newTmp = `${tmp!.slice(0, lastIndex)}\t,pages = {${
       docStore.activePage
     }}\n${tmp!.slice(lastIndex)}`;
-    viewerStore.setBasedCitation(newTmp);
+    viewerStore.basedCitation = newTmp;
   }
 };
 
@@ -68,10 +68,10 @@ watch(
     try {
       const cite = new Cite(viewerStore.basedCitation);
       const citation = cite.format(viewerStore.citationFormat);
-      viewerStore.setCitation(citation);
+      viewerStore.citation = citation;
     } catch {
-      viewerStore.setCitationFormat(CITATION_FORMAT.BIBTEX);
-      viewerStore.setCitationType(CITATION_TYPE.BIB);
+      viewerStore.citationFormat = CITATION_FORMAT.BIBTEX;
+      viewerStore.citationType = CITATION_TYPE.BIB;
     }
   }
 );

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RENDER_STATE, SEARCH_STATE } from '@/assets/utils/enums';
+import { SEARCH_STATE } from '@/assets/utils/enums';
 import { debounce } from '@/assets/utils/functions';
 import { Loader } from '@/components/pdf-aids';
 import { useDocumentStore, useViewerStore } from '@/stores';
@@ -112,20 +112,30 @@ const handleInputChange = (event: Event) => {
 };
 
 const handleSelect = (index: number, page: number) => {
-  const isValidIndex = index >= 0 && index < matches.value.length;
-  const isValidPage = page > 0 && page <= docStore.totalPages;
-  if (!isValidIndex) return;
-  if (page === docStore.activePage) {
-    docStore.setReRenderPage(!docStore.reRenderPage);
-  } else if (isValidPage) {
-    docStore.setActivePage(page);
-  }
+  const match = matches.value[index];
+  if (!match) return;
   selectedMatch.value = index;
+
+  // Hand the hit to the store; PDFPage owns the canvas and draws it. This keeps
+  // Search decoupled from the page DOM and lets the highlight survive zoom and
+  // page re-renders.
+  if (match.transform) {
+    docStore.searchHighlight = {
+      page: match.page,
+      transform: match.transform,
+      width: match.width,
+      height: match.height,
+    };
+  }
+
+  if (page > 0 && page <= docStore.totalPages && page !== docStore.activePage) {
+    docStore.activePage = page;
+  }
 };
 
 const handleSelectSemantic = (index: number, page: number) => {
   if (page > 0 && page <= docStore.totalPages && page !== docStore.activePage) {
-    docStore.setActivePage(page);
+    docStore.activePage = page;
   }
   selectedSemantic.value = index;
 };
@@ -135,7 +145,8 @@ onBeforeUnmount(() => {
     searchWorker.terminate();
     searchWorker = null;
   }
-  docStore.setReRenderPage(!docStore.reRenderPage);
+  // Clear the highlight so closing the panel repaints a clean page.
+  docStore.searchHighlight = null;
 });
 
 watch(
@@ -161,38 +172,42 @@ watch(
   }
 );
 
-watch(
-  () => [selectedMatch.value, docStore.renderState, docStore.activePage, matches.value],
-  () => {
-    const match =
-      selectedMatch.value != null && matches?.value[selectedMatch.value];
-
-    if (
-      match &&
-      docStore.renderState === RENDER_STATE.RENDERED &&
-      match.transform &&
-      docStore.activePage === match.page
-    ) {
-      const canvas = document.getElementById(
-        'pdf-page-canvas'
-      ) as HTMLCanvasElement | null;
-
-      if (canvas) {
-        const canvasHeight = parseInt(canvas.getAttribute('height')!);
-        const { width, height } = match;
-        const x = match.transform[4];
-        const y = canvasHeight - match.transform[5] + 2 - height;
-        const context = canvas.getContext('2d');
-
-        if (context) {
-          context.fillStyle = 'orange';
-          context.globalAlpha = 0.5;
-          context.fillRect(x, y, width, height);
-        }
-      }
+// Split a result snippet into plain/highlighted parts so the matched query term
+// can be bolded (Figma) without resorting to v-html.
+const highlightParts = (text: string, term: string) => {
+  if (!term) return [{ text, match: false }];
+  const parts: { text: string; match: boolean }[] = [];
+  const lower = text.toLowerCase();
+  const needle = term.toLowerCase();
+  let i = 0;
+  while (i < text.length) {
+    const idx = lower.indexOf(needle, i);
+    if (idx === -1) {
+      parts.push({ text: text.slice(i), match: false });
+      break;
     }
+    if (idx > i) parts.push({ text: text.slice(i, idx), match: false });
+    parts.push({ text: text.slice(idx, idx + term.length), match: true });
+    i = idx + term.length;
   }
-);
+  return parts;
+};
+
+// Step through keyword / semantic results with the header chevrons (wraps).
+const stepMatch = (dir: number) => {
+  if (!matches.value.length) return;
+  const cur = selectedMatch.value ?? -1;
+  const next = (cur + dir + matches.value.length) % matches.value.length;
+  const m = matches.value[next];
+  if (m) handleSelect(next, m.page);
+};
+const stepSemantic = (dir: number) => {
+  if (!semanticResults.value.length) return;
+  const cur = selectedSemantic.value ?? -1;
+  const next =
+    (cur + dir + semanticResults.value.length) % semanticResults.value.length;
+  handleSelectSemantic(next, semanticResults.value[next].page);
+};
 </script>
 
 <template>
@@ -202,6 +217,7 @@ watch(
       class="flex items-center gap-[6px] bg-white dark:bg-white/5 rounded-[7px] shadow-[0px_4px_12px_rgba(0,0,0,0.1)] px-[8px] h-[28px]"
     >
       <svg
+        aria-hidden="true"
         class="size-[11px] shrink-0 text-[#8a8a8a] dark:text-gray-400"
         viewBox="0 0 16 16"
         fill="none"
@@ -216,6 +232,7 @@ watch(
         class="flex-1 min-w-0 bg-transparent text-[11px] font-light text-[#333] dark:text-gray-200 placeholder:!text-[#b1b1b1] tracking-[0.1px] outline-none"
         type="text"
         :value="inputValue"
+        :aria-label="$t('input-search-pattern')"
         :placeholder="$t('input-search-pattern')"
         @keydown.stop
         @input="handleInputChange"
@@ -237,16 +254,36 @@ watch(
         </div>
 
         <div v-if="searchState === SEARCH_STATE.SEARCHING" class="flex justify-center py-6">
-          <Loader :size="24" color="#0077cc" />
+          <Loader :size="24" color="#0077cc" :label="$t('search')" />
         </div>
 
         <template v-else-if="searchState === SEARCH_STATE.DONE">
-          <p
-            v-if="matches.length > 0"
-            class="text-[9px] font-normal text-[#333] dark:text-gray-300 tracking-[0.1px] shrink-0"
-          >
-            {{ $t('results') }}: {{ matches.length }}
-          </p>
+          <div v-if="matches.length > 0" class="flex items-center justify-between shrink-0">
+            <p
+              class="text-[9px] font-normal text-[#333] dark:text-gray-300 tracking-[0.1px]"
+              aria-live="polite"
+            >
+              {{ $t('results') }}: {{ matches.length }}
+            </p>
+            <div class="flex items-center gap-[2px]">
+              <button
+                type="button"
+                class="p-[2px] rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8a8a8a] dark:text-gray-400 transition-colors"
+                :aria-label="$t('previous-result')"
+                @click="stepMatch(-1)"
+              >
+                <svg aria-hidden="true" class="size-3" viewBox="0 0 20 20" fill="none"><path d="M5 12l5-5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button
+                type="button"
+                class="p-[2px] rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8a8a8a] dark:text-gray-400 transition-colors"
+                :aria-label="$t('next-result')"
+                @click="stepMatch(1)"
+              >
+                <svg aria-hidden="true" class="size-3" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
           <div
             v-if="matches.length > 0"
             class="flex flex-col gap-[8px] overflow-auto pr-[2px]"
@@ -260,10 +297,15 @@ watch(
                   ? 'bg-[rgba(0,119,204,0.2)] shadow-[0px_0px_1.5px_rgba(0,0,0,0.25)]'
                   : 'bg-[#f5f7fa] dark:bg-white/5 drop-shadow-[0px_0px_0.75px_rgba(0,0,0,0.25)]'
               "
+              :aria-label="`${match?.text}, ${$t('page')} ${match?.page}`"
+              :aria-current="selectedMatch === index ? 'true' : undefined"
               @click="handleSelect(index, match!.page)"
             >
               <span class="text-[9px] font-light text-black dark:text-gray-200 leading-[12px]">
-                {{ match?.text }}
+                <template
+                  v-for="(part, pi) in highlightParts(match?.text ?? '', inputValue)"
+                  :key="pi"
+                ><strong v-if="part.match" class="font-semibold">{{ part.text }}</strong><template v-else>{{ part.text }}</template></template>
               </span>
               <span
                 class="self-end text-[8px] font-normal text-black dark:text-gray-300 leading-[16px]"
@@ -282,23 +324,43 @@ watch(
         class="flex flex-col flex-1 min-h-0 gap-[10px] border-l border-gray-100 dark:border-white/10 pl-3"
       >
         <div class="flex items-center gap-1 text-[10px] font-medium uppercase text-secondary tracking-[0.1px] shrink-0">
-          <svg class="size-[11px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg aria-hidden="true" class="size-[11px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" />
           </svg>
           {{ $t('semantic-search') }}
         </div>
 
         <div v-if="semanticState === SEARCH_STATE.SEARCHING" class="flex justify-center py-6">
-          <Loader :size="24" color="#0077cc" />
+          <Loader :size="24" color="#0077cc" :label="$t('semantic-search')" />
         </div>
 
         <template v-else-if="semanticState === SEARCH_STATE.DONE">
-          <p
-            v-if="semanticResults.length > 0"
-            class="text-[9px] font-normal text-[#333] dark:text-gray-300 tracking-[0.1px] shrink-0"
-          >
-            {{ $t('results') }}: {{ semanticResults.length }}
-          </p>
+          <div v-if="semanticResults.length > 0" class="flex items-center justify-between shrink-0">
+            <p
+              class="text-[9px] font-normal text-[#333] dark:text-gray-300 tracking-[0.1px]"
+              aria-live="polite"
+            >
+              {{ $t('results') }}: {{ semanticResults.length }}
+            </p>
+            <div class="flex items-center gap-[2px]">
+              <button
+                type="button"
+                class="p-[2px] rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8a8a8a] dark:text-gray-400 transition-colors"
+                :aria-label="$t('previous-result')"
+                @click="stepSemantic(-1)"
+              >
+                <svg aria-hidden="true" class="size-3" viewBox="0 0 20 20" fill="none"><path d="M5 12l5-5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button
+                type="button"
+                class="p-[2px] rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8a8a8a] dark:text-gray-400 transition-colors"
+                :aria-label="$t('next-result')"
+                @click="stepSemantic(1)"
+              >
+                <svg aria-hidden="true" class="size-3" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
           <div
             v-if="semanticResults.length > 0"
             class="flex flex-col gap-[8px] overflow-auto pr-[2px]"
@@ -312,10 +374,15 @@ watch(
                   ? 'bg-[rgba(0,119,204,0.2)] shadow-[0px_0px_1.5px_rgba(0,0,0,0.25)]'
                   : 'bg-[#f5f7fa] dark:bg-white/5 drop-shadow-[0px_0px_0.75px_rgba(0,0,0,0.25)]'
               "
+              :aria-label="`${result.text}, ${$t('page')} ${result.page}`"
+              :aria-current="selectedSemantic === index ? 'true' : undefined"
               @click="handleSelectSemantic(index, result.page)"
             >
               <span class="text-[9px] font-light text-black dark:text-gray-200 leading-[12px]">
-                {{ result.text }}
+                <template
+                  v-for="(part, pi) in highlightParts(result.text ?? '', inputValue)"
+                  :key="pi"
+                ><strong v-if="part.match" class="font-semibold">{{ part.text }}</strong><template v-else>{{ part.text }}</template></template>
               </span>
               <span
                 class="self-end text-[8px] font-normal text-black dark:text-gray-300 leading-[16px]"

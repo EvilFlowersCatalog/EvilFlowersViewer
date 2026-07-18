@@ -50,6 +50,13 @@
   --efv-icon: #4b5563;
   --efv-icon-hover: var(--efv-primary);
   --efv-page-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.12);
+
+  /* Accent chips (recommendations pill, zoom buttons) and inset fields. These
+     are theme-constant on purpose — the Figma light-blue accent reads the same
+     in both modes — so there is no `.dark` override below. */
+  --efv-accent-soft: #e6f3ff;
+  --efv-accent-ink: #1e6fba;
+  --efv-field-bg: #f5f7fa;
 }
 
 .efv-viewer.dark {
@@ -101,9 +108,47 @@
   cursor: pointer;
 }
 
+/* Hide the focus ring for pointer users, but always show a clear one for
+   keyboard users (:focus-visible). Never leave controls with no focus
+   indicator — that is the previous behaviour and an a11y regression. */
 .efv-viewer button:focus,
 .efv-viewer input:focus {
   outline: none;
+}
+.efv-viewer button:focus-visible,
+.efv-viewer input:focus-visible,
+.efv-viewer textarea:focus-visible,
+.efv-viewer select:focus-visible,
+.efv-viewer a:focus-visible,
+.efv-viewer [tabindex]:focus-visible {
+  outline: 2px solid var(--efv-primary);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Respect the user's reduced-motion preference (scoped to the viewer). */
+@media (prefers-reduced-motion: reduce) {
+  .efv-viewer *,
+  .efv-viewer *::before,
+  .efv-viewer *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Screen-reader-only text: available to assistive tech, invisible on screen. */
+.efv-viewer .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .efv-viewer h1,
@@ -150,23 +195,15 @@
   height: 0;
 }
 
-/* Loader dots */
-.efv-viewer #loader div:nth-child(1) {
-  animation-delay: -0.32s;
-}
-.efv-viewer #loader div:nth-child(2) {
-  animation-delay: -0.16s;
-}
-
 /* pdf.js text layer */
-.efv-viewer [id^='textLayer'] br {
+.efv-viewer .textLayer br {
   user-select: none;
 }
-.efv-viewer [id^='textLayer'] span {
+.efv-viewer .textLayer span {
   height: 100%;
   width: 100%;
 }
-.efv-viewer [id^='textLayer'] span::selection {
+.efv-viewer .textLayer span::selection {
   background-color: rgba(0, 119, 204, 0.35);
 }
 
@@ -196,20 +233,8 @@
   .efv-viewer .icon {
     @apply size-5 cursor-pointer transition-colors duration-150;
   }
-  .efv-viewer .icon-sm {
-    @apply size-4 cursor-pointer transition-colors duration-150;
-  }
   .efv-viewer .icon-dark {
     @apply size-5 text-gray-600 dark:text-gray-300 cursor-pointer transition-colors duration-150;
-  }
-  .efv-viewer .disabled-icon {
-    @apply size-5 cursor-not-allowed opacity-30;
-  }
-  .efv-viewer .input {
-    @apply w-full p-2 rounded-md bg-white text-black;
-  }
-  .efv-viewer .checkbox {
-    @apply appearance-none w-3 h-3 bg-white rounded-full hover:ring hover:ring-secondary focus:outline-none cursor-pointer checked:bg-secondary;
   }
   .efv-viewer .sidebar-label {
     @apply text-[12px] leading-none font-medium text-[#333] dark:text-gray-200 tracking-[0.1px];

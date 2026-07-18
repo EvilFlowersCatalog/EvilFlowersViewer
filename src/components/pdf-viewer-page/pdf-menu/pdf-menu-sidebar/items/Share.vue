@@ -32,7 +32,7 @@ const handlePagesInput = (event: Event) => {
 };
 
 const handleSubmit = async () => {
-  viewerStore.setShareLink('');
+  viewerStore.shareLink = '';
 
   const expaireDate = new Date();
   expaireDate.setHours(expaireDate.getHours() + expaire.value);
@@ -49,7 +49,7 @@ const handleSubmit = async () => {
   if (link !== ERROR_LINK) {
     const url = new URL(link);
     url.searchParams.set('annotations', `${useEdit.value}`);
-    viewerStore.setShareLink(url.toString());
+    viewerStore.shareLink = url.toString();
   }
 };
 </script>
@@ -63,6 +63,7 @@ const handleSubmit = async () => {
         name="share-input"
         class="flex-1 min-w-0 ml-[4px] bg-transparent text-[10px] font-light text-[#333] dark:text-gray-200 placeholder:text-[#b1b1b1] tracking-[0.1px] outline-none"
         type="text"
+        :aria-label="$t('pages')"
         :placeholder="'1, 4-7, 10'"
         @keydown.stop
         @input="handlePagesInput"
@@ -72,11 +73,12 @@ const handleSubmit = async () => {
     <!-- Add edits radio -->
     <label class="flex items-center gap-[6px] cursor-pointer select-none pl-[5px]">
       <span
+        aria-hidden="true"
         class="size-[11px] rounded-full border border-[#333] dark:border-gray-400 flex items-center justify-center shrink-0"
       >
         <span v-if="useEdit" class="size-[5px] rounded-full bg-[#333] dark:bg-gray-200"></span>
       </span>
-      <input type="checkbox" v-model="useEdit" class="hidden" />
+      <input type="checkbox" v-model="useEdit" class="sr-only" />
       <span class="text-[10px] text-[#333] dark:text-gray-300 leading-[1.4]">{{ $t('enable-edit') }}</span>
     </label>
 

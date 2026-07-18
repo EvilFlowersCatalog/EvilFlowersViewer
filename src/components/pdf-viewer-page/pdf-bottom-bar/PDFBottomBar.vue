@@ -5,7 +5,6 @@ import { PDFPreview } from '.';
 import { SIDEBAR_STATE } from '@/assets/utils/enums';
 
 const isDark = inject<Ref<boolean>>('isDark', ref(false));
-const barBg = computed(() => (isDark.value ? '#111111' : '#FFFFFF'));
 
 const docStore = useDocumentStore();
 
@@ -32,7 +31,7 @@ const handleInputChange = (event: Event) => {
 const handleKeyDown = (event: KeyboardEvent) => {
   event.stopPropagation();
   if (event.key === 'Enter' && inputValue.value) {
-    docStore.setActivePage(Number(inputValue.value));
+    docStore.activePage = Number(inputValue.value);
     inputValue.value = '';
     (event.target as HTMLInputElement).value = '';
   }
@@ -40,17 +39,14 @@ const handleKeyDown = (event: KeyboardEvent) => {
 
 const handleBlur = (event: FocusEvent) => {
   if (inputValue.value) {
-    docStore.setActivePage(Number(inputValue.value));
+    docStore.activePage = Number(inputValue.value);
     inputValue.value = '';
     (event.target as HTMLInputElement).value = '';
   }
 };
 
-const toggleSidebar = (state: SIDEBAR_STATE) => {
-  docStore.setSidebarState(
-    docStore.sidebarState === state ? SIDEBAR_STATE.NULL : state
-  );
-};
+// The store already treats re-selecting the open panel as "close".
+const toggleSidebar = (state: SIDEBAR_STATE) => docStore.setSidebarState(state);
 
 const iconBtn = computed(() => {
   const base = 'w-[18px] h-[18px] flex items-center justify-center rounded transition-colors';
@@ -64,25 +60,28 @@ const zoomBtnClass = (disabled: boolean) => {
   const dis = disabled ? ' opacity-30 cursor-not-allowed' : '';
   return isDark.value
     ? `${base} text-white bg-white/15${dis}`
-    : `${base} text-[#1E6FBA] bg-[#e6f3ff]${dis}`;
+    : `${base} text-accent-ink bg-accent-soft${dis}`;
 };
 </script>
 
 <template>
   <div
-    class="relative shrink-0 w-full flex flex-col items-center px-5 pb-4"
-    :style="{ backgroundColor: barBg, boxShadow: '3px -1px 2px rgba(0,0,0,0.15)' }"
+    class="relative shrink-0 w-full flex flex-col items-center px-5 pb-4 bg-topbar-bg"
+    :style="{ boxShadow: '3px -1px 2px rgba(0,0,0,0.15)' }"
     v-if="!docStore.isFullscreenMode"
   >
-    <!-- Recommendations chip — floats above the bar -->
+    <!-- Recommendations chip — floats above the bar. Width hugs the label so
+         the full "Odporúčania / Recommendations" text always shows (Figma). -->
     <button
       @click="toggleSidebar(SIDEBAR_STATE.RECOMMENDATIONS)"
-      class="absolute flex items-center text-xs font-normal text-black z-10"
-      style="right: 10px; top: -31px; width: 108px; height: 24px; padding: 0 5px 0 7px; gap: 6px; border-radius: 4px; background: #E6F3FF; box-shadow: 0 4px 6px 0 rgba(0,0,0,0.10);"
+      class="absolute flex items-center text-xs font-normal text-black z-10 bg-accent-soft"
+      style="right: 10px; top: -31px; height: 24px; padding: 0 7px; gap: 6px; border-radius: 4px; box-shadow: 0 4px 6px 0 rgba(0,0,0,0.10);"
+      :aria-label="$t('recommendations')"
+      :aria-expanded="docStore.sidebarState === SIDEBAR_STATE.RECOMMENDATIONS"
     >
-      <span class="flex-1 text-left truncate">{{ $t('recommendations') }}</span>
+      <span class="text-left whitespace-nowrap">{{ $t('recommendations') }}</span>
       <!-- TbBulb lightbulb icon -->
-      <svg class="shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E6FBA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg aria-hidden="true" class="shrink-0 text-accent-ink" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7" />
         <path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3" />
         <path d="M9.7 17l4.6 0" />
@@ -95,8 +94,9 @@ const zoomBtnClass = (disabled: boolean) => {
         @click="docStore.zoomIn"
         :class="zoomBtnClass(docStore.scale >= 3)"
         :disabled="docStore.scale >= 3"
+        :aria-label="$t('zoom-in')"
       >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round">
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round">
           <path d="M7 2v10M2 7h10"/>
         </svg>
       </button>
@@ -104,8 +104,9 @@ const zoomBtnClass = (disabled: boolean) => {
         @click="docStore.zoomOut"
         :class="zoomBtnClass(docStore.scale <= 0.25)"
         :disabled="docStore.scale <= 0.25"
+        :aria-label="$t('zoom-out')"
       >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round">
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round">
           <path d="M2 7h10"/>
         </svg>
       </button>
@@ -114,8 +115,14 @@ const zoomBtnClass = (disabled: boolean) => {
     <!-- Controls: chevron toggle + pagination -->
     <div class="relative w-full flex flex-col items-center">
       <!-- Chevron (collapse/expand thumbnail strip) -->
-      <button @click="togglePreview" :class="iconBtn">
+      <button
+        @click="togglePreview"
+        :class="iconBtn"
+        :aria-label="hidePreview ? $t('show-bottom-bar') : $t('hide-bottom-bar')"
+        :aria-expanded="!hidePreview"
+      >
         <svg
+          aria-hidden="true"
           class="w-[18px] h-[18px] transition-transform duration-300"
           :class="hidePreview ? '' : 'rotate-180'"
           viewBox="0 0 20 20"
@@ -131,8 +138,9 @@ const zoomBtnClass = (disabled: boolean) => {
           @click="docStore.previousPage"
           :class="[iconBtn, docStore.activePage === 1 ? 'opacity-30 cursor-not-allowed' : '']"
           :disabled="docStore.activePage === 1"
+          :aria-label="$t('previous-page')"
         >
-          <svg class="w-[18px] h-[18px]" viewBox="0 0 20 20" fill="none">
+          <svg aria-hidden="true" class="w-[18px] h-[18px]" viewBox="0 0 20 20" fill="none">
             <path d="M13 4L7 10L13 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
@@ -143,8 +151,10 @@ const zoomBtnClass = (disabled: boolean) => {
             class="w-[37px] h-5 rounded-[4px] text-center text-sm font-light outline-none tabular-nums transition-colors"
             :class="isDark
               ? 'bg-white/10 text-white shadow-[inset_0px_1px_3px_rgba(0,0,0,0.4)] placeholder:text-white/50'
-              : 'bg-[#f5f7fa] text-[#333] shadow-[inset_0px_1px_3px_rgba(0,0,0,0.25)] placeholder:text-gray-400'"
+              : 'bg-field text-[#333] shadow-[inset_0px_1px_3px_rgba(0,0,0,0.25)] placeholder:text-gray-400'"
             type="text"
+            inputmode="numeric"
+            :aria-label="$t('go-to-page')"
             :placeholder="String(docStore.activePage)"
             @keydown="handleKeyDown"
             @input="handleInputChange"
@@ -160,8 +170,9 @@ const zoomBtnClass = (disabled: boolean) => {
           @click="docStore.nextPage"
           :class="[iconBtn, docStore.activePage === docStore.totalPages ? 'opacity-30 cursor-not-allowed' : '']"
           :disabled="docStore.activePage === docStore.totalPages"
+          :aria-label="$t('next-page')"
         >
-          <svg class="w-[18px] h-[18px]" viewBox="0 0 20 20" fill="none">
+          <svg aria-hidden="true" class="w-[18px] h-[18px]" viewBox="0 0 20 20" fill="none">
             <path d="M7 4L13 10L7 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>

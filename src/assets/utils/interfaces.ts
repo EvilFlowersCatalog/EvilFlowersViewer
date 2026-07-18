@@ -10,6 +10,40 @@ export interface ISemanticSearchResult {
   score?: number;
 }
 
+/**
+ * A keyword-search hit the page canvas should highlight. Coordinates come from
+ * pdf.js `getTextContent` (unscaled, PDF user space) and are scaled to the
+ * current zoom by the renderer, so the highlight stays put across re-renders.
+ */
+export interface ISearchHighlight {
+  /** 1-based page the hit belongs to. */
+  page: number;
+  /** Text-item transform matrix ([a, b, c, d, e, f]). */
+  transform: number[];
+  /** Text-item width in unscaled PDF units. */
+  width: number;
+  /** Text-item height in unscaled PDF units. */
+  height: number;
+}
+
+/** Host hooks for the annotation/edit layer (create + persist SVG layers). */
+export interface IEditPackage {
+  saveGroupFunc: (name: string) => Promise<{ response: { id: string } }>;
+  getGroupsFunc: () => Promise<{ id: string; name: string }[]>;
+  saveLayerFunc: (
+    svg: string,
+    groupId: string,
+    page: number
+  ) => Promise<ILayer | null>;
+  updateLayerFunc: (
+    id: string,
+    svg: string,
+    groupId: string,
+    page: number
+  ) => Promise<void>;
+  getLayerFunc: (page: number, groupId: string) => Promise<ILayer | null> | null;
+}
+
 export interface IViewerOptions {
   theme?: 'dark' | 'light';
   lang?: 'sk' | 'en';
@@ -28,25 +62,7 @@ export interface IViewerOptions {
   semanticSearchFunction?:
     | ((query: string) => Promise<ISemanticSearchResult[]>)
     | null;
-  editPackage?: {
-    saveGroupFunc: (name: string) => Promise<{ response: { id: string } }>;
-    getGroupsFunc: () => Promise<{ id: string; name: string }[]>;
-    saveLayerFunc: (
-      svg: string,
-      groupId: string,
-      page: number
-    ) => Promise<ILayer | null>;
-    updateLayerFunc: (
-      id: string,
-      svg: string,
-      groupId: string,
-      page: number
-    ) => Promise<void>;
-    getLayerFunc: (
-      page: number,
-      groupId: string
-    ) => Promise<ILayer | null> | null;
-  } | null;
+  editPackage?: IEditPackage | null;
 }
 
 export interface IViewerProps {

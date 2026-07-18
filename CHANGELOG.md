@@ -1,30 +1,51 @@
 # Changelog
 
-## 0.7.0 : 2026-07-18
-
-Core dependency modernization. All features re-validated end-to-end (render, text layer, keyword + semantic search, editing/canvas, citation, thumbnails, navigation, theming) — no functional regressions.
-
-- **Changed**: **pdfjs-dist 4.8 → 6.1**. Adopted the v6-recommended `render({ canvas })` API (the legacy `canvasContext` path is gone from our code). Requires **Node ≥ 22.13** (declared in `engines`).
-- **Changed**: **Vite 5 → 8** (Rolldown bundler — build ~7× faster), **@vitejs/plugin-vue 5 → 6**, **vite-plugin-dts 4 → 5** (now needs `@vue/language-core`; dts points at `tsconfig.app.json`), **vite-plugin-svgr 4 → 5**, **vite-plugin-vue-devtools 7 → 8**.
-- **Changed**: **Pinia 2 → 4** (added the `@vue/devtools-api` peer), **vue-tsc 2 → 3**, **TypeScript 5.6 → 6.0**, **Vue 3.5.40**, **vue-i18n 11.4.6**, **DOMPurify 3.4**, plus dev-tooling patches.
-- **Fixed**: The full-text `SearchWorker` is now a proper ES **module worker** (`{ type: 'module' }` + `worker.format: 'es'`) — under Vite 8 the classic worker silently truncated results; keyword search now returns the complete match set.
-- **Fixed**: Pinned the lib CSS output back to `dist/style.css` (Vite 6+ renamed it from the package name).
-- **Removed**: `@fortawesome/fontawesome-svg-core` and `@fortawesome/vue-fontawesome` — dead dependencies (never imported).
-- **Deferred (deliberate)**: **Tailwind stays on 3.4** — v4 imposes a hard Chrome 111+/Safari 16.4+ floor on every consumer with no opt-out, an unacceptable reach regression for a distributed library. **TypeScript stays on 6.0** — TS 7's native compiler has no vue-tsc/Volar API yet and immature `.d.ts` emit. **citation-js stays on 0.7** — 0.8 calls Node's `util.promisify` and breaks in the browser.
-
 ## 0.6.0 : 2026-07-18
 
-Deep maintenance, refactor and Figma alignment of the core viewer.
+A large release covering the core-viewer overhaul: Figma-aligned redesign, style isolation, dependency modernization, an internal architecture refactor, an accessibility pass and reading-experience polish. **No breaking change to the public API** — `renderPDFViewer(...)` and the `options` / `config` contract are unchanged (the default export now additionally returns the Vue `App` instance). Re-validated end-to-end in the browser (render, text layer, zoom, keyword + semantic search with highlight, thumbnails, navigation, editing, citation, theming, keyboard/focus) — no functional regressions.
 
-- **Added**: Optional semantic / AI search via `options.semanticSearchFunction`; when provided the search panel shows a two-column keyword + AI results layout (matches the Figma design), otherwise it stays keyword-only.
-- **Added**: The default export now returns the Vue `App` instance so hosts can `unmount()` on teardown.
-- **Changed**: **Style isolation** — all styles are now scoped under a `.efv-viewer` root class and Tailwind's global preflight is disabled, so the library no longer restyles the host app's `*`, `body`, buttons, inputs or scrollbars. Consumers can drop any manual CSS wrapping/`!important` workarounds.
-- **Changed**: Inter is now self-hosted (latin + latin-ext subsets) instead of loaded from Google Fonts — CSP-safe and works offline.
-- **Changed**: `options.theme` is now honoured (was previously ignored); default theme is light, aligned with Figma.
-- **Changed**: Split the library entry (`main.ts`) from the dev harness (`dev.ts`) so sample PDFs and the demo app no longer ship in the published bundle.
-- **Changed**: vue-i18n moved to Composition API mode (legacy mode was deprecated).
-- **Fixed**: The PDF was parsed twice on load (once for the page view, once for thumbnails); it is now parsed once and shared, halving load work and memory.
-- **Fixed**: Removed `markRaw`/reactivity console warnings and a stray `print` store export.
+### Added
+
+- **Semantic / AI search** via `options.semanticSearchFunction`. When provided, the search panel shows a two-column keyword + AI results layout (matches the Figma design); otherwise it stays keyword-only.
+- **Accessibility (a11y)**: every icon-only control now has an accessible name (`aria-label`); toggles expose `aria-pressed` and panels `aria-expanded`; the left rail is a `role="toolbar"`, modals are `role="dialog"` + `aria-modal` with focus management and Escape-to-close, and loaders/status use `role="status"` with `aria-live`. The page canvas is marked decorative (`aria-hidden`) since the selectable text layer carries the content. Visible keyboard `:focus-visible` rings replace the previous `outline: none`, and animations respect `prefers-reduced-motion`. The root `lang` tracks the active locale.
+- **Search result navigation**: matched query terms are now bolded in result cards, with prev/next steppers to walk hits (Figma-aligned).
+- The default export returns the Vue `App` instance so hosts can `unmount()` on teardown.
+
+### Changed — product & design
+
+- **Style isolation** — all styles are scoped under a single `.efv-viewer` root class and Tailwind's global preflight is disabled, so importing the library no longer restyles the host app's `*`, `body`, buttons, inputs or scrollbars. Consumers can drop any manual CSS wrapping / `!important` workarounds.
+- Inter is **self-hosted** (latin + latin-ext subsets) instead of loaded from Google Fonts — CSP-safe and works offline.
+- `options.theme` is now **honoured** (previously ignored); default is light, aligned with Figma. The sun/moon toggle remains.
+- **Colour tokens**: toolbar / bottom-bar colour literals moved onto CSS design tokens (`--efv-accent-soft`, `--efv-accent-ink`, `--efv-field-bg`, …) so the whole UI themes from one place. The "Odporúčania / Recommendations" chip now shows its full label.
+
+### Changed — architecture & performance
+
+- **pdfjs-dist 4.8 → 6.1**. Adopted the v6 `render({ canvas })` API (the legacy `canvasContext` path is gone). Requires **Node ≥ 22.13** (declared in `engines`).
+- **Cheaper zoom**: page navigation and zoom now take separate render paths. A scale change re-rasterises the canvas for crispness but reflows the text layer in place with pdf.js 6's `TextLayer.update({ viewport })` instead of re-fetching text and rebuilding the layer.
+- **No shared global DOM ids**: `getElementById('pdf-page-canvas' | 'textLayer' | 'QRCode' | 'preview-*')` replaced with Vue template refs (+ a modal-scoped query for the QR canvas). Combined with the per-call Pinia store, several viewers can coexist on one page.
+- **Search ↔ page decoupled**: the keyword highlight is published to the store and drawn by `PDFPage` (was `Search.vue` reaching into the page canvas). It is now scale-aware (previously mis-placed at any zoom ≠ 100%) and survives page/zoom re-renders.
+- **Slimmer stores**: hand-written getter/setter pairs dropped for direct ref exposure; only behaviour-bearing operations (page bounds, scale clamping, sidebar/modal toggles, undo/redo) remain as actions.
+- Toolchain: **Vite 5 → 8** (Rolldown, build ~7× faster), plugin-vue 5 → 6, vite-plugin-dts 4 → 5, vite-plugin-svgr 4 → 5, vite-plugin-vue-devtools 7 → 8, **Pinia 2 → 4**, vue-tsc 2 → 3, **TypeScript 5.6 → 6.0**, **Vue 3.5.40**, vue-i18n 11.4.6, DOMPurify 3.4.
+- Split the library entry (`main.ts`) from the dev harness (`dev.ts`) so sample PDFs and the demo app no longer ship in the published bundle.
+- vue-i18n moved to Composition API mode (legacy mode was deprecated).
+
+### Fixed
+
+- The full-text `SearchWorker` is now a proper ES **module worker** (`{ type: 'module' }` + `worker.format: 'es'`) — under Vite 8 the classic worker silently truncated results; keyword search now returns the complete match set.
+- The PDF was **parsed twice** on load (once for the page view, once for thumbnails); it is now parsed once and shared, halving load work and memory.
+- Pinned the lib CSS output back to `dist/style.css` (Vite 6+ renamed it from the package name).
+- Removed `markRaw` / reactivity console warnings and a stray `print` store export.
+
+### Removed
+
+- Dead dependencies `@fortawesome/fontawesome-svg-core` and `@fortawesome/vue-fontawesome` (never imported).
+- Dead code — the unused `ValidationInput` component, unused CSS utilities (`.input`, `.checkbox`, `.icon-sm`, `.disabled-icon`, the `#loader` dot rules), the unused `blinkBorder` keyframe/animation, and orphaned thumbnail visibility/emit plumbing in `PDFPreview`.
+
+### Deferred (deliberate)
+
+- **Tailwind stays on 3.4** — v4 imposes a hard Chrome 111+ / Safari 16.4+ floor on every consumer with no opt-out, an unacceptable reach regression for a distributed library.
+- **TypeScript stays on 6.0** — TS 7's native compiler has no vue-tsc / Volar API yet and immature `.d.ts` emit.
+- **citation-js stays on 0.7** — 0.8 calls Node's `util.promisify` and breaks in the browser.
 
 ## 1.0.0 : 2024-12-30
 

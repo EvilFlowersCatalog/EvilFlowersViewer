@@ -8,14 +8,27 @@ import {
   RENDER_STATE,
   SIDEBAR_STATE,
 } from '@/assets/utils/enums';
-import type { ILayer, ITOCItem } from '@/assets/utils/interfaces';
+import type {
+  ILayer,
+  ISearchHighlight,
+  ITOCItem,
+} from '@/assets/utils/interfaces';
 import {
   DEFAULT_PAGE,
   DEFAULT_TOOL_COLOR,
+  MAX_SCALE,
+  MIN_SCALE,
   MIN_TOOL_SIZE,
   MOBILE_SIZE,
+  SCALE_STEP,
 } from '@/assets/utils/constans';
 
+/**
+ * Per-instance document state. Refs are exposed directly (read + write) — see
+ * the Pinia setup-store pattern; only operations that carry real logic (page
+ * bounds, scale clamping, sidebar/modal toggling, undo/redo) are kept as
+ * actions so the invariants live in one place.
+ */
 export const useDocumentStore = defineStore('document', () => {
   const pdf = ref<PDFDocumentProxy | null>(null);
   const previewPdf = ref<PDFDocumentProxy | null>(null);
@@ -28,7 +41,6 @@ export const useDocumentStore = defineStore('document', () => {
   const isFullscreenMode = ref<boolean>(!!document.fullscreenElement);
   const sidebarState = ref<SIDEBAR_STATE>(SIDEBAR_STATE.NULL);
   const modalContent = ref<MODAL_CONTENT>(MODAL_CONTENT.NULL);
-  const reRenderPage = ref<boolean>(false);
   const editTool = ref<EDIT_TOOL>(EDIT_TOOL.MOUSE);
   const toolColor = ref<string>(DEFAULT_TOOL_COLOR);
   const toolSize = ref<number>(MIN_TOOL_SIZE);
@@ -44,110 +56,44 @@ export const useDocumentStore = defineStore('document', () => {
   const canRedo = ref<boolean>(false);
   const undoFn = ref<(() => void) | null>(null);
   const redoFn = ref<(() => void) | null>(null);
+  // The text match the page canvas should highlight. Owned here (not reached
+  // for via the DOM) so Search and PDFPage stay decoupled and the highlight
+  // survives page/zoom re-renders.
+  const searchHighlight = ref<ISearchHighlight | null>(null);
 
-  // Check if page is rendered (don't block on layer state)
-  const isLoaded = () => {
-    return renderState.value === RENDER_STATE.RENDERED;
-  };
+  // Page is considered ready once its bitmap is painted (text layer is async
+  // and must not block navigation/zoom).
+  const isLoaded = () => renderState.value === RENDER_STATE.RENDERED;
 
-  // Setters
-  const setPdf = (val: PDFDocumentProxy) => {
-    pdf.value = val;
-  };
-  const setPreviewPdf = (val: PDFDocumentProxy) => {
-    previewPdf.value = val;
-  };
-  const setActivePage = (val: number) => {
-    activePage.value = val;
-  };
-  const nextPage = () => {
-    const page = activePage.value + 1;
-    activePage.value = page > totalPages.value ? totalPages.value : page;
-  };
-  const previousPage = () => {
-    const page = activePage.value - 1;
-    activePage.value = page < 1 ? 1 : page;
-  };
-  const setTotalPages = (val: number) => {
-    totalPages.value = val;
-  };
+  const clampScale = (val: number) =>
+    val < MIN_SCALE ? MIN_SCALE : val > MAX_SCALE ? MAX_SCALE : val;
+
   const setScale = (val: number) => {
-    if (isLoaded()) scale.value = val < 0.25 ? 0.25 : val <= 3 ? val : 3;
-  };
-  const setCanvasWidth = (val: number) => {
-    canvasWidth.value = val;
-  };
-  const setCanvasHeight = (val: number) => {
-    canvasHeight.value = val;
-  };
-  const zoomOut = () => {
-    if (isLoaded()) {
-      const newScale = scale.value - 0.25;
-      scale.value = newScale < 0.25 ? 0.25 : newScale;
-    }
+    if (isLoaded()) scale.value = clampScale(val);
   };
   const zoomIn = () => {
-    if (isLoaded()) {
-      const newScale = scale.value + 0.25;
-      scale.value = newScale > 3 ? 3 : newScale;
-    }
+    if (isLoaded()) scale.value = clampScale(scale.value + SCALE_STEP);
   };
-  const setRenderState = (val: RENDER_STATE) => {
-    renderState.value = val;
+  const zoomOut = () => {
+    if (isLoaded()) scale.value = clampScale(scale.value - SCALE_STEP);
   };
+
+  const nextPage = () => {
+    activePage.value = Math.min(activePage.value + 1, totalPages.value);
+  };
+  const previousPage = () => {
+    activePage.value = Math.max(activePage.value - 1, 1);
+  };
+
+  // Sidebar/modal are single-slot: selecting the open item closes it.
   const setSidebarState = (val: SIDEBAR_STATE) => {
-    if (sidebarState.value === val) sidebarState.value = SIDEBAR_STATE.NULL;
-    else sidebarState.value = val;
+    sidebarState.value =
+      sidebarState.value === val ? SIDEBAR_STATE.NULL : val;
   };
-  const setModalContent = (value: MODAL_CONTENT) => {
-    if (modalContent.value === value) modalContent.value = MODAL_CONTENT.NULL;
-    else modalContent.value = value;
+  const setModalContent = (val: MODAL_CONTENT) => {
+    modalContent.value = modalContent.value === val ? MODAL_CONTENT.NULL : val;
   };
-  const setIsFullscreenMode = (value: boolean) => {
-    isFullscreenMode.value = value;
-  };
-  const setReRenderPage = (value: boolean) => {
-    reRenderPage.value = value;
-  };
-  const setEditTool = (value: EDIT_TOOL) => {
-    editTool.value = value;
-  };
-  const setToolSize = (value: number) => {
-    toolSize.value = value;
-  };
-  const setToolColor = (value: string) => {
-    toolColor.value = value;
-  };
-  const setTOC = (value: ITOCItem[]) => {
-    toc.value = value;
-  };
-  const setIsMobile = (value: boolean) => {
-    isMobile.value = value;
-  };
-  const setLayerState = (value: LAYER_STATE) => {
-    layerState.value = value;
-  };
-  const setLayer = (value: ILayer | null) => {
-    layer.value = value;
-  };
-  const setEdit = (value: boolean) => {
-    edit.value = value;
-  };
-  const setGroupId = (value: string) => {
-    groupId.value = value;
-  };
-  const setCanUndo = (value: boolean) => {
-    canUndo.value = value;
-  };
-  const setCanRedo = (value: boolean) => {
-    canRedo.value = value;
-  };
-  const setUndoFn = (value: (() => void) | null) => {
-    undoFn.value = value;
-  };
-  const setRedoFn = (value: (() => void) | null) => {
-    redoFn.value = value;
-  };
+
   const undo = () => {
     if (canUndo.value) undoFn.value?.();
   };
@@ -156,59 +102,42 @@ export const useDocumentStore = defineStore('document', () => {
   };
 
   return {
+    // state
     pdf,
     previewPdf,
     activePage,
     totalPages,
     scale,
+    canvasWidth,
+    canvasHeight,
     renderState,
     isFullscreenMode,
     sidebarState,
     modalContent,
-    reRenderPage,
     editTool,
     toolColor,
     toolSize,
     toc,
-    canvasHeight,
-    canvasWidth,
     isMobile,
     layerState,
     layer,
-    edit,
     groupId,
+    edit,
     canUndo,
     canRedo,
-    setGroupId,
-    setEdit,
-    setLayer,
-    setCanUndo,
-    setCanRedo,
-    setUndoFn,
-    setRedoFn,
-    undo,
-    redo,
-    setPdf,
-    setPreviewPdf,
-    setActivePage,
-    setTotalPages,
-    setRenderState,
+    undoFn,
+    redoFn,
+    searchHighlight,
+    // actions
+    isLoaded,
     setScale,
-    setIsFullscreenMode,
-    setModalContent,
-    setLayerState,
     zoomIn,
     zoomOut,
     nextPage,
     previousPage,
     setSidebarState,
-    setReRenderPage,
-    setEditTool,
-    setToolColor,
-    setToolSize,
-    setTOC,
-    setCanvasWidth,
-    setCanvasHeight,
-    setIsMobile,
+    setModalContent,
+    undo,
+    redo,
   };
 });

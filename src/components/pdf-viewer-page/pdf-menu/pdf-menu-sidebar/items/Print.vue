@@ -87,6 +87,7 @@ const print = () => {
         name="print-input"
         class="flex-1 min-w-0 ml-[4px] bg-transparent text-[10px] font-light text-[#333] dark:text-gray-200 placeholder:text-[#b1b1b1] tracking-[0.1px] outline-none"
         type="text"
+        :aria-label="$t('pages')"
         :placeholder="'1, 4-7, 10'"
         @keydown.stop
         @input="handlePagesInput"
@@ -95,10 +96,10 @@ const print = () => {
 
     <!-- Add edits radio -->
     <label class="flex items-center gap-[6px] cursor-pointer select-none pl-[5px]">
-      <span class="size-[11px] rounded-full border border-[#333] dark:border-gray-400 flex items-center justify-center shrink-0">
+      <span aria-hidden="true" class="size-[11px] rounded-full border border-[#333] dark:border-gray-400 flex items-center justify-center shrink-0">
         <span v-if="useEdit" class="size-[5px] rounded-full bg-[#333] dark:bg-gray-200"></span>
       </span>
-      <input type="checkbox" v-model="useEdit" class="hidden" />
+      <input type="checkbox" v-model="useEdit" class="sr-only" />
       <span class="text-[10px] text-[#333] dark:text-gray-300 leading-[1.4]">{{ $t('enable-edit') }}</span>
     </label>
 

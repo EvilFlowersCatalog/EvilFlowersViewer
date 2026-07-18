@@ -3,16 +3,32 @@ import { SIDEBAR_STATE } from '@/assets/utils/enums';
 import { useDocumentStore, useViewerStore } from '@/stores';
 import { Info, Share, Search, Print } from './items';
 import { TOC } from '@/components/pdf-viewer-page/pdf-modal/items';
-import { computed } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
+const panelRef = ref<HTMLDivElement | null>(null);
 
 // The search panel needs more room for the second (semantic) column.
 const isWide = computed(
   () =>
     docStore.sidebarState === SIDEBAR_STATE.SEARCH &&
     !!viewerStore.semanticSearchFunction
+);
+
+// Move keyboard focus into the panel when it opens — prefer the first field so
+// e.g. the search box is ready to type into.
+watch(
+  () => docStore.sidebarState,
+  (state) => {
+    if (state === SIDEBAR_STATE.NULL) return;
+    nextTick(() => {
+      const first = panelRef.value?.querySelector<HTMLElement>(
+        'input, textarea, button, [tabindex]:not([tabindex="-1"])'
+      );
+      first?.focus();
+    });
+  }
 );
 
 const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
@@ -29,8 +45,11 @@ const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
   <!-- Floating panel: absolutely positioned over the content, never pushes or resizes siblings -->
   <div
     v-if="docStore.sidebarState !== SIDEBAR_STATE.NULL"
+    ref="panelRef"
     class="absolute top-3 left-1.5 bottom-3 flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[5px] shadow-[2px_0px_8px_rgba(0,0,0,0.12)] z-10 overflow-hidden transition-[width] duration-200"
     :class="isWide ? 'w-[400px]' : 'w-[207px]'"
+    role="region"
+    :aria-label="$t(sidebarTitles[docStore.sidebarState] ?? docStore.sidebarState)"
   >
     <!-- Header -->
     <div class="flex items-center justify-between px-4 py-1 border-b border-gray-200 dark:border-white/10 shrink-0">
@@ -40,10 +59,10 @@ const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
       <button
         @click="docStore.setSidebarState(SIDEBAR_STATE.NULL)"
         class="ml-auto text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors p-1 rounded-[5px] hover:bg-gray-100 dark:hover:bg-white/10"
-        title="Close"
+        :aria-label="$t('close')"
       >
         <!-- Double-chevron left -->
-        <svg class="size-[18px]" viewBox="0 0 20 20" fill="none">
+        <svg aria-hidden="true" class="size-[18px]" viewBox="0 0 20 20" fill="none">
           <path d="M11 5L6 10L11 15M16 5L11 10L16 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>

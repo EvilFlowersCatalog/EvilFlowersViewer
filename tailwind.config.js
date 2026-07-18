@@ -10,17 +10,12 @@ export default {
   theme: {
     extend: {
       keyframes: {
-        blinkBorder: {
-          '0%': { border: '4px solid #0077CC' },
-          '100%': { border: '4px solid white' },
-        },
         blinkIcon: {
           '0%': { opacity: 1 },
           '100%': { opacity: 0 },
         },
       },
       animation: {
-        'blink-border': 'blinkBorder 0.5s ease-out',
         'blink-icon': 'blinkIcon 0.5s ease-out',
       },
       transitionProperty: {
@@ -44,6 +39,9 @@ export default {
         'efv-border': 'var(--efv-border)',
         'efv-text': 'var(--efv-text)',
         'efv-muted': 'var(--efv-text-muted)',
+        'accent-soft': 'var(--efv-accent-soft)',
+        'accent-ink': 'var(--efv-accent-ink)',
+        field: 'var(--efv-field-bg)',
         red: '#ff0000',
       },
     },

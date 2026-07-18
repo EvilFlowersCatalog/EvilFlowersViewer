@@ -28,7 +28,6 @@ const viewerStore = useViewerStore();
   <!-- QR code -->
   <qrcode-vue
     v-else
-    id="QRCode"
     :value="viewerStore.shareLink"
     :size="250"
     level="H"

@@ -22,6 +22,7 @@ efficient PDF viewer that is easy to use and customize.
 - Light / dark themes (honours the host-provided theme, defaults to light)
 - Fullscreen mode
 - Editing document (freehand, shapes, highlighter, eraser, undo/redo)
+- Keyboard-friendly and screen-reader accessible (see [Accessibility](#accessibility))
 
 ## Styling & isolation
 
@@ -34,6 +35,25 @@ the stylesheet — no manual scoping/wrapping required:
 ```ts
 import '@evilflowers/evilflowersviewer/dist/style.css';
 ```
+
+## Accessibility
+
+The viewer is built to be usable with a keyboard and assistive technologies:
+
+- **Keyboard**: all controls are reachable via <kbd>Tab</kbd>; page thumbnails, tools
+  and color swatches respond to <kbd>Enter</kbd>/<kbd>Space</kbd>. Shortcuts:
+  <kbd>←</kbd>/<kbd>→</kbd> page, <kbd>+</kbd>/<kbd>-</kbd> zoom, <kbd>F</kbd> search,
+  <kbd>T</kbd> table of contents, <kbd>I</kbd> info, <kbd>S</kbd> share, <kbd>C</kbd>
+  citation, <kbd>Esc</kbd> steps back out (modal → panel → tool → zoom → page → close).
+- **Screen readers**: every icon-only button has an accessible name (localized), toggles
+  expose `aria-pressed`/`aria-expanded`, the left rail is a `role="toolbar"`, dialogs are
+  `role="dialog"` + `aria-modal` with focus trapping, and loaders announce via
+  `role="status"`. The rasterized page canvas is `aria-hidden`; the selectable pdf.js text
+  layer carries the readable content.
+- **Focus & motion**: a visible `:focus-visible` ring is shown for keyboard users, and all
+  animations respect `prefers-reduced-motion`.
+- The viewer root carries a `lang` attribute matching `options.lang` so pronunciation is
+  correct. All a11y CSS is scoped under `.efv-viewer` and never touches the host page.
 
 ## Features Under Development
 

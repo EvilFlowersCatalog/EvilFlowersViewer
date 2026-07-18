@@ -30,10 +30,10 @@ const value = ref(docStore.toolSize);
           :interval="INTERVAL"
           :height="4"
           :dot-size="12"
-          :rail-style="{ backgroundColor: '#E5E7EB', borderRadius: '40px' }"
-          :process-style="{ backgroundColor: '#0077cc', borderRadius: '40px' }"
+          :rail-style="{ backgroundColor: 'var(--efv-border)', borderRadius: '40px' }"
+          :process-style="{ backgroundColor: 'var(--efv-primary)', borderRadius: '40px' }"
           :dot-style="{
-            backgroundColor: '#0a3a66',
+            backgroundColor: 'var(--efv-primary-strong)',
             border: 'none',
             boxShadow: 'none',
           }"
@@ -41,7 +41,7 @@ const value = ref(docStore.toolSize);
           dragOnClick
           silent
           class="tool-size-slider !my-1"
-          @change="(e: number) => docStore.setToolSize(e)"
+          @change="(e: number) => docStore.toolSize = e"
           tooltip="none"
         />
       </div>
@@ -50,9 +50,10 @@ const value = ref(docStore.toolSize);
       <div class="flex flex-col gap-1">
         <span class="text-[10px] font-medium">{{ $t('colors') }}</span>
         <div class="grid grid-cols-3 gap-x-[12px] gap-y-[7px] px-[5px] py-1">
-          <div
+          <button
             v-for="color of colors"
             :key="color.value"
+            type="button"
             class="size-[27px] rounded-[5px] border-2 cursor-pointer shadow-[0px_4px_12px_0px_rgba(0,0,0,0.1)]"
             :class="
               docStore.toolColor === color.value
@@ -60,8 +61,10 @@ const value = ref(docStore.toolSize);
                 : 'border-transparent'
             "
             :style="{ backgroundColor: color.value }"
-            @click="docStore.setToolColor(color.value)"
-          ></div>
+            :aria-label="`${$t('select-color')} ${color.value}`"
+            :aria-pressed="docStore.toolColor === color.value"
+            @click="docStore.toolColor = color.value"
+          ></button>
         </div>
       </div>
     </div>
