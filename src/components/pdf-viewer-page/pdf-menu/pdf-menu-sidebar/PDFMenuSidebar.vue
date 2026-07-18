@@ -1,20 +1,12 @@
 <script setup lang="ts">
 import { SIDEBAR_STATE } from '@/assets/utils/enums';
-import { useDocumentStore, useViewerStore } from '@/stores';
+import { useDocumentStore } from '@/stores';
 import { Info, Share, Search, Print } from './items';
 import { TOC } from '@/components/pdf-viewer-page/pdf-modal/items';
-import { computed, nextTick, ref, watch } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 
 const docStore = useDocumentStore();
-const viewerStore = useViewerStore();
 const panelRef = ref<HTMLDivElement | null>(null);
-
-// The search panel needs more room for the second (semantic) column.
-const isWide = computed(
-  () =>
-    docStore.sidebarState === SIDEBAR_STATE.SEARCH &&
-    !!viewerStore.semanticSearchFunction
-);
 
 // Move keyboard focus into the panel when it opens — prefer the first field so
 // e.g. the search box is ready to type into.
@@ -46,8 +38,7 @@ const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
   <div
     v-if="docStore.sidebarState !== SIDEBAR_STATE.NULL"
     ref="panelRef"
-    class="absolute top-3 left-1.5 bottom-3 flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[5px] shadow-[2px_0px_8px_rgba(0,0,0,0.12)] z-10 overflow-hidden transition-[width] duration-200"
-    :class="isWide ? 'w-[400px]' : 'w-[207px]'"
+    class="absolute top-3 left-1.5 bottom-3 w-[207px] flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[5px] shadow-[2px_0px_8px_rgba(0,0,0,0.12)] z-10 overflow-hidden"
     role="region"
     :aria-label="$t(sidebarTitles[docStore.sidebarState] ?? docStore.sidebarState)"
   >

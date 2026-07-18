@@ -56,7 +56,7 @@ const iconBtn = computed(() => {
 });
 
 const zoomBtnClass = (disabled: boolean) => {
-  const base = 'w-4 h-4 flex items-center justify-center rounded-[4px] transition-colors shadow-[inset_0px_1px_3px_rgba(0,0,0,0.25)]';
+  const base = 'w-4 h-4 flex items-center justify-center rounded-[4px] p-[3.5px] transition-colors shadow-[inset_0px_1px_3px_rgba(0,0,0,0.25)]';
   const dis = disabled ? ' opacity-30 cursor-not-allowed' : '';
   return isDark.value
     ? `${base} text-white bg-white/15${dis}`
@@ -117,6 +117,7 @@ const zoomBtnClass = (disabled: boolean) => {
       <!-- Chevron (collapse/expand thumbnail strip) -->
       <button
         @click="togglePreview"
+        class="p-[1px]"
         :class="iconBtn"
         :aria-label="hidePreview ? $t('show-bottom-bar') : $t('hide-bottom-bar')"
         :aria-expanded="!hidePreview"
@@ -136,6 +137,7 @@ const zoomBtnClass = (disabled: boolean) => {
       <div class="flex items-center gap-2 h-5 mt-[3px]">
         <button
           @click="docStore.previousPage"
+          class="p-[1px]"
           :class="[iconBtn, docStore.activePage === 1 ? 'opacity-30 cursor-not-allowed' : '']"
           :disabled="docStore.activePage === 1"
           :aria-label="$t('previous-page')"
@@ -168,6 +170,7 @@ const zoomBtnClass = (disabled: boolean) => {
 
         <button
           @click="docStore.nextPage"
+          class="p-[1px]"
           :class="[iconBtn, docStore.activePage === docStore.totalPages ? 'opacity-30 cursor-not-allowed' : '']"
           :disabled="docStore.activePage === docStore.totalPages"
           :aria-label="$t('next-page')"

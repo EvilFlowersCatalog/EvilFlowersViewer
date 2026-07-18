@@ -25,6 +25,10 @@
 @import '@fontsource/inter/latin-ext-600.css';
 @import '@fontsource/inter/latin-ext-700.css';
 
+/* corePlugins.preflight is off (tailwind.config.js), so this emits nothing
+   except the `@layer base` block below — it exists only to give that block a
+   valid insertion point ahead of `@layer components`/`@layer utilities`. */
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -75,6 +79,16 @@
  * Scoped reset — the essential slice of Tailwind's preflight that utilities
  * depend on (border-style, box-sizing) plus sensible defaults, applied ONLY
  * inside the viewer. Never touches the host.
+ *
+ * Wrapped in `@layer base` and using `:where()` on the tag-name part of each
+ * selector: Tailwind reorders `@layer base` content ahead of `@layer
+ * utilities` regardless of where it's written in this file, and `:where()`
+ * keeps these selectors at the same specificity as a single utility class
+ * (0,1,0). Without both of those, `.efv-viewer button { background: none }`
+ * (specificity 0,1,1) permanently wins over `.bg-accent-soft` (0,1,0) no
+ * matter the source order — which is what was breaking background, text and
+ * font utilities on buttons and TOC items. Consumers styling the viewer via
+ * plain utility classes or their own CSS now win as expected.
  * ------------------------------------------------------------------------- */
 .efv-viewer,
 .efv-viewer *,
@@ -94,18 +108,17 @@
   -webkit-text-size-adjust: 100%;
 }
 
-.efv-viewer button,
-.efv-viewer input,
-.efv-viewer textarea,
-.efv-viewer select {
-  font: inherit;
-  color: inherit;
-  margin: 0;
-}
+@layer base {
+  .efv-viewer :where(button, input, textarea, select) {
+    font: inherit;
+    color: inherit;
+    margin: 0;
+  }
 
-.efv-viewer button {
-  background: none;
-  cursor: pointer;
+  .efv-viewer :where(button) {
+    background: none;
+    cursor: pointer;
+  }
 }
 
 /* Hide the focus ring for pointer users, but always show a clear one for
