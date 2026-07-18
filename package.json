@@ -1,6 +1,6 @@
 {
   "name": "@evilflowers/evilflowersviewer",
-  "version": "0.5.20",
+  "version": "0.6.0",
   "main": "dist/evilFlowersViewer.umd.js",
   "module": "dist/evilFlowersViewer.es.js",
   "types": "dist/main.d.ts",
@@ -20,6 +20,7 @@
     "type-check": "vue-tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.2.8",
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
     "@fortawesome/vue-fontawesome": "^3.0.8",
     "@kalimahapps/vue-icons": "^1.7.1",

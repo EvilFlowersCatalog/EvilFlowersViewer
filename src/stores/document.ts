@@ -210,6 +210,5 @@ export const useDocumentStore = defineStore('document', () => {
     setCanvasWidth,
     setCanvasHeight,
     setIsMobile,
-    print,
   };
 });

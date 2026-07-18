@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.0 : 2026-07-18
+
+Deep maintenance, refactor and Figma alignment of the core viewer.
+
+- **Added**: Optional semantic / AI search via `options.semanticSearchFunction`; when provided the search panel shows a two-column keyword + AI results layout (matches the Figma design), otherwise it stays keyword-only.
+- **Added**: The default export now returns the Vue `App` instance so hosts can `unmount()` on teardown.
+- **Changed**: **Style isolation** — all styles are now scoped under a `.efv-viewer` root class and Tailwind's global preflight is disabled, so the library no longer restyles the host app's `*`, `body`, buttons, inputs or scrollbars. Consumers can drop any manual CSS wrapping/`!important` workarounds.
+- **Changed**: Inter is now self-hosted (latin + latin-ext subsets) instead of loaded from Google Fonts — CSP-safe and works offline.
+- **Changed**: `options.theme` is now honoured (was previously ignored); default theme is light, aligned with Figma.
+- **Changed**: Split the library entry (`main.ts`) from the dev harness (`dev.ts`) so sample PDFs and the demo app no longer ship in the published bundle.
+- **Changed**: vue-i18n moved to Composition API mode (legacy mode was deprecated).
+- **Fixed**: The PDF was parsed twice on load (once for the page view, once for thumbnails); it is now parsed once and shared, halving load work and memory.
+- **Fixed**: Removed `markRaw`/reactivity console warnings and a stray `print` store export.
+
 ## 1.0.0 : 2024-12-30
 
 - **Changed**: Design of whole viewer

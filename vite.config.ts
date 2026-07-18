@@ -35,6 +35,12 @@ export default defineConfig(async ({ mode }: UserConfig) => {
         },
       },
       build: {
+        // Fonts are intentionally inlined into style.css (Vite library mode
+        // inlines CSS assets regardless of assetsInlineLimit). This keeps the
+        // stylesheet fully self-contained, so consumers can load it however
+        // they like — a normal bundler import or an inline string — without
+        // broken relative font URLs. The cost is a larger CSS file (subsetted
+        // to latin + latin-ext to keep it in check).
         lib: {
           entry: './src/main.ts',
           name: 'evilFlowersViewer',

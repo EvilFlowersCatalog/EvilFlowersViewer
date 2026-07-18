@@ -29,6 +29,16 @@ const options: IViewerOptions = {
   citationBib: exampleCitation,
   shareFunction: exampleShareFunction,
   printFunction: examplePrintFunction,
+  // Dev stub for semantic search — returns a few fake hits after a short delay
+  // so the two-column search layout can be exercised locally.
+  semanticSearchFunction: async (query: string) => {
+    await new Promise((r) => setTimeout(r, 500));
+    return [
+      { page: 3, text: `Sémanticky podobné k „${query}“: úvod do témy.`, score: 0.94 },
+      { page: 8, text: `Kontext súvisiaci s „${query}“ v kapitole 2.`, score: 0.88 },
+      { page: 21, text: `Ďalšia relevantná pasáž pre „${query}“.`, score: 0.79 },
+    ];
+  },
   homeFunction,
   closeFunction,
   editPackage: {

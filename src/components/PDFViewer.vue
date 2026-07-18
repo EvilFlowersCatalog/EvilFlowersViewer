@@ -33,9 +33,12 @@ const { data, options, config } = defineProps<IViewerProps>();
 const viewerStore = useViewerStore();
 const docStore = useDocumentStore();
 const failed = ref<boolean>(false);
-const isDark = ref<boolean>(false);
-const viewerBg = computed(() => isDark.value ? '#1A1A1A' : '#525252');
-const topbarBg = computed(() => isDark.value ? '#111111' : '#FFFFFF');
+// Honor the host-provided theme; default to light (the Figma source of truth).
+const isDark = ref<boolean>(options?.theme === 'dark');
+// Kept in sync with the CSS design tokens in main.css (--efv-viewer-bg /
+// --efv-topbar-bg) so the JS-provided values and the token theme never drift.
+const viewerBg = computed(() => (isDark.value ? '#1A1A1A' : '#EDEDED'));
+const topbarBg = computed(() => (isDark.value ? '#111111' : '#FFFFFF'));
 
 const toggleDark = () => {
   isDark.value = !isDark.value;
@@ -83,16 +86,27 @@ const getTOC = async (
   return toc;
 };
 
+// Set the active locale in a way that works in both Composition mode
+// (locale is a WritableComputedRef) and Legacy mode (locale is a string).
+// Kept out of loadDocument so a locale hiccup can never block PDF loading.
+const applyLocale = (lang: string) => {
+  const locale = i18n.global.locale as unknown;
+  if (locale && typeof locale === 'object' && 'value' in (locale as object)) {
+    (locale as { value: string }).value = lang;
+  } else {
+    (i18n.global as unknown as { locale: string }).locale = lang;
+  }
+};
+
 const loadDocument = async () => {
   try {
-    if (options?.lang) i18n.global.locale = options.lang;
+    // Parse the document once and share the single PDFDocumentProxy between the
+    // main page view and the thumbnail strip. pdf.js serialises render tasks per
+    // page internally, so concurrent main + preview renders are safe — this
+    // halves both the parse work and the in-memory footprint vs. loading twice.
+    const pdf = await getDocument({ data: new Uint8Array(data) }).promise;
 
-    const [pdf, previewPdf] = await Promise.all([
-      getDocument({ data: new Uint8Array(data) }).promise,
-      getDocument({ data: new Uint8Array(data) }).promise,
-    ]);
-
-    docStore.setPreviewPdf(previewPdf);
+    docStore.setPreviewPdf(pdf);
 
     const outline = await pdf.getOutline();
     if (outline) {
@@ -128,8 +142,10 @@ onMounted(() => {
   viewerStore.setHomeFunction(options?.homeFunction ?? null);
   viewerStore.setEditPackage(options?.editPackage ?? null);
   viewerStore.setLang(options?.lang ?? 'en');
+  applyLocale(options?.lang ?? 'en');
   viewerStore.setShareFunction(options?.shareFunction ?? null);
   viewerStore.setPrintFunction(options?.printFunction ?? null);
+  viewerStore.setSemanticSearchFunction(options?.semanticSearchFunction ?? null);
   viewerStore.setConfig({
     ...{
       download: false,
@@ -195,7 +211,8 @@ onMounted(() => {
   <!-- Failed container -->
   <div
     v-if="failed"
-    class="flex flex-col h-screen w-screen justify-center items-center text-4xl uppercase font-extrabold text-white font-serif"
+    class="efv-viewer flex flex-col h-screen w-screen justify-center items-center text-4xl uppercase font-extrabold text-white font-serif"
+    :class="{ dark: isDark }"
     :style="{ backgroundColor: viewerBg }"
   >
     {{ $t('failed-load-pdf') }}
@@ -204,7 +221,8 @@ onMounted(() => {
   <!-- Loading -->
   <div
     v-else-if="!failed && !docStore.pdf"
-    class="flex w-screen h-screen justify-center items-center text-white"
+    class="efv-viewer flex w-screen h-screen justify-center items-center text-white"
+    :class="{ dark: isDark }"
     :style="{ backgroundColor: viewerBg }"
   >
     <Loader :size="100" color="#0077CC" />
@@ -213,7 +231,7 @@ onMounted(() => {
   <!-- Success container -->
   <div
     v-else
-    class="flex h-screen w-screen overflow-hidden text-white"
+    class="efv-viewer flex h-screen w-screen overflow-hidden text-white"
     :style="{ backgroundColor: viewerBg }"
     :class="{ dark: isDark }"
   >

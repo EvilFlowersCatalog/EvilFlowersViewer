@@ -3,7 +3,11 @@ import {
   CITATION_TYPE,
   LAYER_STATE,
 } from '@/assets/utils/enums';
-import type { ILayer, IViewerConfig } from '@/assets/utils/interfaces';
+import type {
+  ILayer,
+  ISemanticSearchResult,
+  IViewerConfig,
+} from '@/assets/utils/interfaces';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
@@ -22,6 +26,9 @@ export const useViewerStore = defineStore('viewer', () => {
   const printFunction = ref<((pages: string | null) => Promise<string>) | null>(
     null
   );
+  const semanticSearchFunction = ref<
+    ((query: string) => Promise<ISemanticSearchResult[]>) | null
+  >(null);
   const editPackage = ref<{
     saveGroupFunc: (name: string) => Promise<{ response: { id: string } }>;
     getGroupsFunc: () => Promise<{ id: string; name: string }[]>;
@@ -79,6 +86,11 @@ export const useViewerStore = defineStore('viewer', () => {
   ) => {
     printFunction.value = value;
   };
+  const setSemanticSearchFunction = (
+    value: ((query: string) => Promise<ISemanticSearchResult[]>) | null
+  ) => {
+    semanticSearchFunction.value = value;
+  };
   const setEditPackage = (value: typeof editPackage.value) => {
     editPackage.value = value;
   };
@@ -106,6 +118,8 @@ export const useViewerStore = defineStore('viewer', () => {
     citationFormat,
     printFunction,
     setPrintFunction,
+    semanticSearchFunction,
+    setSemanticSearchFunction,
     setCitation,
     setBasedCitation,
     setShareLink,

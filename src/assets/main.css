@@ -1,119 +1,220 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/*
+ * EvilFlowersViewer styles.
+ *
+ * Distribution rule: NOTHING here may touch the host application. Every rule is
+ * scoped under the `.efv-viewer` root class that PDFViewer.vue puts on its root
+ * element. Tailwind's global preflight is disabled (see tailwind.config.js) and
+ * replaced by the scoped reset below, so importing this library can never
+ * restyle the host's `*`, `body`, buttons, inputs or scrollbars.
+ *
+ * The font is self-hosted (no render-blocking Google Fonts @import, CSP-safe,
+ * works offline).
+ */
 
-@tailwind base;
+/* Self-hosted Inter — only the `latin` + `latin-ext` subsets (latin-ext covers
+   Slovak diacritics: č š ž ď ť ň ĺ ľ ŕ ô ä). Loading just these two subsets
+   instead of every script keeps the bundled CSS small. @font-face is global by
+   nature but only makes the family available — it never forces itself onto the
+   host's elements. */
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-500.css';
+@import '@fontsource/inter/latin-600.css';
+@import '@fontsource/inter/latin-700.css';
+@import '@fontsource/inter/latin-ext-400.css';
+@import '@fontsource/inter/latin-ext-500.css';
+@import '@fontsource/inter/latin-ext-600.css';
+@import '@fontsource/inter/latin-ext-700.css';
+
 @tailwind components;
 @tailwind utilities;
 
-*,
-::after,
-::before {
-  box-sizing: border-box !important;
-  scrollbar-width: thin !important;
-  scrollbar-color: #555 transparent !important;
-  font-family: 'Inter', sans-serif !important;
+/* ---------------------------------------------------------------------------
+ * Design tokens — single source of truth for colour + typography.
+ * Light is the default (Figma), `.dark` overrides for dark mode. Consumers can
+ * override any token from the host by setting it on `.efv-viewer`.
+ * ------------------------------------------------------------------------- */
+.efv-viewer {
+  --efv-font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Brand */
+  --efv-primary: #0077cc;
+  --efv-primary-strong: #0a3a66;
+
+  /* Light surfaces */
+  --efv-viewer-bg: #ededed; /* page area behind the document */
+  --efv-topbar-bg: #ffffff; /* toolbars / panels */
+  --efv-surface: #ffffff;
+  --efv-border: #e5e7eb;
+  --efv-text: #333333;
+  --efv-text-muted: #6b7280;
+  --efv-icon: #4b5563;
+  --efv-icon-hover: var(--efv-primary);
+  --efv-page-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.12);
 }
 
-/* Custom Scrollbar for WebKit Browsers */
-::-webkit-scrollbar {
-  width: 4px !important;
+.efv-viewer.dark {
+  --efv-viewer-bg: #1a1a1a;
+  --efv-topbar-bg: #111111;
+  --efv-surface: #1f1f1f;
+  --efv-border: #333333;
+  --efv-text: #e5e7eb;
+  --efv-text-muted: #9ca3af;
+  --efv-icon: #d1d5db;
+  --efv-icon-hover: #ffffff;
+  --efv-page-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.5);
 }
-::-webkit-scrollbar-button {
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
+
+/* ---------------------------------------------------------------------------
+ * Scoped reset — the essential slice of Tailwind's preflight that utilities
+ * depend on (border-style, box-sizing) plus sensible defaults, applied ONLY
+ * inside the viewer. Never touches the host.
+ * ------------------------------------------------------------------------- */
+.efv-viewer,
+.efv-viewer *,
+.efv-viewer *::before,
+.efv-viewer *::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: currentColor;
 }
-::-webkit-scrollbar-thumb {
-  background-color: #888 !important;
-  border-radius: 20px !important;
+
+.efv-viewer {
+  font-family: var(--efv-font);
+  color: var(--efv-text);
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+  -webkit-text-size-adjust: 100%;
 }
-::-webkit-scrollbar-track {
-  background-color: transparent !important;
+
+.efv-viewer button,
+.efv-viewer input,
+.efv-viewer textarea,
+.efv-viewer select {
+  font: inherit;
+  color: inherit;
+  margin: 0;
 }
-::-webkit-scrollbar-thumb:hover {
+
+.efv-viewer button {
+  background: none;
+  cursor: pointer;
+}
+
+.efv-viewer button:focus,
+.efv-viewer input:focus {
+  outline: none;
+}
+
+.efv-viewer h1,
+.efv-viewer h2,
+.efv-viewer h3,
+.efv-viewer h4,
+.efv-viewer p {
+  margin: 0;
+}
+
+.efv-viewer img,
+.efv-viewer svg,
+.efv-viewer canvas {
+  display: block;
+  max-width: 100%;
+}
+
+/* Scoped custom scrollbar (WebKit) */
+.efv-viewer ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.efv-viewer ::-webkit-scrollbar-button {
+  display: none;
+}
+.efv-viewer ::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 20px;
+}
+.efv-viewer ::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+.efv-viewer ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
 
-#loader div:nth-child(1) {
-  animation-delay: -0.32s;
+.efv-viewer .hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.efv-viewer .hide-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
-#loader div:nth-child(2) {
+/* Loader dots */
+.efv-viewer #loader div:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.efv-viewer #loader div:nth-child(2) {
   animation-delay: -0.16s;
 }
 
-/* TEXT LAYER FOR PDF */
-[id^='textLayer'] br {
+/* pdf.js text layer */
+.efv-viewer [id^='textLayer'] br {
   user-select: none;
 }
-[id^='textLayer'] span {
+.efv-viewer [id^='textLayer'] span {
   height: 100%;
   width: 100%;
 }
-[id^='textLayer'] span::selection {
-  background-color: rgba(255, 0, 0, 0.5);
+.efv-viewer [id^='textLayer'] span::selection {
+  background-color: rgba(0, 119, 204, 0.35);
 }
 
-@layer base {
-  button,
-  input {
-    @apply outline-none focus:outline-none border-none text-black;
-  }
+/* Tool size slider (vue-3-slider-component) */
+.efv-viewer .tool-size-slider {
+  height: 4px;
 }
-
-.hide-scrollbar {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+.efv-viewer .tool-size-slider .vue-slider-rail {
+  background-color: #e5e7eb;
+  border-radius: 40px;
+  height: 4px;
 }
-.hide-scrollbar::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
+.efv-viewer.dark .tool-size-slider .vue-slider-rail {
+  background-color: #3a3a3a;
 }
-
-.tool-size-slider {
-  height: 4px !important;
+.efv-viewer .tool-size-slider .vue-slider-process {
+  background-color: var(--efv-primary);
+  border-radius: 40px;
 }
-.tool-size-slider .vue-slider-rail {
-  background-color: #e5e7eb !important;
-  border-radius: 40px !important;
-  height: 4px !important;
-}
-.dark .tool-size-slider .vue-slider-rail {
-  background-color: #3a3a3a !important;
-}
-.tool-size-slider .vue-slider-process {
-  background-color: #0077cc !important;
-  border-radius: 40px !important;
-}
-.tool-size-slider .vue-slider-dot-handle {
-  background-color: #0a3a66 !important;
-  box-shadow: none !important;
-  border: none !important;
+.efv-viewer .tool-size-slider .vue-slider-dot-handle {
+  background-color: var(--efv-primary-strong);
+  box-shadow: none;
+  border: none;
 }
 
 @layer components {
-  .icon {
+  .efv-viewer .icon {
     @apply size-5 cursor-pointer transition-colors duration-150;
   }
-  .icon-sm {
+  .efv-viewer .icon-sm {
     @apply size-4 cursor-pointer transition-colors duration-150;
   }
-  .icon-dark {
+  .efv-viewer .icon-dark {
     @apply size-5 text-gray-600 dark:text-gray-300 cursor-pointer transition-colors duration-150;
   }
-  .disabled-icon {
-    @apply size-5 text-white/25 cursor-not-allowed;
+  .efv-viewer .disabled-icon {
+    @apply size-5 cursor-not-allowed opacity-30;
   }
-  .input {
+  .efv-viewer .input {
     @apply w-full p-2 rounded-md bg-white text-black;
   }
-  .checkbox {
+  .efv-viewer .checkbox {
     @apply appearance-none w-3 h-3 bg-white rounded-full hover:ring hover:ring-secondary focus:outline-none cursor-pointer checked:bg-secondary;
   }
-  .sidebar-label {
+  .efv-viewer .sidebar-label {
     @apply text-[12px] leading-none font-medium text-[#333] dark:text-gray-200 tracking-[0.1px];
   }
-  .sidebar-value {
+  .efv-viewer .sidebar-value {
     @apply text-[11px] leading-none font-light text-[#333] dark:text-gray-400 break-words;
   }
 }

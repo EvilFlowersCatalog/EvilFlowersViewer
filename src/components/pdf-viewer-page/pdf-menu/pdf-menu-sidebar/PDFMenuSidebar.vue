@@ -1,10 +1,19 @@
 <script setup lang="ts">
 import { SIDEBAR_STATE } from '@/assets/utils/enums';
-import { useDocumentStore } from '@/stores';
+import { useDocumentStore, useViewerStore } from '@/stores';
 import { Info, Share, Search, Print } from './items';
 import { TOC } from '@/components/pdf-viewer-page/pdf-modal/items';
+import { computed } from 'vue';
 
 const docStore = useDocumentStore();
+const viewerStore = useViewerStore();
+
+// The search panel needs more room for the second (semantic) column.
+const isWide = computed(
+  () =>
+    docStore.sidebarState === SIDEBAR_STATE.SEARCH &&
+    !!viewerStore.semanticSearchFunction
+);
 
 const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
   [SIDEBAR_STATE.SEARCH]: 'search',
@@ -20,7 +29,8 @@ const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
   <!-- Floating panel: absolutely positioned over the content, never pushes or resizes siblings -->
   <div
     v-if="docStore.sidebarState !== SIDEBAR_STATE.NULL"
-    class="absolute top-3 left-1.5 bottom-3 w-[207px] flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[5px] shadow-[2px_0px_8px_rgba(0,0,0,0.12)] z-10 overflow-hidden"
+    class="absolute top-3 left-1.5 bottom-3 flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[5px] shadow-[2px_0px_8px_rgba(0,0,0,0.12)] z-10 overflow-hidden transition-[width] duration-200"
+    :class="isWide ? 'w-[400px]' : 'w-[207px]'"
   >
     <!-- Header -->
     <div class="flex items-center justify-between px-4 py-1 border-b border-gray-200 dark:border-white/10 shrink-0">
