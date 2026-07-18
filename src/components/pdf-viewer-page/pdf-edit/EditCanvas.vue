@@ -105,7 +105,7 @@ const updateCacheForPage = async (pageNum: number, svgContent: string) => {
     
     // Update the store if this is the currently active page
     if (currentPageForSvg.value === pageNum) {
-      docStore.setLayer(updatedLayer);
+      docStore.layer = updatedLayer;
     }
   } else {
     const tempLayer = { id: `temp-${pageNum}`, svg: svgContent };
@@ -114,7 +114,7 @@ const updateCacheForPage = async (pageNum: number, svgContent: string) => {
     
     // Update the store if this is the currently active page
     if (currentPageForSvg.value === pageNum) {
-      docStore.setLayer(tempLayer);
+      docStore.layer = tempLayer;
     }
   }
 };
@@ -127,7 +127,7 @@ const performSave = async (pageNum: number, svgContent: string, timestamp: numbe
   
   // Set saving state only if this is the current page
   if (currentPageForSvg.value === pageNum) {
-    docStore.setLayerState(LAYER_STATE.SAVING);
+    docStore.layerState = LAYER_STATE.SAVING;
   }
   
   try {
@@ -161,7 +161,7 @@ const performSave = async (pageNum: number, svgContent: string, timestamp: numbe
         
         // Update the store if this is still the current page
         if (currentPageForSvg.value === pageNum) {
-          docStore.setLayer(resultLayer);
+          docStore.layer = resultLayer;
         }
       }
     }
@@ -171,7 +171,7 @@ const performSave = async (pageNum: number, svgContent: string, timestamp: numbe
   } finally {
     // Only update layer state if this is still the current page
     if (currentPageForSvg.value === pageNum) {
-      docStore.setLayerState(LAYER_STATE.READY);
+      docStore.layerState = LAYER_STATE.READY;
     }
   }
 };
@@ -186,13 +186,13 @@ const getPageStacks = (pageNum: number) => {
 const syncHistoryFlags = () => {
   const pageNum = currentPageForSvg.value;
   if (pageNum === null) {
-    docStore.setCanUndo(false);
-    docStore.setCanRedo(false);
+    docStore.canUndo = false;
+    docStore.canRedo = false;
     return;
   }
   const { undo, redo } = getPageStacks(pageNum);
-  docStore.setCanUndo(undo.length > 0);
-  docStore.setCanRedo(redo.length > 0);
+  docStore.canUndo = undo.length > 0;
+  docStore.canRedo = redo.length > 0;
 };
 
 // Snapshot the current SVG content before a mutating action begins
@@ -401,14 +401,14 @@ onMounted(async () => {
     const { response } = await viewerStore.editPackage!.saveGroupFunc(
       'edit-group'
     );
-    docStore.setGroupId(response.id);
+    docStore.groupId = response.id;
   } else {
     // else assigne existing one
-    docStore.setGroupId(groups[0].id);
+    docStore.groupId = groups[0].id;
   }
 
-  docStore.setUndoFn(performUndo);
-  docStore.setRedoFn(performRedo);
+  docStore.undoFn = performUndo;
+  docStore.redoFn = performRedo;
   syncHistoryFlags();
 });
 
@@ -434,10 +434,10 @@ onUnmounted(async () => {
     }
   }
 
-  docStore.setUndoFn(null);
-  docStore.setRedoFn(null);
-  docStore.setCanUndo(false);
-  docStore.setCanRedo(false);
+  docStore.undoFn = null;
+  docStore.redoFn = null;
+  docStore.canUndo = false;
+  docStore.canRedo = false;
 });
 
 watch(
@@ -464,7 +464,7 @@ watch(
     
     // Clear the SVG and update current page reference
     svgRef.value?.replaceChildren();
-    docStore.setLayer(null);
+    docStore.layer = null;
     currentPageForSvg.value = pageToLoad;
     syncHistoryFlags();
 
@@ -474,12 +474,12 @@ watch(
     // Load from cache if available
     if (cachedLayer !== undefined) {
       await loadLayerIntoSvg(cachedLayer, pageToLoad);
-      docStore.setLayerState(LAYER_STATE.READY);
+      docStore.layerState = LAYER_STATE.READY;
       return;
     }
 
     // Load from server
-    docStore.setLayerState(LAYER_STATE.LOADING);
+    docStore.layerState = LAYER_STATE.LOADING;
     
     try {
       const layer = await viewerStore.editPackage!.getLayerFunc(
@@ -506,7 +506,7 @@ watch(
     } finally {
       // Only update state if we're still on the same page
       if (currentLoadingPage.value === pageToLoad && currentPageForSvg.value === pageToLoad) {
-        docStore.setLayerState(LAYER_STATE.READY);
+        docStore.layerState = LAYER_STATE.READY;
       }
     }
   }
@@ -518,7 +518,7 @@ const loadLayerIntoSvg = async (layer: ILayer | null, pageNum: number) => {
   if (layer) {
     const layerClone = { ...layer };
     pageLayerMap.value.set(pageNum, layerClone);
-    docStore.setLayer(layerClone);
+    docStore.layer = layerClone;
     
     try {
       // Parse SVG string into a DOM object
@@ -556,7 +556,7 @@ const loadLayerIntoSvg = async (layer: ILayer | null, pageNum: number) => {
   } else {
     // No layer for this page
     pageLayerMap.value.set(pageNum, null);
-    docStore.setLayer(null);
+    docStore.layer = null;
     svgRef.value.replaceChildren();
   }
 };
@@ -572,7 +572,6 @@ watch(
 
 <template>
   <svg
-    id="pdf-viewer-edit-canvas"
     :xmlns="'http://www.w3.org/2000/svg'"
     class="absolute top-0 left-0 w-full h-full z-2"
     :class="

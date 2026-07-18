@@ -33,9 +33,12 @@ const { data, options, config } = defineProps<IViewerProps>();
 const viewerStore = useViewerStore();
 const docStore = useDocumentStore();
 const failed = ref<boolean>(false);
-const isDark = ref<boolean>(false);
-const viewerBg = computed(() => isDark.value ? '#1A1A1A' : '#525252');
-const topbarBg = computed(() => isDark.value ? '#111111' : '#FFFFFF');
+// Honor the host-provided theme; default to light (the Figma source of truth).
+const isDark = ref<boolean>(options?.theme === 'dark');
+// Kept in sync with the CSS design tokens in main.css (--efv-viewer-bg /
+// --efv-topbar-bg) so the JS-provided values and the token theme never drift.
+const viewerBg = computed(() => (isDark.value ? '#1A1A1A' : '#EDEDED'));
+const topbarBg = computed(() => (isDark.value ? '#111111' : '#FFFFFF'));
 
 const toggleDark = () => {
   isDark.value = !isDark.value;
@@ -83,26 +86,36 @@ const getTOC = async (
   return toc;
 };
 
+// Set the active locale in a way that works in both Composition mode
+// (locale is a WritableComputedRef) and Legacy mode (locale is a string).
+// Kept out of loadDocument so a locale hiccup can never block PDF loading.
+const applyLocale = (lang: string) => {
+  const locale = i18n.global.locale as unknown;
+  if (locale && typeof locale === 'object' && 'value' in (locale as object)) {
+    (locale as { value: string }).value = lang;
+  } else {
+    (i18n.global as unknown as { locale: string }).locale = lang;
+  }
+};
+
 const loadDocument = async () => {
   try {
-    if (options?.lang) i18n.global.locale = options.lang;
+    // Parse the document once and share the single PDFDocumentProxy between the
+    // main page view and the thumbnail strip. pdf.js serialises render tasks per
+    // page internally, so concurrent main + preview renders are safe — this
+    // halves both the parse work and the in-memory footprint vs. loading twice.
+    const pdf = await getDocument({ data: new Uint8Array(data) }).promise;
 
-    const [pdf, previewPdf] = await Promise.all([
-      getDocument({ data: new Uint8Array(data) }).promise,
-      getDocument({ data: new Uint8Array(data) }).promise,
-    ]);
-
-    docStore.setPreviewPdf(previewPdf);
+    docStore.previewPdf = pdf;
 
     const outline = await pdf.getOutline();
     if (outline) {
-      const toc = await getTOC(outline, 0, pdf);
-      docStore.setTOC(toc);
+      docStore.toc = await getTOC(outline, 0, pdf);
     }
 
-    docStore.setPdf(pdf);
-    docStore.setActivePage(1);
-    docStore.setTotalPages(pdf.numPages);
+    docStore.pdf = pdf;
+    docStore.activePage = 1;
+    docStore.totalPages = pdf.numPages;
   } catch (error) {
     failed.value = true;
     console.error('Failed to load PDF docStore:\n', error);
@@ -115,30 +128,30 @@ const handleEscape = () => {
   else if (docStore.sidebarState !== SIDEBAR_STATE.NULL)
     docStore.setSidebarState(SIDEBAR_STATE.NULL);
   else if (docStore.editTool !== EDIT_TOOL.MOUSE)
-    docStore.setEditTool(EDIT_TOOL.MOUSE);
+    docStore.editTool = EDIT_TOOL.MOUSE;
   else if (docStore.scale !== 1) docStore.setScale(1);
-  else if (docStore.activePage !== 1) docStore.setActivePage(1);
+  else if (docStore.activePage !== 1) docStore.activePage = 1;
   else if (viewerStore.closeFunction) viewerStore.closeFunction();
 };
 
 onMounted(() => {
-  viewerStore.setCitation(options?.citationBib ?? null);
-  viewerStore.setBasedCitation(options?.citationBib ?? null);
-  viewerStore.setCloseFunction(options?.closeFunction ?? null);
-  viewerStore.setHomeFunction(options?.homeFunction ?? null);
-  viewerStore.setEditPackage(options?.editPackage ?? null);
-  viewerStore.setLang(options?.lang ?? 'en');
-  viewerStore.setShareFunction(options?.shareFunction ?? null);
-  viewerStore.setPrintFunction(options?.printFunction ?? null);
-  viewerStore.setConfig({
-    ...{
-      download: false,
-      share: false,
-      print: false,
-      edit: false,
-    },
+  viewerStore.citation = options?.citationBib ?? null;
+  viewerStore.basedCitation = options?.citationBib ?? null;
+  viewerStore.closeFunction = options?.closeFunction ?? null;
+  viewerStore.homeFunction = options?.homeFunction ?? null;
+  viewerStore.editPackage = options?.editPackage ?? null;
+  viewerStore.lang = options?.lang ?? 'en';
+  applyLocale(options?.lang ?? 'en');
+  viewerStore.shareFunction = options?.shareFunction ?? null;
+  viewerStore.printFunction = options?.printFunction ?? null;
+  viewerStore.semanticSearchFunction = options?.semanticSearchFunction ?? null;
+  viewerStore.config = {
+    download: false,
+    share: false,
+    print: false,
+    edit: false,
     ...config,
-  });
+  };
 
   loadDocument();
 
@@ -164,14 +177,12 @@ onMounted(() => {
   };
 
   const handleFullscreenChange = () => {
-    if (document.fullscreenElement) docStore.setIsFullscreenMode(true);
-    else docStore.setIsFullscreenMode(false);
+    docStore.isFullscreenMode = !!document.fullscreenElement;
   };
 
   const handleResize = () => {
-    const isMobile: boolean =
+    docStore.isMobile =
       window.innerWidth <= MOBILE_SIZE || window.innerHeight <= MOBILE_SIZE;
-    docStore.setIsMobile(isMobile);
   };
 
   window.addEventListener('keydown', handleKeydown);
@@ -195,8 +206,11 @@ onMounted(() => {
   <!-- Failed container -->
   <div
     v-if="failed"
-    class="flex flex-col h-screen w-screen justify-center items-center text-4xl uppercase font-extrabold text-white font-serif"
+    class="efv-viewer flex flex-col h-screen w-screen justify-center items-center text-4xl uppercase font-extrabold text-white font-serif"
+    :class="{ dark: isDark }"
     :style="{ backgroundColor: viewerBg }"
+    :lang="viewerStore.lang"
+    role="alert"
   >
     {{ $t('failed-load-pdf') }}
   </div>
@@ -204,18 +218,23 @@ onMounted(() => {
   <!-- Loading -->
   <div
     v-else-if="!failed && !docStore.pdf"
-    class="flex w-screen h-screen justify-center items-center text-white"
+    class="efv-viewer flex w-screen h-screen justify-center items-center text-white"
+    :class="{ dark: isDark }"
     :style="{ backgroundColor: viewerBg }"
+    :lang="viewerStore.lang"
   >
-    <Loader :size="100" color="#0077CC" />
+    <Loader :size="100" color="#0077CC" :label="$t('load')" />
   </div>
 
   <!-- Success container -->
   <div
     v-else
-    class="flex h-screen w-screen overflow-hidden text-white"
+    class="efv-viewer flex h-screen w-screen overflow-hidden text-white"
     :style="{ backgroundColor: viewerBg }"
     :class="{ dark: isDark }"
+    :lang="viewerStore.lang"
+    role="region"
+    :aria-label="$t('pdf-viewer')"
   >
     <!-- Modal -->
     <PDFModal v-if="docStore.modalContent !== MODAL_CONTENT.NULL" />
@@ -224,9 +243,11 @@ onMounted(() => {
     <div
       v-if="docStore.layerState !== LAYER_STATE.READY && docStore.layerState !== LAYER_STATE.NOT_READY && docStore.edit"
       class="fixed top-4 left-14 w-full flex justify-center z-20 pointer-events-none select-none transition-opacity hover:opacity-30"
+      role="status"
+      aria-live="polite"
     >
       <div class="flex flex-row gap-2 items-center px-3 py-2 rounded-md shadow-lg" :style="{ backgroundColor: topbarBg }">
-        <Loader :size="20" color="#0077CC" />
+        <Loader :size="20" color="#0077CC" :label="$t(docStore.layerState)" />
         <span class="text-secondary text-xs font-medium">{{ $t(docStore.layerState) }}</span>
       </div>
     </div>

@@ -1,5 +1,49 @@
 import type { TypedArray } from 'pdfjs-dist/types/src/display/api';
 
+/** A single semantic/AI search hit returned by the host-provided function. */
+export interface ISemanticSearchResult {
+  /** 1-based page number the hit points to. */
+  page: number;
+  /** Snippet of matching text to show in the result card. */
+  text: string;
+  /** Optional relevance score (0..1); used only for ordering if provided. */
+  score?: number;
+}
+
+/**
+ * A keyword-search hit the page canvas should highlight. Coordinates come from
+ * pdf.js `getTextContent` (unscaled, PDF user space) and are scaled to the
+ * current zoom by the renderer, so the highlight stays put across re-renders.
+ */
+export interface ISearchHighlight {
+  /** 1-based page the hit belongs to. */
+  page: number;
+  /** Text-item transform matrix ([a, b, c, d, e, f]). */
+  transform: number[];
+  /** Text-item width in unscaled PDF units. */
+  width: number;
+  /** Text-item height in unscaled PDF units. */
+  height: number;
+}
+
+/** Host hooks for the annotation/edit layer (create + persist SVG layers). */
+export interface IEditPackage {
+  saveGroupFunc: (name: string) => Promise<{ response: { id: string } }>;
+  getGroupsFunc: () => Promise<{ id: string; name: string }[]>;
+  saveLayerFunc: (
+    svg: string,
+    groupId: string,
+    page: number
+  ) => Promise<ILayer | null>;
+  updateLayerFunc: (
+    id: string,
+    svg: string,
+    groupId: string,
+    page: number
+  ) => Promise<void>;
+  getLayerFunc: (page: number, groupId: string) => Promise<ILayer | null> | null;
+}
+
 export interface IViewerOptions {
   theme?: 'dark' | 'light';
   lang?: 'sk' | 'en';
@@ -10,25 +54,15 @@ export interface IViewerOptions {
     | ((pages: string | null, expaireDate: string) => Promise<string>)
     | null;
   printFunction?: ((pages: string | null) => Promise<string>) | null;
-  editPackage?: {
-    saveGroupFunc: (name: string) => Promise<{ response: { id: string } }>;
-    getGroupsFunc: () => Promise<{ id: string; name: string }[]>;
-    saveLayerFunc: (
-      svg: string,
-      groupId: string,
-      page: number
-    ) => Promise<ILayer | null>;
-    updateLayerFunc: (
-      id: string,
-      svg: string,
-      groupId: string,
-      page: number
-    ) => Promise<void>;
-    getLayerFunc: (
-      page: number,
-      groupId: string
-    ) => Promise<ILayer | null> | null;
-  } | null;
+  /**
+   * Optional semantic/AI search. When supplied, the search panel shows a
+   * second column with these results next to the client-side keyword matches.
+   * When omitted, the panel stays keyword-only.
+   */
+  semanticSearchFunction?:
+    | ((query: string) => Promise<ISemanticSearchResult[]>)
+    | null;
+  editPackage?: IEditPackage | null;
 }
 
 export interface IViewerProps {
