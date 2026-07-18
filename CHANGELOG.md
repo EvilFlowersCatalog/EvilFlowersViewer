@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.0 : 2026-07-18
+
+Core dependency modernization. All features re-validated end-to-end (render, text layer, keyword + semantic search, editing/canvas, citation, thumbnails, navigation, theming) — no functional regressions.
+
+- **Changed**: **pdfjs-dist 4.8 → 6.1**. Adopted the v6-recommended `render({ canvas })` API (the legacy `canvasContext` path is gone from our code). Requires **Node ≥ 22.13** (declared in `engines`).
+- **Changed**: **Vite 5 → 8** (Rolldown bundler — build ~7× faster), **@vitejs/plugin-vue 5 → 6**, **vite-plugin-dts 4 → 5** (now needs `@vue/language-core`; dts points at `tsconfig.app.json`), **vite-plugin-svgr 4 → 5**, **vite-plugin-vue-devtools 7 → 8**.
+- **Changed**: **Pinia 2 → 4** (added the `@vue/devtools-api` peer), **vue-tsc 2 → 3**, **TypeScript 5.6 → 6.0**, **Vue 3.5.40**, **vue-i18n 11.4.6**, **DOMPurify 3.4**, plus dev-tooling patches.
+- **Fixed**: The full-text `SearchWorker` is now a proper ES **module worker** (`{ type: 'module' }` + `worker.format: 'es'`) — under Vite 8 the classic worker silently truncated results; keyword search now returns the complete match set.
+- **Fixed**: Pinned the lib CSS output back to `dist/style.css` (Vite 6+ renamed it from the package name).
+- **Removed**: `@fortawesome/fontawesome-svg-core` and `@fortawesome/vue-fontawesome` — dead dependencies (never imported).
+- **Deferred (deliberate)**: **Tailwind stays on 3.4** — v4 imposes a hard Chrome 111+/Safari 16.4+ floor on every consumer with no opt-out, an unacceptable reach regression for a distributed library. **TypeScript stays on 6.0** — TS 7's native compiler has no vue-tsc/Volar API yet and immature `.d.ts` emit. **citation-js stays on 0.7** — 0.8 calls Node's `util.promisify` and breaks in the browser.
+
 ## 0.6.0 : 2026-07-18
 
 Deep maintenance, refactor and Figma alignment of the core viewer.

@@ -66,7 +66,9 @@ const searchDocument = debounce(async (pattern: string) => {
 
     textContent.push(...pagesContent);
 
-    searchWorker = new Worker(new URL('./SearchWorker.ts', import.meta.url));
+    searchWorker = new Worker(new URL('./SearchWorker.ts', import.meta.url), {
+      type: 'module',
+    });
     selectedMatch.value = null;
     searchWorker.postMessage([pattern, textContent]);
 

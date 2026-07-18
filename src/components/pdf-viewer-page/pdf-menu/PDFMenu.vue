@@ -20,7 +20,7 @@ const download = () => {
   const doc = toRaw(docStore.pdf);
   if (doc) {
     doc.getData().then((data) => {
-      const blob = new Blob([data], { type: 'application/pdf' });
+      const blob = new Blob([data as BlobPart], { type: 'application/pdf' });
       link.href = URL.createObjectURL(blob);
       link.download = 'Document';
       link.click();

@@ -39,6 +39,8 @@ import '@evilflowers/evilflowersviewer/dist/style.css';
 
 ## Getting started
 
+**Requirements:** Node **≥ 22.13** (required by pdfjs-dist 6).
+
 To get started with EvilFlowersViewer, follow these steps:
 
 1. Install EvilFLowersViewerPackage:

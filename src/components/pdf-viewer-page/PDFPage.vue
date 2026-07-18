@@ -49,9 +49,11 @@ const renderPage = async (renderTextContent: boolean = true) => {
   canvas.style.width = `${viewport.width}px`;
   canvas.style.height = `${viewport.height}px`;
 
-  // Render page content to the canvas
+  // Render page content to the canvas. pdf.js v6 takes the canvas element
+  // directly (canvasContext is the legacy path); passing `canvas` lets it
+  // manage the 2D context itself.
   const renderTask = page.render({
-    canvasContext: canvas.getContext('2d') as CanvasRenderingContext2D,
+    canvas,
     viewport,
   });
   

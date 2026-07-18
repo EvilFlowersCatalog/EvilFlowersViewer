@@ -82,10 +82,9 @@ const renderPage = async (numPage: number) => {
     canvas.style.width = `${viewport.width}px`;
     canvas.style.height = `${viewport.height}px`;
 
-    const canvasContext = canvas.getContext('2d') as CanvasRenderingContext2D;
-    // Render page content to the canvas
+    // Render page content to the canvas (pdf.js v6: pass the canvas element).
     await page.render({
-      canvasContext,
+      canvas,
       viewport,
     }).promise;
   }
