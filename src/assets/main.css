@@ -89,26 +89,24 @@
  * matter the source order — which is what was breaking background, text and
  * font utilities on buttons and TOC items. Consumers styling the viewer via
  * plain utility classes or their own CSS now win as expected.
+ *
+ * The border/box-sizing reset below is `.efv-viewer *`, already at the same
+ * (0,1,0) specificity as a utility class, so its only problem was living
+ * outside `@layer base` — being physically after `@tailwind utilities` in
+ * this file, it won every tie, e.g. cancelling `.border`'s `border-width:1px`
+ * back to 0. Same fix: `@layer base` puts it back before utilities.
  * ------------------------------------------------------------------------- */
-.efv-viewer,
-.efv-viewer *,
-.efv-viewer *::before,
-.efv-viewer *::after {
-  box-sizing: border-box;
-  border-width: 0;
-  border-style: solid;
-  border-color: currentColor;
-}
-
-.efv-viewer {
-  font-family: var(--efv-font);
-  color: var(--efv-text);
-  scrollbar-width: thin;
-  scrollbar-color: #888 transparent;
-  -webkit-text-size-adjust: 100%;
-}
-
 @layer base {
+  .efv-viewer,
+  .efv-viewer *,
+  .efv-viewer *::before,
+  .efv-viewer *::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: currentColor;
+  }
+
   .efv-viewer :where(button, input, textarea, select) {
     font: inherit;
     color: inherit;
@@ -119,6 +117,14 @@
     background: none;
     cursor: pointer;
   }
+}
+
+.efv-viewer {
+  font-family: var(--efv-font);
+  color: var(--efv-text);
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* Hide the focus ring for pointer users, but always show a clear one for
