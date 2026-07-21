@@ -1,119 +1,264 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/*
+ * EvilFlowersViewer styles.
+ *
+ * Distribution rule: NOTHING here may touch the host application. Every rule is
+ * scoped under the `.efv-viewer` root class that PDFViewer.vue puts on its root
+ * element. Tailwind's global preflight is disabled (see tailwind.config.js) and
+ * replaced by the scoped reset below, so importing this library can never
+ * restyle the host's `*`, `body`, buttons, inputs or scrollbars.
+ *
+ * The font is self-hosted (no render-blocking Google Fonts @import, CSP-safe,
+ * works offline).
+ */
 
+/* Self-hosted Inter — only the `latin` + `latin-ext` subsets (latin-ext covers
+   Slovak diacritics: č š ž ď ť ň ĺ ľ ŕ ô ä). Loading just these two subsets
+   instead of every script keeps the bundled CSS small. @font-face is global by
+   nature but only makes the family available — it never forces itself onto the
+   host's elements. */
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-500.css';
+@import '@fontsource/inter/latin-600.css';
+@import '@fontsource/inter/latin-700.css';
+@import '@fontsource/inter/latin-ext-400.css';
+@import '@fontsource/inter/latin-ext-500.css';
+@import '@fontsource/inter/latin-ext-600.css';
+@import '@fontsource/inter/latin-ext-700.css';
+
+/* corePlugins.preflight is off (tailwind.config.js), so this emits nothing
+   except the `@layer base` block below — it exists only to give that block a
+   valid insertion point ahead of `@layer components`/`@layer utilities`. */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-*,
-::after,
-::before {
-  box-sizing: border-box !important;
-  scrollbar-width: thin !important;
-  scrollbar-color: #555 transparent !important;
-  font-family: 'Inter', sans-serif !important;
+/* ---------------------------------------------------------------------------
+ * Design tokens — single source of truth for colour + typography.
+ * Light is the default (Figma), `.dark` overrides for dark mode. Consumers can
+ * override any token from the host by setting it on `.efv-viewer`.
+ * ------------------------------------------------------------------------- */
+.efv-viewer {
+  --efv-font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Brand */
+  --efv-primary: #0077cc;
+  --efv-primary-strong: #0a3a66;
+
+  /* Light surfaces */
+  --efv-viewer-bg: #ededed; /* page area behind the document */
+  --efv-topbar-bg: #ffffff; /* toolbars / panels */
+  --efv-surface: #ffffff;
+  --efv-border: #e5e7eb;
+  --efv-text: #333333;
+  --efv-text-muted: #6b7280;
+  --efv-icon: #4b5563;
+  --efv-icon-hover: var(--efv-primary);
+  --efv-page-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.12);
+
+  /* Accent chips (recommendations pill, zoom buttons) and inset fields. These
+     are theme-constant on purpose — the Figma light-blue accent reads the same
+     in both modes — so there is no `.dark` override below. */
+  --efv-accent-soft: #e6f3ff;
+  --efv-accent-ink: #1e6fba;
+  --efv-field-bg: #f5f7fa;
 }
 
-/* Custom Scrollbar for WebKit Browsers */
-::-webkit-scrollbar {
-  width: 4px !important;
+.efv-viewer.dark {
+  --efv-viewer-bg: #1a1a1a;
+  --efv-topbar-bg: #111111;
+  --efv-surface: #1f1f1f;
+  --efv-border: #333333;
+  --efv-text: #e5e7eb;
+  --efv-text-muted: #9ca3af;
+  --efv-icon: #d1d5db;
+  --efv-icon-hover: #ffffff;
+  --efv-page-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.5);
 }
-::-webkit-scrollbar-button {
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
+
+/* ---------------------------------------------------------------------------
+ * Scoped reset — the essential slice of Tailwind's preflight that utilities
+ * depend on (border-style, box-sizing) plus sensible defaults, applied ONLY
+ * inside the viewer. Never touches the host.
+ *
+ * Wrapped in `@layer base` and using `:where()` on the tag-name part of each
+ * selector: Tailwind reorders `@layer base` content ahead of `@layer
+ * utilities` regardless of where it's written in this file, and `:where()`
+ * keeps these selectors at the same specificity as a single utility class
+ * (0,1,0). Without both of those, `.efv-viewer button { background: none }`
+ * (specificity 0,1,1) permanently wins over `.bg-accent-soft` (0,1,0) no
+ * matter the source order — which is what was breaking background, text and
+ * font utilities on buttons and TOC items. Consumers styling the viewer via
+ * plain utility classes or their own CSS now win as expected.
+ *
+ * The border/box-sizing reset below is `.efv-viewer *`, already at the same
+ * (0,1,0) specificity as a utility class, so its only problem was living
+ * outside `@layer base` — being physically after `@tailwind utilities` in
+ * this file, it won every tie, e.g. cancelling `.border`'s `border-width:1px`
+ * back to 0. Same fix: `@layer base` puts it back before utilities.
+ * ------------------------------------------------------------------------- */
+@layer base {
+  .efv-viewer,
+  .efv-viewer *,
+  .efv-viewer *::before,
+  .efv-viewer *::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: currentColor;
+  }
+
+  .efv-viewer :where(button, input, textarea, select) {
+    font: inherit;
+    color: inherit;
+    margin: 0;
+  }
+
+  .efv-viewer :where(button) {
+    background: none;
+    cursor: pointer;
+  }
 }
-::-webkit-scrollbar-thumb {
-  background-color: #888 !important;
-  border-radius: 20px !important;
+
+.efv-viewer {
+  font-family: var(--efv-font);
+  color: var(--efv-text);
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+  -webkit-text-size-adjust: 100%;
 }
-::-webkit-scrollbar-track {
-  background-color: transparent !important;
+
+/* Hide the focus ring for pointer users, but always show a clear one for
+   keyboard users (:focus-visible). Never leave controls with no focus
+   indicator — that is the previous behaviour and an a11y regression. */
+.efv-viewer button:focus,
+.efv-viewer input:focus {
+  outline: none;
 }
-::-webkit-scrollbar-thumb:hover {
+.efv-viewer button:focus-visible,
+.efv-viewer input:focus-visible,
+.efv-viewer textarea:focus-visible,
+.efv-viewer select:focus-visible,
+.efv-viewer a:focus-visible,
+.efv-viewer [tabindex]:focus-visible {
+  outline: 2px solid var(--efv-primary);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Respect the user's reduced-motion preference (scoped to the viewer). */
+@media (prefers-reduced-motion: reduce) {
+  .efv-viewer *,
+  .efv-viewer *::before,
+  .efv-viewer *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Screen-reader-only text: available to assistive tech, invisible on screen. */
+.efv-viewer .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.efv-viewer h1,
+.efv-viewer h2,
+.efv-viewer h3,
+.efv-viewer h4,
+.efv-viewer p {
+  margin: 0;
+}
+
+.efv-viewer img,
+.efv-viewer svg,
+.efv-viewer canvas {
+  display: block;
+  max-width: 100%;
+}
+
+/* Scoped custom scrollbar (WebKit) */
+.efv-viewer ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.efv-viewer ::-webkit-scrollbar-button {
+  display: none;
+}
+.efv-viewer ::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 20px;
+}
+.efv-viewer ::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+.efv-viewer ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
 
-#loader div:nth-child(1) {
-  animation-delay: -0.32s;
+.efv-viewer .hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.efv-viewer .hide-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
-#loader div:nth-child(2) {
-  animation-delay: -0.16s;
-}
-
-/* TEXT LAYER FOR PDF */
-[id^='textLayer'] br {
+/* pdf.js text layer */
+.efv-viewer .textLayer br {
   user-select: none;
 }
-[id^='textLayer'] span {
+.efv-viewer .textLayer span {
   height: 100%;
   width: 100%;
 }
-[id^='textLayer'] span::selection {
-  background-color: rgba(255, 0, 0, 0.5);
+.efv-viewer .textLayer span::selection {
+  background-color: rgba(0, 119, 204, 0.35);
 }
 
-@layer base {
-  button,
-  input {
-    @apply outline-none focus:outline-none border-none text-black;
-  }
+/* Tool size slider (vue-3-slider-component) */
+.efv-viewer .tool-size-slider {
+  height: 4px;
 }
-
-.hide-scrollbar {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+.efv-viewer .tool-size-slider .vue-slider-rail {
+  background-color: #e5e7eb;
+  border-radius: 40px;
+  height: 4px;
 }
-.hide-scrollbar::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
+.efv-viewer.dark .tool-size-slider .vue-slider-rail {
+  background-color: #3a3a3a;
 }
-
-.tool-size-slider {
-  height: 4px !important;
+.efv-viewer .tool-size-slider .vue-slider-process {
+  background-color: var(--efv-primary);
+  border-radius: 40px;
 }
-.tool-size-slider .vue-slider-rail {
-  background-color: #e5e7eb !important;
-  border-radius: 40px !important;
-  height: 4px !important;
-}
-.dark .tool-size-slider .vue-slider-rail {
-  background-color: #3a3a3a !important;
-}
-.tool-size-slider .vue-slider-process {
-  background-color: #0077cc !important;
-  border-radius: 40px !important;
-}
-.tool-size-slider .vue-slider-dot-handle {
-  background-color: #0a3a66 !important;
-  box-shadow: none !important;
-  border: none !important;
+.efv-viewer .tool-size-slider .vue-slider-dot-handle {
+  background-color: var(--efv-primary-strong);
+  box-shadow: none;
+  border: none;
 }
 
 @layer components {
-  .icon {
+  .efv-viewer .icon {
     @apply size-5 cursor-pointer transition-colors duration-150;
   }
-  .icon-sm {
-    @apply size-4 cursor-pointer transition-colors duration-150;
-  }
-  .icon-dark {
+  .efv-viewer .icon-dark {
     @apply size-5 text-gray-600 dark:text-gray-300 cursor-pointer transition-colors duration-150;
   }
-  .disabled-icon {
-    @apply size-5 text-white/25 cursor-not-allowed;
-  }
-  .input {
-    @apply w-full p-2 rounded-md bg-white text-black;
-  }
-  .checkbox {
-    @apply appearance-none w-3 h-3 bg-white rounded-full hover:ring hover:ring-secondary focus:outline-none cursor-pointer checked:bg-secondary;
-  }
-  .sidebar-label {
+  .efv-viewer .sidebar-label {
     @apply text-[12px] leading-none font-medium text-[#333] dark:text-gray-200 tracking-[0.1px];
   }
-  .sidebar-value {
+  .efv-viewer .sidebar-value {
     @apply text-[11px] leading-none font-light text-[#333] dark:text-gray-400 break-words;
   }
 }

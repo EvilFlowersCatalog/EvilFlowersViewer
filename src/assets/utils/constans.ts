@@ -1,4 +1,4 @@
-import { defineComponent, h, ref } from 'vue';
+import { defineComponent, h, markRaw, ref } from 'vue';
 import { CITATION_FORMAT, CITATION_TYPE, EDIT_TOOL } from '../utils/enums';
 import { BxSolidPointer } from '@kalimahapps/vue-icons';
 import pencilSvg from '@/assets/icons/pencil.svg?raw';
@@ -8,16 +8,21 @@ import circleSvg from '@/assets/icons/circle.svg?raw';
 import lineSvg from '@/assets/icons/line.svg?raw';
 import rectSvg from '@/assets/icons/rect.svg?raw';
 
+// markRaw keeps these component definitions out of Vue's reactivity system.
+// Without it, storing them in the reactive `tools` ref triggers
+// "Vue received a Component that was made a reactive object" warnings.
 const svgIcon = (raw: string) =>
-  defineComponent({
-    inheritAttrs: true,
-    render() {
-      return h('span', {
-        class: 'inline-flex items-center justify-center',
-        innerHTML: raw,
-      });
-    },
-  });
+  markRaw(
+    defineComponent({
+      inheritAttrs: true,
+      render() {
+        return h('span', {
+          class: 'inline-flex items-center justify-center',
+          innerHTML: raw,
+        });
+      },
+    })
+  );
 
 const PencilIcon = svgIcon(pencilSvg);
 const HighlighterIcon = svgIcon(highlighterSvg);
@@ -35,10 +40,13 @@ export const KB: number = 1024;
 export const MOBILE_SIZE: number = 599;
 export const MIN_TOOL_SIZE: number = 2;
 export const MAX_TOOL_SIZE: number = 30;
+export const MIN_SCALE: number = 0.25;
+export const MAX_SCALE: number = 3;
+export const SCALE_STEP: number = 0.25;
 export const INTERVAL: number = 1;
 export const DEFAULT_TOOL_COLOR: string = '#000000';
 export const tools = ref<{ tool: EDIT_TOOL; icon: any }[]>([
-  { tool: EDIT_TOOL.MOUSE, icon: BxSolidPointer },
+  { tool: EDIT_TOOL.MOUSE, icon: markRaw(BxSolidPointer) },
   { tool: EDIT_TOOL.ERASER, icon: EraserIcon },
   { tool: EDIT_TOOL.PEN, icon: PencilIcon },
   { tool: EDIT_TOOL.HIGHLIGHTER, icon: HighlighterIcon },

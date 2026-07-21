@@ -17,25 +17,16 @@ const hold = ref<boolean>(false);
 const pageNumbers = computed(() =>
   Array.from({ length: docStore.totalPages }, (_, i) => i + 1)
 );
+// Which thumbnails have finished painting (drives the loader overlay). Kept in
+// state instead of toggling a DOM node by id, so multiple viewers can coexist.
+const rendered = ref<Record<number, boolean>>({});
+// Per-page canvas elements, collected via function refs (no getElementById).
+const canvasRefs = new Map<number, HTMLCanvasElement>();
 let pdf = toRaw(docStore.previewPdf);
 
-const emit = defineEmits();
-
-const isVisible = () => {
-  const previewContainer = document.getElementById('preview-container');
-  const activePageContainer = document.getElementById(
-    `preview-page-container-${docStore.activePage}`
-  );
-  if (activePageContainer && previewContainer) {
-    const { x, width } = activePageContainer.getBoundingClientRect();
-    // Horizontally in view
-    const canvasVisible = x - 20 > 0 && x + width < window.innerWidth - 20;
-
-    // Emit to preview bar, for button visibility
-    if (!canvasVisible)
-      emit('handleEmit', true, startPage.value, endPage.value);
-    else emit('handleEmit', false);
-  }
+const setCanvasRef = (el: unknown, key: number) => {
+  if (el) canvasRefs.set(key, el as HTMLCanvasElement);
+  else canvasRefs.delete(key);
 };
 
 const handleScroll = (event: Event) => {
@@ -43,23 +34,17 @@ const handleScroll = (event: Event) => {
   const isAtEnd =
     target.scrollLeft + target.clientWidth + 100 >= target.scrollWidth;
 
-  // If we reached end, change start and end page value
+  // If we reached the end, reveal the next window of pages (once per arrival).
   if (isAtEnd && endPage.value < docStore.totalPages && !hold.value) {
-    // Set hold to True cuz we loaded next pages, we want it only once
     hold.value = true;
-
     startPage.value = endPage.value + 1;
     endPage.value = Math.min(
       endPage.value + MAX_VISIBLE_PAGE,
       docStore.totalPages
     );
   } else if (hold.value && !isAtEnd) {
-    // If we leave end of scroll and the value is setted to true, reset
     hold.value = false;
   }
-
-  // Check if active canvas is visible on preview
-  isVisible();
 };
 
 const renderPage = async (numPage: number) => {
@@ -67,65 +52,52 @@ const renderPage = async (numPage: number) => {
 
   const page = await pdf.getPage(numPage);
 
-  // Get viewport and set new desired scale for preview
+  // Scale the page down to the fixed thumbnail height.
   let viewport = page.getViewport({ scale: 1 });
   const desiredScale = DESIRED_HEIGHT / viewport.height;
   viewport = page.getViewport({ scale: desiredScale });
 
-  // Create canvas
-  const canvas = document.getElementById(
-    `preview-canvas-${numPage}`
-  ) as HTMLCanvasElement;
-  if (canvas) {
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    canvas.style.width = `${viewport.width}px`;
-    canvas.style.height = `${viewport.height}px`;
+  const canvas = canvasRefs.get(numPage);
+  if (!canvas) return;
 
-    const canvasContext = canvas.getContext('2d') as CanvasRenderingContext2D;
-    // Render page content to the canvas
-    await page.render({
-      canvasContext,
-      viewport,
-    }).promise;
-  }
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  canvas.style.width = `${viewport.width}px`;
+  canvas.style.height = `${viewport.height}px`;
 
-  // Remove loader from canvas
-  const loader = document.getElementById('preview-loader-' + numPage);
-  if (loader) {
-    loader.classList.add('hidden');
-  }
+  // Render page content to the canvas (pdf.js v6: pass the canvas element).
+  await page.render({ canvas, viewport }).promise;
+
+  rendered.value[numPage] = true;
 };
 
 const renderPreview = () => {
-  // Render all pageNumbers and wait for all to complete
   for (let i = startPage.value; i <= endPage.value; i++) {
     renderPage(i);
   }
 };
 
 onMounted(() => {
-  // On mount render preview
   renderPreview();
 });
 
-// Watch for pdf, and start/end value pages if changed, render
+// Re-render when the source or the visible window changes.
 watch(
   () => [pdf, startPage.value, endPage.value],
   () => renderPreview()
 );
 
-// Watch for totalPages change, if changed, update endPage
+// Keep the visible window in sync with the page count.
 watch(
   () => docStore.totalPages,
   (totalPages) => {
     endPage.value =
       totalPages > MAX_VISIBLE_PAGE ? MAX_VISIBLE_PAGE : totalPages;
   },
-  { immediate: true } // Run immediately in case totalPages is already defined
+  { immediate: true }
 );
 
-// If active page change, check visibility
+// Expand the window so the active page's thumbnail is always available.
 watch(
   () => docStore.activePage,
   (activePage) => {
@@ -136,11 +108,9 @@ watch(
         docStore.totalPages
       );
     }
-    isVisible();
   }
 );
 
-// If pdf change, update pdf
 watch(
   () => docStore.previewPdf,
   () => {
@@ -151,36 +121,42 @@ watch(
 
 <template>
   <div
-    id="preview-container"
     class="relative h-full flex items-start gap-[27px] px-4 py-[2px] overflow-x-auto overflow-y-hidden hide-scrollbar"
+    role="group"
+    :aria-label="$t('thumbnails')"
     @scroll="handleScroll"
   >
     <!-- Preview for loop -->
     <div
       v-for="key in pageNumbers"
       :key="key"
-      :id="`preview-page-container-${key}`"
       class="relative shrink-0 flex flex-col w-[92px]"
       :class="[key > endPage && 'hidden']"
     >
       <!-- Loader -->
       <div
-        :id="`preview-loader-${key}`"
+        v-if="!rendered[key]"
         class="absolute top-0 left-0 w-full bg-secondary animate-pulse border-4 border-transparent pointer-events-none"
         :style="{ height: `${DESIRED_HEIGHT}px` }"
       ></div>
 
-      <!-- Canvas -->
+      <!-- Canvas — acts as a button so it is keyboard reachable -->
       <canvas
-        :id="`preview-canvas-${key}`"
+        :ref="(el) => setCanvasRef(el, key)"
         class="w-[92px] cursor-pointer shadow-sm rounded-[2px]"
         :class="[
           docStore.activePage === key
-            ? 'ring-[1.5px] ring-[#0077CC]'
+            ? 'ring-[1.5px] ring-secondary'
             : isDark ? 'ring-1 ring-white/10' : 'ring-1 ring-gray-200',
         ]"
         :style="{ height: `${DESIRED_HEIGHT}px` }"
-        @click="docStore.setActivePage(key)"
+        role="button"
+        tabindex="0"
+        :aria-label="`${$t('page')} ${key}`"
+        :aria-current="docStore.activePage === key ? 'page' : undefined"
+        @click="docStore.activePage = key"
+        @keydown.enter.prevent="docStore.activePage = key"
+        @keydown.space.prevent="docStore.activePage = key"
       >
       </canvas>
 
@@ -188,7 +164,7 @@ watch(
       <span
         class="block text-center text-[11px] leading-4 select-none tabular-nums h-4 mt-0.5"
         :class="docStore.activePage === key
-          ? 'font-medium text-[#0077CC]'
+          ? 'font-medium text-secondary'
           : isDark ? 'font-normal text-white/60' : 'font-normal text-[#333]'"
       >
         {{ key }}

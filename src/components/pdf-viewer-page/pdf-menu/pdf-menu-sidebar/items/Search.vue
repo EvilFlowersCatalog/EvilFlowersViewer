@@ -1,20 +1,27 @@
 <script setup lang="ts">
-import { RENDER_STATE, SEARCH_STATE } from '@/assets/utils/enums';
+import { SEARCH_STATE } from '@/assets/utils/enums';
 import { debounce } from '@/assets/utils/functions';
 import { Loader } from '@/components/pdf-aids';
-import { useDocumentStore } from '@/stores';
+import { useDocumentStore, useViewerStore } from '@/stores';
+import type { ISemanticSearchResult } from '@/assets/utils/interfaces';
 import type {
   getTextContentParameters,
   TextItem,
 } from 'pdfjs-dist/types/src/display/api';
-import { onBeforeUnmount, ref, toRaw, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, toRaw, watch } from 'vue';
 import searchIntelligentSvg from '@/assets/icons/search-intelligent.svg?raw';
 
 const docStore = useDocumentStore();
+const viewerStore = useViewerStore();
+
+// Semantic search is opt-in: only shown when the host supplies the function.
+const hasSemantic = computed(() => !!viewerStore.semanticSearchFunction);
+
 const selectedMatch = ref<number | null>(null);
 const searchState = ref<SEARCH_STATE>(SEARCH_STATE.NULL);
 const inputValue = ref<string>('');
 const intelligentSearch = ref<boolean>(false);
+
 const matches = ref<
   (
     | {
@@ -27,6 +34,11 @@ const matches = ref<
     | undefined
   )[]
 >([]);
+
+// Semantic results + their own loading state (independent of keyword search).
+const semanticResults = ref<ISemanticSearchResult[]>([]);
+const semanticState = ref<SEARCH_STATE>(SEARCH_STATE.NULL);
+const selectedSemantic = ref<number | null>(null);
 
 let searchWorker: Worker | null = null;
 let pdf = toRaw(docStore.pdf);
@@ -56,7 +68,9 @@ const searchDocument = debounce(async (pattern: string) => {
 
     textContent.push(...pagesContent);
 
-    searchWorker = new Worker(new URL('./SearchWorker.ts', import.meta.url));
+    searchWorker = new Worker(new URL('./SearchWorker.ts', import.meta.url), {
+      type: 'module',
+    });
     selectedMatch.value = null;
     searchWorker.postMessage([pattern, textContent]);
 
@@ -72,25 +86,69 @@ const searchDocument = debounce(async (pattern: string) => {
   }
 });
 
+// Tracks the latest semantic query so out-of-order responses are discarded.
+let semanticRequestId = 0;
+const searchSemantic = debounce(async (query: string) => {
+  const fn = viewerStore.semanticSearchFunction;
+  if (!fn) return;
+
+  const requestId = ++semanticRequestId;
+  semanticState.value = SEARCH_STATE.SEARCHING;
+  selectedSemantic.value = null;
+
+  try {
+    const results = await fn(query);
+    if (requestId !== semanticRequestId) return; // superseded by a newer query
+    semanticResults.value = results ?? [];
+    semanticState.value = SEARCH_STATE.DONE;
+  } catch {
+    if (requestId !== semanticRequestId) return;
+    semanticResults.value = [];
+    semanticState.value = SEARCH_STATE.DONE;
+  }
+});
+
 const handleInputChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   inputValue.value = target.value;
 };
 
 const handleSelect = (index: number, page: number) => {
-  const isValidIndex = index >= 0 && index < matches.value.length;
-  const isValidPage = page > 0 && page <= docStore.totalPages;
-  if (!isValidIndex) return;
-  if (page === docStore.activePage) {
-    docStore.setReRenderPage(!docStore.reRenderPage);
-  } else if (isValidPage) {
-    docStore.setActivePage(page);
-  }
+  const match = matches.value[index];
+  if (!match) return;
   selectedMatch.value = index;
+
+  // Hand the hit to the store; PDFPage owns the canvas and draws it. This keeps
+  // Search decoupled from the page DOM and lets the highlight survive zoom and
+  // page re-renders.
+  if (match.transform) {
+    docStore.searchHighlight = {
+      page: match.page,
+      transform: match.transform,
+      width: match.width,
+      height: match.height,
+    };
+  }
+
+  if (page > 0 && page <= docStore.totalPages && page !== docStore.activePage) {
+    docStore.activePage = page;
+  }
+};
+
+const handleSelectSemantic = (index: number, page: number) => {
+  if (page > 0 && page <= docStore.totalPages && page !== docStore.activePage) {
+    docStore.activePage = page;
+  }
+  selectedSemantic.value = index;
 };
 
 onBeforeUnmount(() => {
-  docStore.setReRenderPage(!docStore.reRenderPage);
+  if (searchWorker) {
+    searchWorker.terminate();
+    searchWorker = null;
+  }
+  // Clear the highlight so closing the panel repaints a clean page.
+  docStore.searchHighlight = null;
 });
 
 watch(
@@ -99,111 +157,247 @@ watch(
     if (inputValue.value) {
       searchState.value = SEARCH_STATE.SEARCHING;
       searchDocument(inputValue.value);
+      if (hasSemantic.value) searchSemantic(inputValue.value);
     } else {
       searchState.value = SEARCH_STATE.NULL;
+      semanticState.value = SEARCH_STATE.NULL;
       matches.value = [];
+      semanticResults.value = [];
     }
   }
 );
 
 watch(
   () => docStore.pdf,
-  () => { pdf = toRaw(docStore.pdf); }
-);
-
-watch(
-  () => [selectedMatch.value, docStore.renderState, docStore.activePage, matches.value],
   () => {
-    const match =
-      selectedMatch.value != null && matches?.value[selectedMatch.value];
-
-    if (
-      match &&
-      docStore.renderState === RENDER_STATE.RENDERED &&
-      match.transform &&
-      docStore.activePage === match.page
-    ) {
-      const canvas = document.getElementById(
-        'pdf-page-canvas'
-      ) as HTMLCanvasElement | null;
-
-      if (canvas) {
-        const canvasHeight = parseInt(canvas.getAttribute('height')!);
-        const { width, height } = match;
-        const x = match.transform[4];
-        const y = canvasHeight - match.transform[5] + 2 - height;
-        const context = canvas.getContext('2d');
-
-        if (context) {
-          context.fillStyle = 'orange';
-          context.globalAlpha = 0.5;
-          context.fillRect(x, y, width, height);
-        }
-      }
-    }
+    pdf = toRaw(docStore.pdf);
   }
 );
+
+// Split a result snippet into plain/highlighted parts so the matched query term
+// can be bolded (Figma) without resorting to v-html.
+const highlightParts = (text: string, term: string) => {
+  if (!term) return [{ text, match: false }];
+  const parts: { text: string; match: boolean }[] = [];
+  const lower = text.toLowerCase();
+  const needle = term.toLowerCase();
+  let i = 0;
+  while (i < text.length) {
+    const idx = lower.indexOf(needle, i);
+    if (idx === -1) {
+      parts.push({ text: text.slice(i), match: false });
+      break;
+    }
+    if (idx > i) parts.push({ text: text.slice(i, idx), match: false });
+    parts.push({ text: text.slice(idx, idx + term.length), match: true });
+    i = idx + term.length;
+  }
+  return parts;
+};
+
+// Step through keyword / semantic results with the header chevrons (wraps).
+const stepMatch = (dir: number) => {
+  if (!matches.value.length) return;
+  const cur = selectedMatch.value ?? -1;
+  const next = (cur + dir + matches.value.length) % matches.value.length;
+  const m = matches.value[next];
+  if (m) handleSelect(next, m.page);
+};
+const stepSemantic = (dir: number) => {
+  if (!semanticResults.value.length) return;
+  const cur = selectedSemantic.value ?? -1;
+  const next =
+    (cur + dir + semanticResults.value.length) % semanticResults.value.length;
+  handleSelectSemantic(next, semanticResults.value[next].page);
+};
 </script>
 
 <template>
   <div class="flex flex-col h-full gap-[10px]">
     <!-- Search input -->
-    <div class="flex items-center gap-[6px] bg-white dark:bg-white/5 rounded-[7px] shadow-[0px_4px_12px_rgba(0,0,0,0.1)] px-[5px] h-[28px]">
+    <div
+      class="flex items-center gap-[6px] bg-white dark:bg-white/5 rounded-[7px] shadow-[0px_4px_12px_rgba(0,0,0,0.1)] px-[5px] h-[28px]"
+    >
       <button
+        v-if="hasSemantic"
         type="button"
         @click="intelligentSearch = !intelligentSearch"
         class="relative w-[25px] h-[16px] rounded-[15px] bg-[rgba(217,217,217,0.2)] shadow-[inset_1px_1px_2.5px_rgba(0,0,0,0.25)] shrink-0"
+        :aria-label="$t('semantic-search')"
+        :aria-pressed="intelligentSearch"
       >
         <span
           class="absolute top-1/2 -translate-y-1/2 size-[9px] flex items-center justify-center transition-[left] duration-200"
           :style="{ left: intelligentSearch ? '11px' : '3px' }"
         >
-          <svg v-if="!intelligentSearch" class="size-[9px] text-[#333] dark:text-gray-300" viewBox="0 0 16 16" fill="none">
+          <svg v-if="!intelligentSearch" aria-hidden="true" class="size-[9px] text-[#333] dark:text-gray-300" viewBox="0 0 16 16" fill="none">
             <path d="M6.66667 13.3333C8.14581 13.333 9.58234 12.8379 10.7475 11.9267L14.4108 15.59L15.5892 14.4117L11.9258 10.7483C12.8375 9.58305 13.333 8.1462 13.3333 6.66667C13.3333 2.99083 10.3425 0 6.66667 0C2.99083 0 0 2.99083 0 6.66667C0 10.3425 2.99083 13.3333 6.66667 13.3333ZM6.66667 1.66667C9.42417 1.66667 11.6667 3.90917 11.6667 6.66667C11.6667 9.42417 9.42417 11.6667 6.66667 11.6667C3.90917 11.6667 1.66667 9.42417 1.66667 6.66667C1.66667 3.90917 3.90917 1.66667 6.66667 1.66667Z" fill="currentColor"/>
           </svg>
-          <span v-else class="size-[10px]" v-html="searchIntelligentSvg" />
+          <span v-else aria-hidden="true" class="size-[10px]" v-html="searchIntelligentSvg" />
         </span>
       </button>
+      <svg
+        v-else
+        aria-hidden="true"
+        class="size-[11px] shrink-0 text-[#8a8a8a] dark:text-gray-400"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
+        <path
+          d="M6.66667 13.3333C8.14581 13.333 9.58234 12.8379 10.7475 11.9267L14.4108 15.59L15.5892 14.4117L11.9258 10.7483C12.8375 9.58305 13.333 8.1462 13.3333 6.66667C13.3333 2.99083 10.3425 0 6.66667 0C2.99083 0 0 2.99083 0 6.66667C0 10.3425 2.99083 13.3333 6.66667 13.3333ZM6.66667 1.66667C9.42417 1.66667 11.6667 3.90917 11.6667 6.66667C11.6667 9.42417 9.42417 11.6667 6.66667 11.6667C3.90917 11.6667 1.66667 9.42417 1.66667 6.66667C1.66667 3.90917 3.90917 1.66667 6.66667 1.66667Z"
+          fill="currentColor"
+        />
+      </svg>
       <input
         name="search-pattern"
-        class="flex-1 min-w-0 bg-transparent text-[10px] font-light text-[#333] dark:text-gray-200 placeholder:!text-[#b1b1b1] tracking-[0.1px] outline-none"
+        class="flex-1 min-w-0 bg-transparent text-[11px] font-light text-[#333] dark:text-gray-200 placeholder:!text-[#b1b1b1] tracking-[0.1px] outline-none"
         type="text"
         :value="inputValue"
-        :placeholder="$t(intelligentSearch ? 'input-search-pattern-intelligent' : 'input-search-pattern')"
+        :aria-label="$t(hasSemantic && intelligentSearch ? 'input-search-pattern-intelligent' : 'input-search-pattern')"
+        :placeholder="$t(hasSemantic && intelligentSearch ? 'input-search-pattern-intelligent' : 'input-search-pattern')"
         @keydown.stop
         @input="handleInputChange"
       />
     </div>
 
-    <!-- Searching -->
-    <div v-if="searchState === SEARCH_STATE.SEARCHING" class="flex justify-center py-6">
-      <Loader :size="28" color="#0077cc" />
-    </div>
+    <!-- Results area: single column, driven by the toggle when semantic search is available -->
+    <div class="flex-1 min-h-0 flex flex-col overflow-hidden">
+      <!-- Keyword results -->
+      <div v-if="!hasSemantic || !intelligentSearch" class="flex flex-col flex-1 min-h-0 gap-[10px]">
+        <div v-if="searchState === SEARCH_STATE.SEARCHING" class="flex justify-center py-6">
+          <Loader :size="24" color="#0077cc" :label="$t('search')" />
+        </div>
 
-    <!-- Results -->
-    <div v-else-if="searchState === SEARCH_STATE.DONE && matches.length > 0" class="flex flex-col gap-[10px] overflow-auto">
-      <p class="text-[9px] font-normal text-[#333] dark:text-gray-300 tracking-[0.1px]">
-        {{ $t('results') }}: {{ matches.length }}
-      </p>
-      <button
-        v-for="(match, index) in matches"
-        class="flex flex-col items-start pl-[5px] pr-[4px] pt-[6px] pb-[2px] text-left transition-colors"
-        :key="index"
-        :class="selectedMatch === index
-          ? 'bg-[rgba(0,119,204,0.2)] shadow-[0px_0px_1.5px_rgba(0,0,0,0.25)]'
-          : 'bg-[#f5f7fa] dark:bg-white/5 drop-shadow-[0px_0px_0.75px_rgba(0,0,0,0.25)]'"
-        @click="handleSelect(index, match!.page)"
+        <template v-else-if="searchState === SEARCH_STATE.DONE">
+          <div v-if="matches.length > 0" class="flex items-center justify-between shrink-0">
+            <p
+              class="text-[9px] font-normal text-[#333] dark:text-gray-300 tracking-[0.1px]"
+              aria-live="polite"
+            >
+              {{ $t('results') }}: {{ matches.length }}
+            </p>
+            <div class="flex items-center gap-[2px]">
+              <button
+                type="button"
+                class="p-[2px] rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8a8a8a] dark:text-gray-400 transition-colors"
+                :aria-label="$t('previous-result')"
+                @click="stepMatch(-1)"
+              >
+                <svg aria-hidden="true" class="size-3" viewBox="0 0 20 20" fill="none"><path d="M5 12l5-5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button
+                type="button"
+                class="p-[2px] rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8a8a8a] dark:text-gray-400 transition-colors"
+                :aria-label="$t('next-result')"
+                @click="stepMatch(1)"
+              >
+                <svg aria-hidden="true" class="size-3" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+          <div
+            v-if="matches.length > 0"
+            class="flex flex-col gap-[8px] overflow-auto pr-[2px]"
+          >
+            <button
+              v-for="(match, index) in matches"
+              class="flex flex-col items-start px-[6px] pt-[6px] pb-[2px] rounded-[4px] text-left transition-colors"
+              :key="index"
+              :class="
+                selectedMatch === index
+                  ? 'bg-[rgba(0,119,204,0.2)] shadow-[0px_0px_1.5px_rgba(0,0,0,0.25)]'
+                  : 'bg-[#f5f7fa] dark:bg-white/5 drop-shadow-[0px_0px_0.75px_rgba(0,0,0,0.25)]'
+              "
+              :aria-label="`${match?.text}, ${$t('page')} ${match?.page}`"
+              :aria-current="selectedMatch === index ? 'true' : undefined"
+              @click="handleSelect(index, match!.page)"
+            >
+              <span class="text-[9px] font-light text-black dark:text-gray-200 leading-[12px]">
+                <template
+                  v-for="(part, pi) in highlightParts(match?.text ?? '', inputValue)"
+                  :key="pi"
+                ><strong v-if="part.match" class="font-semibold">{{ part.text }}</strong><template v-else>{{ part.text }}</template></template>
+              </span>
+              <span
+                class="self-end text-[8px] font-normal text-black dark:text-gray-300 leading-[16px]"
+              >{{ match?.page }}</span>
+            </button>
+          </div>
+          <div v-else class="flex justify-center py-6">
+            <span class="text-[10px] text-[#b1b1b1]">{{ $t('not-found') }}</span>
+          </div>
+        </template>
+      </div>
+
+      <!-- Semantic results (shown in place of keyword results while the toggle is on) -->
+      <div
+        v-if="hasSemantic && intelligentSearch"
+        class="flex flex-col flex-1 min-h-0 gap-[10px]"
       >
-        <span class="text-[9px] font-light text-black dark:text-gray-200 leading-[12px]">
-          {{ match?.text }}
-        </span>
-        <span class="self-end text-[8px] font-normal text-black dark:text-gray-300 leading-[20px]">{{ match?.page }}</span>
-      </button>
-    </div>
+        <div v-if="semanticState === SEARCH_STATE.SEARCHING" class="flex justify-center py-6">
+          <Loader :size="24" color="#0077cc" :label="$t('semantic-search')" />
+        </div>
 
-    <!-- No results -->
-    <div v-else-if="searchState === SEARCH_STATE.DONE" class="flex justify-center py-6">
-      <span class="text-[10px] text-[#b1b1b1]">{{ $t('not-found') }}</span>
+        <template v-else-if="semanticState === SEARCH_STATE.DONE">
+          <div v-if="semanticResults.length > 0" class="flex items-center justify-between shrink-0">
+            <p
+              class="text-[9px] font-normal text-[#333] dark:text-gray-300 tracking-[0.1px]"
+              aria-live="polite"
+            >
+              {{ $t('results') }}: {{ semanticResults.length }}
+            </p>
+            <div class="flex items-center gap-[2px]">
+              <button
+                type="button"
+                class="p-[2px] rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8a8a8a] dark:text-gray-400 transition-colors"
+                :aria-label="$t('previous-result')"
+                @click="stepSemantic(-1)"
+              >
+                <svg aria-hidden="true" class="size-3" viewBox="0 0 20 20" fill="none"><path d="M5 12l5-5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button
+                type="button"
+                class="p-[2px] rounded hover:bg-black/5 dark:hover:bg-white/10 text-[#8a8a8a] dark:text-gray-400 transition-colors"
+                :aria-label="$t('next-result')"
+                @click="stepSemantic(1)"
+              >
+                <svg aria-hidden="true" class="size-3" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+          <div
+            v-if="semanticResults.length > 0"
+            class="flex flex-col gap-[8px] overflow-auto pr-[2px]"
+          >
+            <button
+              v-for="(result, index) in semanticResults"
+              class="flex flex-col items-start px-[6px] pt-[6px] pb-[2px] rounded-[4px] text-left transition-colors"
+              :key="index"
+              :class="
+                selectedSemantic === index
+                  ? 'bg-[rgba(0,119,204,0.2)] shadow-[0px_0px_1.5px_rgba(0,0,0,0.25)]'
+                  : 'bg-[#f5f7fa] dark:bg-white/5 drop-shadow-[0px_0px_0.75px_rgba(0,0,0,0.25)]'
+              "
+              :aria-label="`${result.text}, ${$t('page')} ${result.page}`"
+              :aria-current="selectedSemantic === index ? 'true' : undefined"
+              @click="handleSelectSemantic(index, result.page)"
+            >
+              <span class="text-[9px] font-light text-black dark:text-gray-200 leading-[12px]">
+                <template
+                  v-for="(part, pi) in highlightParts(result.text ?? '', inputValue)"
+                  :key="pi"
+                ><strong v-if="part.match" class="font-semibold">{{ part.text }}</strong><template v-else>{{ part.text }}</template></template>
+              </span>
+              <span
+                class="self-end text-[8px] font-normal text-black dark:text-gray-300 leading-[16px]"
+              >{{ result.page }}</span>
+            </button>
+          </div>
+          <div v-else class="flex justify-center py-6">
+            <span class="text-[10px] text-[#b1b1b1]">{{ $t('not-found') }}</span>
+          </div>
+        </template>
+      </div>
     </div>
   </div>
 </template>

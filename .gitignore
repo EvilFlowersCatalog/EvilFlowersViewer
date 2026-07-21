@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 
 pnpm-lock.yaml
+.mcp.json
+.playwright-mcp/

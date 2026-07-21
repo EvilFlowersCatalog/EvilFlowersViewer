@@ -20,7 +20,7 @@ const handleToggleExpand = () => emit('toggle-expand', item);
     <!-- Title -->
     <button
       @click="handleItemClick(item.pageNumber)"
-      class="text-[10px] leading-[18px] tracking-[0.1px] text-left text-gray-800 dark:text-gray-200 hover:text-secondary dark:hover:text-secondary transition-colors shrink-0 max-w-[70%] truncate"
+      class="text-[10px] leading-[18px] tracking-[0.1px] text-left text-gray-800 dark:text-gray-200 hover:text-secondary dark:hover:text-secondary transition-colors min-w-0 max-w-[70%] truncate"
       :class="item.level === 0 ? 'font-semibold' : 'font-normal text-gray-600 dark:text-gray-400'"
     >
       {{ item.title }}

@@ -8,7 +8,7 @@ const docStore = useDocumentStore();
 
 const handleItemClick = (page: number) => {
   if (page === -1) return;
-  docStore.setActivePage(page);
+  docStore.activePage = page;
   docStore.setModalContent(MODAL_CONTENT.NULL);
   docStore.setSidebarState(SIDEBAR_STATE.NULL);
 };
