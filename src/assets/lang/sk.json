@@ -72,5 +72,17 @@
   "tool-eraser": "Guma",
   "tool-circle": "Elipsa",
   "tool-rectangle": "Obdĺžnik",
-  "tool-line": "Čiara"
+  "tool-line": "Čiara",
+  "copy": "Kopírovať",
+  "similar": "Podobné",
+  "highlight": "Zvýrazniť",
+  "explain": "Vysvetliť",
+  "simple": "Jednoducho",
+  "examples": "Príklady",
+  "similar-books": "Podobné knihy",
+  "prerequisites": "Prerekvizity",
+  "advanced": "Pokročilé",
+  "add-to-shelf": "Pridať na poličku",
+  "remove-from-shelf": "Odobrať z poličky",
+  "no-suggestions": "Nič sa nenašlo"
 }

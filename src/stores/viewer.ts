@@ -1,7 +1,9 @@
-import { CITATION_FORMAT, CITATION_TYPE } from '@/assets/utils/enums';
+import { CITATION_FORMAT, CITATION_TYPE, SUGGESTION_KIND } from '@/assets/utils/enums';
 import type {
   IEditPackage,
+  IExplainResult,
   ISemanticSearchResult,
+  ISuggestedEntry,
   IViewerConfig,
 } from '@/assets/utils/interfaces';
 import { defineStore } from 'pinia';
@@ -31,6 +33,25 @@ export const useViewerStore = defineStore('viewer', () => {
     ((query: string) => Promise<ISemanticSearchResult[]>) | null
   >(null);
   const editPackage = ref<IEditPackage | null>(null);
+  const openEntryDetailFunction = ref<((entry: ISuggestedEntry) => void) | null>(
+    null
+  );
+  const bookmarkToggleFunction = ref<
+    | ((
+        entry: ISuggestedEntry
+      ) => Promise<{ isOnShelf: boolean; shelfRecordId?: string | null }>)
+    | null
+  >(null);
+  const suggestionsFunction = ref<
+    | ((
+        kind: SUGGESTION_KIND,
+        context?: { selectedText?: string; page?: number }
+      ) => Promise<ISuggestedEntry[]>)
+    | null
+  >(null);
+  const explainFunction = ref<
+    ((selectedText: string) => Promise<IExplainResult>) | null
+  >(null);
   const config = ref<IViewerConfig>({
     download: false,
     share: false,
@@ -51,6 +72,10 @@ export const useViewerStore = defineStore('viewer', () => {
     printFunction,
     semanticSearchFunction,
     editPackage,
+    openEntryDetailFunction,
+    bookmarkToggleFunction,
+    suggestionsFunction,
+    explainFunction,
     config,
   };
 });

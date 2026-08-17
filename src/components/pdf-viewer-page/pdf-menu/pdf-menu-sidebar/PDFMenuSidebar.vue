@@ -29,7 +29,6 @@ const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
   [SIDEBAR_STATE.INFO]: 'info',
   [SIDEBAR_STATE.PRINT]: 'print',
   [SIDEBAR_STATE.TOC]: 'table-of-content',
-  [SIDEBAR_STATE.RECOMMENDATIONS]: 'recommendations',
 };
 </script>
 

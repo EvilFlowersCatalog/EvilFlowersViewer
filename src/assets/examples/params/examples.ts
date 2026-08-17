@@ -1,4 +1,4 @@
-import type { ILayer } from '@/assets/utils/interfaces';
+import type { IExplainResult, ILayer, ISuggestedEntry } from '@/assets/utils/interfaces';
 
 const delay = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -95,6 +95,69 @@ export const homeFunction = () => {
 };
 export const closeFunction = () => {
   console.log('close');
+};
+
+// stub
+const exampleEntries: ISuggestedEntry[] = [
+  {
+    id: '1',
+    catalog_id: 'cat-1',
+    title: 'Introduction to Data Science',
+    authors: [{ name: 'Giang', surname: 'Nguyen' }],
+    thumbnail: 'https://placehold.co/200x280?text=Data+Science',
+  },
+  {
+    id: '2',
+    catalog_id: 'cat-1',
+    title: 'Umelá inteligencia',
+    authors: [{ name: 'Pavol', surname: 'Návrat' }],
+    thumbnail: 'https://placehold.co/200x280?text=AI',
+    shelf_record_id: 'shelf-2',
+  },
+  {
+    id: '3',
+    catalog_id: 'cat-1',
+    title: 'Programovanie: Úvod do programovania',
+    authors: [{ name: 'Michal', surname: 'Kováč' }],
+    thumbnail: 'https://placehold.co/200x280?text=Programming',
+  },
+  {
+    id: '4',
+    catalog_id: 'cat-1',
+    title: 'Quantum Computing for Everyone',
+    authors: [{ name: 'Chris', surname: 'Bernhardt' }],
+    thumbnail: 'https://placehold.co/200x280?text=Quantum',
+  },
+];
+
+export const exampleOpenEntryDetailFunction = (entry: ISuggestedEntry) => {
+  console.log('open entry detail', entry.id);
+};
+
+export const exampleBookmarkToggleFunction = async (entry: ISuggestedEntry) => {
+  await delay(400);
+  const isOnShelf = entry.shelf_record_id == null;
+  entry.shelf_record_id = isOnShelf ? 'shelf-mock' : null;
+  return { isOnShelf, shelfRecordId: entry.shelf_record_id };
+};
+
+export const exampleSuggestionsFunction = async (): Promise<ISuggestedEntry[]> => {
+  await delay(500);
+  return exampleEntries;
+};
+
+export const exampleExplainFunction = async (
+  selectedText: string
+): Promise<IExplainResult> => {
+  await delay(500);
+  return {
+    simple: `Jednoducho povedané: „${selectedText}“ je pasáž vysvetlená zrozumiteľným jazykom (mock dáta, backend zatiaľ neexistuje).`,
+    examples: [
+      { label: 'Strojový preklad', description: `Príklad pre „${selectedText}“ v kontexte prekladu.` },
+      { label: 'Generovanie textu', description: `Príklad pre „${selectedText}“ v kontexte generovania.` },
+      { label: 'Analýza časových radov', description: `Príklad pre „${selectedText}“ v kontexte analýzy.` },
+    ],
+  };
 };
 
 export const exampleCitation: string = `@article {exmaple-citation,

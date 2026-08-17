@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { EDIT_TOOL, LAYER_STATE } from '@/assets/utils/enums';
+import { DEFAULT_HIGHLIGHT_COLOR } from '@/assets/utils/constans';
 import { resizeElements } from '@/assets/utils/functions';
 import { useDocumentStore, useViewerStore } from '@/stores';
 import type { ILayer } from '@/assets/utils/interfaces';
@@ -339,6 +340,29 @@ const endDrawing = async () => {
   // Save the drawing immediately when drawing ends
   debouncedAutoSave(true);
 };
+
+// Paints a translucent rect per selection client-rect via the normal save path.
+const addHighlight = (rects: DOMRect[], color?: string) => {
+  if (!svgRef.value || !rects.length) return;
+
+  pushUndoSnapshot();
+
+  const svgRect = svgRef.value.getBoundingClientRect();
+  for (const rect of rects) {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    el.setAttribute('x', (rect.left - svgRect.left).toString());
+    el.setAttribute('y', (rect.top - svgRect.top).toString());
+    el.setAttribute('width', rect.width.toString());
+    el.setAttribute('height', rect.height.toString());
+    el.setAttribute('fill', color ?? DEFAULT_HIGHLIGHT_COLOR);
+    el.setAttribute('opacity', '0.3');
+    svgRef.value.append(el);
+  }
+
+  debouncedAutoSave(true);
+};
+
+defineExpose({ addHighlight });
 
 const handleMouseOver = (event: Event) => {
   // Get target

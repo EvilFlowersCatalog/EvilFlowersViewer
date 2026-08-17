@@ -1,4 +1,5 @@
 import type { TypedArray } from 'pdfjs-dist/types/src/display/api';
+import type { SUGGESTION_KIND } from './enums';
 
 /** A single semantic/AI search hit returned by the host-provided function. */
 export interface ISemanticSearchResult {
@@ -24,6 +25,24 @@ export interface ISearchHighlight {
   width: number;
   /** Text-item height in unscaled PDF units. */
   height: number;
+}
+
+/** A book/entry card shown in the similar-books and suggestions popups. */
+export interface ISuggestedEntry {
+  id: string;
+  catalog_id: string;
+  title: string;
+  authors: { name: string; surname: string }[];
+  thumbnail: string;
+  feeds?: { id: string; title: string }[];
+  /** Non-null when bookmarked (on the user's shelf). */
+  shelf_record_id?: string | null;
+}
+
+/** Result of the host-provided `explainFunction`. */
+export interface IExplainResult {
+  simple: string;
+  examples: { label: string; description: string }[];
 }
 
 /** Host hooks for the annotation/edit layer (create + persist SVG layers). */
@@ -63,6 +82,23 @@ export interface IViewerOptions {
     | ((query: string) => Promise<ISemanticSearchResult[]>)
     | null;
   editPackage?: IEditPackage | null;
+  /** Opens the host's entry-detail overlay for a clicked card. */
+  openEntryDetailFunction?: ((entry: ISuggestedEntry) => void) | null;
+  /** Toggles the shelf bookmark; resolves with the settled state. */
+  bookmarkToggleFunction?:
+    | ((
+        entry: ISuggestedEntry
+      ) => Promise<{ isOnShelf: boolean; shelfRecordId?: string | null }>)
+    | null;
+  /** Opt-in suggestions feed. Omitting it hides "Podobné" and the bottom-right button. */
+  suggestionsFunction?:
+    | ((
+        kind: SUGGESTION_KIND,
+        context?: { selectedText?: string; page?: number }
+      ) => Promise<ISuggestedEntry[]>)
+    | null;
+  /** Opt-in "explain this passage" feed. Omitting it hides "Vysvetliť". */
+  explainFunction?: ((selectedText: string) => Promise<IExplainResult>) | null;
 }
 
 export interface IViewerProps {

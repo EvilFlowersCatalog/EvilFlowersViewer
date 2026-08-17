@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 : 2026-08-17
+
+### Added
+
+- **Text-selection menu**: selecting text over the PDF now shows a Kopírovať/Podobné/Zvýrazniť/Vysvetliť menu. Kopírovať copies the selection; Zvýrazniť paints it onto the existing drawing overlay as a translucent highlight (same save/undo path as manual drawing); Podobné and Vysvetliť open new popups anchored beside the page body (falling back to the right edge of the screen at extreme zoom).
+- **Suggestions popup**: the previously-dead bottom-right "Odporúčania" button now opens a tabbed (Podobné/Prerekvizity/Pokročilé) card-grid popup above itself, instead of the unused left sidebar panel.
+- 4 new opt-in host hooks on `options`: `openEntryDetailFunction`, `bookmarkToggleFunction`, `suggestionsFunction`, `explainFunction`. Each new UI piece that depends on one hides itself when the hook isn't supplied.
+- New exported types: `ISuggestedEntry`, `IExplainResult`, `SUGGESTION_KIND`.
+
 ## 0.6.0 : 2026-07-18
 
 A large release covering the core-viewer overhaul: Figma-aligned redesign, style isolation, dependency modernization, an internal architecture refactor, an accessibility pass and reading-experience polish. **No breaking change to the public API** — `renderPDFViewer(...)` and the `options` / `config` contract are unchanged (the default export now additionally returns the Vue `App` instance). Re-validated end-to-end in the browser (render, text layer, zoom, keyword + semantic search with highlight, thumbnails, navigation, editing, citation, theming, keyboard/focus) — no functional regressions.
