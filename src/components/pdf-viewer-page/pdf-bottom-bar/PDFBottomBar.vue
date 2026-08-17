@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { useDocumentStore } from '@/stores';
+import { useDocumentStore, useViewerStore } from '@/stores';
 import { ref, inject, computed, type Ref } from 'vue';
 import { PDFPreview } from '.';
-import { SIDEBAR_STATE } from '@/assets/utils/enums';
+import { SuggestionsPopup } from '../pdf-suggestions';
 
 const isDark = inject<Ref<boolean>>('isDark', ref(false));
 
 const docStore = useDocumentStore();
+const viewerStore = useViewerStore();
 
 const hidePreview = ref<boolean>(false);
 const inputValue = ref<string>('');
@@ -45,9 +46,6 @@ const handleBlur = (event: FocusEvent) => {
   }
 };
 
-// The store already treats re-selecting the open panel as "close".
-const toggleSidebar = (state: SIDEBAR_STATE) => docStore.setSidebarState(state);
-
 const iconBtn = computed(() => {
   const base = 'w-[18px] h-[18px] flex items-center justify-center rounded transition-colors';
   return isDark.value
@@ -71,13 +69,15 @@ const zoomBtnClass = (disabled: boolean) => {
     v-if="!docStore.isFullscreenMode"
   >
     <!-- Recommendations chip — floats above the bar. Width hugs the label so
-         the full "Odporúčania / Recommendations" text always shows (Figma). -->
+         the full "Odporúčania / Recommendations" text always shows (Figma).
+         Hidden entirely when the host doesn't supply suggestionsFunction. -->
     <button
-      @click="toggleSidebar(SIDEBAR_STATE.RECOMMENDATIONS)"
+      v-if="viewerStore.suggestionsFunction"
+      @click="docStore.isSuggestionsPopupOpen = !docStore.isSuggestionsPopupOpen"
       class="absolute flex items-center text-xs font-normal text-black z-10 bg-accent-soft"
       style="right: 10px; top: -31px; height: 24px; padding: 0 7px; gap: 6px; border-radius: 4px; box-shadow: 0 4px 6px 0 rgba(0,0,0,0.10);"
       :aria-label="$t('recommendations')"
-      :aria-expanded="docStore.sidebarState === SIDEBAR_STATE.RECOMMENDATIONS"
+      :aria-expanded="docStore.isSuggestionsPopupOpen"
     >
       <span class="text-left whitespace-nowrap">{{ $t('recommendations') }}</span>
       <!-- TbBulb lightbulb icon -->
@@ -87,6 +87,9 @@ const zoomBtnClass = (disabled: boolean) => {
         <path d="M9.7 17l4.6 0" />
       </svg>
     </button>
+
+    <!-- Suggestions popup — anchored above the chip, not the left sidebar -->
+    <SuggestionsPopup v-if="docStore.isSuggestionsPopupOpen" />
 
     <!-- Zoom buttons — absolutely positioned top-right -->
     <div class="absolute right-[6px] top-[8px] flex gap-[3px] z-10">

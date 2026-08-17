@@ -18,7 +18,10 @@ export type {
   IViewerOptions,
   IViewerConfig,
   IRenderViewerProps,
+  ISuggestedEntry,
+  IExplainResult,
 } from './assets/utils/interfaces';
+export type { SUGGESTION_KIND } from './assets/utils/enums';
 
 /**
  * Imperatively mount the viewer into `rootId`. Each call is fully isolated

@@ -41,6 +41,9 @@ export const useDocumentStore = defineStore('document', () => {
   const isFullscreenMode = ref<boolean>(!!document.fullscreenElement);
   const sidebarState = ref<SIDEBAR_STATE>(SIDEBAR_STATE.NULL);
   const modalContent = ref<MODAL_CONTENT>(MODAL_CONTENT.NULL);
+  // Floats above the bottom bar's "Odporúčania" button — separate from
+  // sidebarState since it isn't a left-panel view.
+  const isSuggestionsPopupOpen = ref<boolean>(false);
   const editTool = ref<EDIT_TOOL>(EDIT_TOOL.MOUSE);
   const toolColor = ref<string>(DEFAULT_TOOL_COLOR);
   const toolSize = ref<number>(MIN_TOOL_SIZE);
@@ -114,6 +117,7 @@ export const useDocumentStore = defineStore('document', () => {
     isFullscreenMode,
     sidebarState,
     modalContent,
+    isSuggestionsPopupOpen,
     editTool,
     toolColor,
     toolSize,

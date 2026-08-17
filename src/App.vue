@@ -7,8 +7,12 @@ import type { TypedArray } from 'pdfjs-dist/types/src/display/api';
 import { Loader } from './components/pdf-aids';
 import {
   closeFunction,
+  exampleBookmarkToggleFunction,
   exampleCitation,
+  exampleExplainFunction,
+  exampleOpenEntryDetailFunction,
   exampleShareFunction,
+  exampleSuggestionsFunction,
   getLayerFunc,
   homeFunction,
   saveLayerFunc,
@@ -41,6 +45,10 @@ const options: IViewerOptions = {
   },
   homeFunction,
   closeFunction,
+  openEntryDetailFunction: exampleOpenEntryDetailFunction,
+  bookmarkToggleFunction: exampleBookmarkToggleFunction,
+  suggestionsFunction: exampleSuggestionsFunction,
+  explainFunction: exampleExplainFunction,
   editPackage: {
     saveLayerFunc,
     updateLayerFunc,

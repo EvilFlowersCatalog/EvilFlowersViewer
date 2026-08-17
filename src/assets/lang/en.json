@@ -73,5 +73,17 @@
   "tool-eraser": "Eraser",
   "tool-circle": "Ellipse",
   "tool-rectangle": "Rectangle",
-  "tool-line": "Line"
+  "tool-line": "Line",
+  "copy": "Copy",
+  "similar": "Similar",
+  "highlight": "Highlight",
+  "explain": "Explain",
+  "simple": "Simply",
+  "examples": "Examples",
+  "similar-books": "Similar books",
+  "prerequisites": "Prerequisites",
+  "advanced": "Advanced",
+  "add-to-shelf": "Add to shelf",
+  "remove-from-shelf": "Remove from shelf",
+  "no-suggestions": "Nothing found"
 }
