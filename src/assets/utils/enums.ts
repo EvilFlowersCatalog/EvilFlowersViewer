@@ -16,8 +16,13 @@ export enum SIDEBAR_STATE {
   INFO = 'info',
   PRINT = 'print',
   TOC = 'table-of-content',
-  RECOMMENDATIONS = 'recommendations',
   NULL = 'NULL',
+}
+
+export enum SUGGESTION_KIND {
+  SIMILAR = 'similar',
+  PREREQUISITE = 'prerequisite',
+  ADVANCED = 'advanced',
 }
 
 export enum SEARCH_STATE {

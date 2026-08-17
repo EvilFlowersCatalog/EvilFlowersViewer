@@ -7,6 +7,7 @@ import type { PDFPageProxy } from 'pdfjs-dist/types/src/display/api';
 import { EDIT_TOOL, RENDER_STATE } from '@/assets/utils/enums';
 import { Loader } from '../pdf-aids';
 import { EditCanvas } from './pdf-edit';
+import { SelectionLayer } from './pdf-selection';
 
 const docStore = useDocumentStore();
 let pdf = toRaw(docStore.pdf);
@@ -15,6 +16,13 @@ let pdf = toRaw(docStore.pdf);
 // 'textLayer') lookups so several viewers can live on one page.
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const textLayerRef = ref<HTMLDivElement | null>(null);
+const pageBodyRef = ref<HTMLDivElement | null>(null);
+const editCanvasRef = ref<InstanceType<typeof EditCanvas> | null>(null);
+
+// Forwarded from SelectionLayer's "Zvýrazniť" action to the drawing overlay.
+const handleHighlight = (rects: DOMRect[]) => {
+  editCanvasRef.value?.addHighlight(rects);
+};
 
 // A single reused render task + TextLayer instance. Keeping the TextLayer lets
 // us reflow it on zoom via pdf.js 6's update() instead of rebuilding it.
@@ -198,6 +206,7 @@ watch(
 
     <!-- Content -->
     <div
+      ref="pageBodyRef"
       :class="
         docStore.renderState === RENDER_STATE.RENDERING
           ? 'hidden'
@@ -208,6 +217,7 @@ watch(
       <!-- Canvas for editing -->
       <EditCanvas
         v-if="docStore.edit"
+        ref="editCanvasRef"
         :class="
           EDIT_TOOL.MOUSE === docStore.editTool
             ? 'pointer-events-none'
@@ -233,6 +243,14 @@ watch(
             : 'pointer-events-none select-none'
         "
       ></div>
+
+      <!-- Text-selection menu + its popups (Kopírovať/Podobné/Zvýrazniť/Vysvetliť) -->
+      <SelectionLayer
+        v-if="EDIT_TOOL.MOUSE === docStore.editTool"
+        :text-layer-ref="textLayerRef"
+        :page-body-ref="pageBodyRef"
+        @highlight="handleHighlight"
+      />
     </div>
   </div>
 </template>

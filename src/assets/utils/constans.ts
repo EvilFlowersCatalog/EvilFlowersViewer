@@ -45,6 +45,7 @@ export const MAX_SCALE: number = 3;
 export const SCALE_STEP: number = 0.25;
 export const INTERVAL: number = 1;
 export const DEFAULT_TOOL_COLOR: string = '#000000';
+export const DEFAULT_HIGHLIGHT_COLOR: string = '#ffe100';
 export const tools = ref<{ tool: EDIT_TOOL; icon: any }[]>([
   { tool: EDIT_TOOL.MOUSE, icon: markRaw(BxSolidPointer) },
   { tool: EDIT_TOOL.ERASER, icon: EraserIcon },

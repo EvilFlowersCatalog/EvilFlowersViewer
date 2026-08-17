@@ -145,6 +145,10 @@ onMounted(() => {
   viewerStore.shareFunction = options?.shareFunction ?? null;
   viewerStore.printFunction = options?.printFunction ?? null;
   viewerStore.semanticSearchFunction = options?.semanticSearchFunction ?? null;
+  viewerStore.openEntryDetailFunction = options?.openEntryDetailFunction ?? null;
+  viewerStore.bookmarkToggleFunction = options?.bookmarkToggleFunction ?? null;
+  viewerStore.suggestionsFunction = options?.suggestionsFunction ?? null;
+  viewerStore.explainFunction = options?.explainFunction ?? null;
   viewerStore.config = {
     download: false,
     share: false,
