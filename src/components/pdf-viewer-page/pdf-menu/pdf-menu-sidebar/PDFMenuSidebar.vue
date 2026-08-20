@@ -59,7 +59,7 @@ const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
     </div>
 
     <!-- Content (scrollable) -->
-    <div class="flex-1 overflow-auto px-4 py-2">
+    <div class="flex-1 overflow-auto px-2 py-2">
       <Info   v-if="docStore.sidebarState === SIDEBAR_STATE.INFO" />
       <Share  v-if="docStore.sidebarState === SIDEBAR_STATE.SHARE" />
       <Search v-if="docStore.sidebarState === SIDEBAR_STATE.SEARCH" />

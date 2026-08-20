@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Style-cloned from elvira-portal/src/components/items/entry/display/EntryItem.tsx.
 // Behavior goes through the openEntryDetailFunction/bookmarkToggleFunction host hooks.
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { useViewerStore } from '@/stores';
 import type { ISuggestedEntry } from '@/assets/utils/interfaces';
 
@@ -11,15 +11,11 @@ const props = withDefaults(
 );
 
 const viewerStore = useViewerStore();
-const isOnShelf = ref(props.entry.shelf_record_id != null);
+const currentEntry = ref<ISuggestedEntry>({ ...props.entry });
+const isOnShelf = ref(currentEntry.value.shelf_record_id != null);
 const toggling = ref(false);
 
-watch(
-  () => props.entry.shelf_record_id,
-  (id) => (isOnShelf.value = id != null)
-);
-
-const openDetail = () => viewerStore.openEntryDetailFunction?.(props.entry);
+const openDetail = () => viewerStore.openEntryDetailFunction?.(currentEntry.value);
 
 const toggleBookmark = async () => {
   if (!viewerStore.bookmarkToggleFunction || toggling.value) return;
@@ -27,8 +23,12 @@ const toggleBookmark = async () => {
   isOnShelf.value = !previous;
   toggling.value = true;
   try {
-    const result = await viewerStore.bookmarkToggleFunction(props.entry);
+    const result = await viewerStore.bookmarkToggleFunction(currentEntry.value);
     isOnShelf.value = result.isOnShelf;
+    currentEntry.value = {
+      ...currentEntry.value,
+      shelf_record_id: result.shelfRecordId ?? null,
+    };
   } catch {
     isOnShelf.value = previous;
   } finally {
