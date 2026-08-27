@@ -84,5 +84,8 @@
   "advanced": "Pokročilé",
   "add-to-shelf": "Pridať na poličku",
   "remove-from-shelf": "Odobrať z poličky",
-  "no-suggestions": "Nič sa nenašlo"
+  "no-suggestions": "Nič sa nenašlo",
+  "add-page-bookmark": "Pridať záložku na stranu",
+  "remove-page-bookmark": "Odobrať záložku zo strany",
+  "bookmarked-page": "Strana so záložkou"
 }

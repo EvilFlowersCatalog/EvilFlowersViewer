@@ -116,6 +116,10 @@ const loadDocument = async () => {
     docStore.pdf = pdf;
     docStore.activePage = 1;
     docStore.totalPages = pdf.numPages;
+
+    // Bookmarks belong to the document, so they are (re)loaded with it. Not
+    // awaited above: a slow/failing host must not delay the first paint.
+    docStore.loadBookmarks();
   } catch (error) {
     failed.value = true;
     console.error('Failed to load PDF docStore:\n', error);
@@ -140,6 +144,7 @@ onMounted(() => {
   viewerStore.closeFunction = options?.closeFunction ?? null;
   viewerStore.homeFunction = options?.homeFunction ?? null;
   viewerStore.editPackage = options?.editPackage ?? null;
+  viewerStore.pageBookmarkPackage = options?.pageBookmarkPackage ?? null;
   viewerStore.lang = options?.lang ?? 'en';
   applyLocale(options?.lang ?? 'en');
   viewerStore.shareFunction = options?.shareFunction ?? null;

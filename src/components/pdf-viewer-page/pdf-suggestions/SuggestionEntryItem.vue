@@ -1,9 +1,10 @@
 <script setup lang="ts">
 // Style-cloned from elvira-portal/src/components/items/entry/display/EntryItem.tsx.
 // Behavior goes through the openEntryDetailFunction/bookmarkToggleFunction host hooks.
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { useViewerStore } from '@/stores';
 import type { ISuggestedEntry } from '@/assets/utils/interfaces';
+import { BookmarkIcon } from '@/components/pdf-aids';
 
 const props = withDefaults(
   defineProps<{ entry: ISuggestedEntry; variant?: 'card' | 'row' }>(),
@@ -11,15 +12,11 @@ const props = withDefaults(
 );
 
 const viewerStore = useViewerStore();
-const isOnShelf = ref(props.entry.shelf_record_id != null);
+const currentEntry = ref<ISuggestedEntry>({ ...props.entry });
+const isOnShelf = ref(currentEntry.value.shelf_record_id != null);
 const toggling = ref(false);
 
-watch(
-  () => props.entry.shelf_record_id,
-  (id) => (isOnShelf.value = id != null)
-);
-
-const openDetail = () => viewerStore.openEntryDetailFunction?.(props.entry);
+const openDetail = () => viewerStore.openEntryDetailFunction?.(currentEntry.value);
 
 const toggleBookmark = async () => {
   if (!viewerStore.bookmarkToggleFunction || toggling.value) return;
@@ -27,8 +24,12 @@ const toggleBookmark = async () => {
   isOnShelf.value = !previous;
   toggling.value = true;
   try {
-    const result = await viewerStore.bookmarkToggleFunction(props.entry);
+    const result = await viewerStore.bookmarkToggleFunction(currentEntry.value);
     isOnShelf.value = result.isOnShelf;
+    currentEntry.value = {
+      ...currentEntry.value,
+      shelf_record_id: result.shelfRecordId ?? null,
+    };
   } catch {
     isOnShelf.value = previous;
   } finally {
@@ -64,16 +65,7 @@ const authorLine = (entry: ISuggestedEntry) =>
         :class="isOnShelf ? 'bg-[#e0edff]' : 'bg-white'"
         @click="toggleBookmark"
       >
-        <svg width="10" height="13" viewBox="0 0 14 18" fill="none" aria-hidden="true">
-          <path
-            :stroke="isOnShelf ? '#0077cc' : '#333333'"
-            :fill="isOnShelf ? '#0077cc' : 'none'"
-            d="M12.8333 16.5L6.99999 12.3333L1.16666 16.5V3.16667C1.16666 2.72464 1.34225 2.30072 1.65481 1.98816C1.96737 1.67559 2.3913 1.5 2.83332 1.5H11.1667C11.6087 1.5 12.0326 1.67559 12.3452 1.98816C12.6577 2.30072 12.8333 2.72464 12.8333 3.16667V16.5Z"
-            stroke-width="1.25"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+        <BookmarkIcon :filled="isOnShelf" />
       </button>
     </div>
     <div class="flex flex-col gap-[2px] px-[7px] min-w-0">
@@ -117,16 +109,7 @@ const authorLine = (entry: ISuggestedEntry) =>
       @click.stop="toggleBookmark"
       @keydown.enter.stop="toggleBookmark"
     >
-      <svg width="10" height="13" viewBox="0 0 14 18" fill="none" aria-hidden="true">
-        <path
-          :stroke="isOnShelf ? '#0077cc' : '#999'"
-          :fill="isOnShelf ? '#0077cc' : 'none'"
-          d="M12.8333 16.5L6.99999 12.3333L1.16666 16.5V3.16667C1.16666 2.72464 1.34225 2.30072 1.65481 1.98816C1.96737 1.67559 2.3913 1.5 2.83332 1.5H11.1667C11.6087 1.5 12.0326 1.67559 12.3452 1.98816C12.6577 2.30072 12.8333 2.72464 12.8333 3.16667V16.5Z"
-          stroke-width="1.25"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
+      <BookmarkIcon :filled="isOnShelf" color="#999" />
     </span>
   </button>
 </template>

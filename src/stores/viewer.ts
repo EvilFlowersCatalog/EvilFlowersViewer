@@ -2,6 +2,7 @@ import { CITATION_FORMAT, CITATION_TYPE, SUGGESTION_KIND } from '@/assets/utils/
 import type {
   IEditPackage,
   IExplainResult,
+  IPageBookmarkPackage,
   ISemanticSearchResult,
   ISuggestedEntry,
   IViewerConfig,
@@ -33,6 +34,7 @@ export const useViewerStore = defineStore('viewer', () => {
     ((query: string) => Promise<ISemanticSearchResult[]>) | null
   >(null);
   const editPackage = ref<IEditPackage | null>(null);
+  const pageBookmarkPackage = ref<IPageBookmarkPackage | null>(null);
   const openEntryDetailFunction = ref<((entry: ISuggestedEntry) => void) | null>(
     null
   );
@@ -72,6 +74,7 @@ export const useViewerStore = defineStore('viewer', () => {
     printFunction,
     semanticSearchFunction,
     editPackage,
+    pageBookmarkPackage,
     openEntryDetailFunction,
     bookmarkToggleFunction,
     suggestionsFunction,

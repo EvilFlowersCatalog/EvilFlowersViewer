@@ -63,6 +63,32 @@ export interface IEditPackage {
   getLayerFunc: (page: number, groupId: string) => Promise<ILayer | null> | null;
 }
 
+/**
+ * A bookmarked page. `id` is the host's record identifier for the bookmark —
+ * it is echoed back to `removeBookmarkFunc` so hosts that key deletions by
+ * record (rather than by page) don't have to look it up again.
+ */
+export interface IPageBookmark {
+  /** 1-based page number. */
+  page: number;
+  /** Host record id; null/omitted when the host doesn't issue one. */
+  id?: string | null;
+}
+
+/**
+ * Host hooks for page bookmarks: loaded once per document, then one call per
+ * toggle. Omitting the package keeps the bookmark UI usable but session-only
+ * (nothing is persisted).
+ */
+export interface IPageBookmarkPackage {
+  /** All bookmarks for the open document. Called once after the PDF loads. */
+  getBookmarksFunc: () => Promise<IPageBookmark[]>;
+  /** Persists a new bookmark; resolve with the stored record to keep its id. */
+  addBookmarkFunc: (page: number) => Promise<IPageBookmark | null>;
+  /** Removes the bookmark for `page`; `id` is the one returned when it was added. */
+  removeBookmarkFunc: (page: number, id?: string | null) => Promise<void>;
+}
+
 export interface IViewerOptions {
   theme?: 'dark' | 'light';
   lang?: 'sk' | 'en';
@@ -82,6 +108,11 @@ export interface IViewerOptions {
     | ((query: string) => Promise<ISemanticSearchResult[]>)
     | null;
   editPackage?: IEditPackage | null;
+  /**
+   * Optional persistence for per-page bookmarks. Without it the bookmark
+   * button still works, but the marks live only as long as the viewer.
+   */
+  pageBookmarkPackage?: IPageBookmarkPackage | null;
   /** Opens the host's entry-detail overlay for a clicked card. */
   openEntryDetailFunction?: ((entry: ISuggestedEntry) => void) | null;
   /** Toggles the shelf bookmark; resolves with the settled state. */

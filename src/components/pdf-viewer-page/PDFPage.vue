@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue';
 import { useDocumentStore } from '@/stores';
 import { TextLayer } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type { PageViewport } from 'pdfjs-dist/types/src/display/page_viewport';
 import type { PDFPageProxy } from 'pdfjs-dist/types/src/display/api';
 import { EDIT_TOOL, RENDER_STATE } from '@/assets/utils/enums';
-import { Loader } from '../pdf-aids';
+import { BookmarkIcon, Loader } from '../pdf-aids';
 import { EditCanvas } from './pdf-edit';
 import { SelectionLayer } from './pdf-selection';
 
@@ -29,6 +29,12 @@ const handleHighlight = (rects: DOMRect[]) => {
 let renderTask: ReturnType<PDFPageProxy['render']> | null = null;
 let textLayer: TextLayer | null = null;
 let textLayerPage = 0; // page number the current TextLayer was built for
+
+// Bookmark for the page currently on screen. The button sits in the page's
+// own corner, so it always refers to docStore.activePage.
+const isBookmarked = computed(() => docStore.isBookmarked(docStore.activePage));
+
+const toggleBookmark = () => docStore.toggleBookmark(docStore.activePage);
 
 const handleDoubleClick = () => {
   docStore.setScale(
@@ -210,7 +216,7 @@ watch(
       :class="
         docStore.renderState === RENDER_STATE.RENDERING
           ? 'hidden'
-          : 'relative m-auto'
+          : 'group relative m-auto'
       "
       :style="{ '--scale-factor': docStore.scale }"
     >
@@ -243,6 +249,31 @@ watch(
             : 'pointer-events-none select-none'
         "
       ></div>
+
+      <!-- Bookmark toggle — top-right corner of the page itself. Revealed on
+           hover (or keyboard focus), and pinned visible once the page is
+           bookmarked so the state is never hidden. Hidden while a drawing tool
+           is picked so it can't swallow strokes started in that corner (same
+           rule SelectionLayer follows). -->
+      <button
+        v-if="EDIT_TOOL.MOUSE === docStore.editTool"
+        type="button"
+        class="absolute top-0 right-0 z-10 w-7 h-7 flex items-center justify-center rounded-[6px] transition-opacity duration-150 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+        :class="[
+          isBookmarked
+            ? 'opacity-100'
+            : 'opacity-0 group-hover:opacity-100',
+          docStore.bookmarkPending.has(docStore.activePage)
+            ? 'cursor-wait'
+            : 'cursor-pointer',
+        ]"
+        :aria-pressed="isBookmarked"
+        :aria-label="$t(isBookmarked ? 'remove-page-bookmark' : 'add-page-bookmark')"
+        :title="$t(isBookmarked ? 'remove-page-bookmark' : 'add-page-bookmark')"
+        @click="toggleBookmark"
+      >
+        <BookmarkIcon :filled="isBookmarked" :width="13" :height="17" />
+      </button>
 
       <!-- Text-selection menu + its popups (Kopírovať/Podobné/Zvýrazniť/Vysvetliť) -->
       <SelectionLayer
