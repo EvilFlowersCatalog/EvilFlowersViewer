@@ -1,3 +1,4 @@
+import BookmarkIcon from './BookmarkIcon.vue';
 import Loader from './Loader.vue';
 
-export { Loader };
+export { BookmarkIcon, Loader };

@@ -20,6 +20,8 @@ export type {
   IRenderViewerProps,
   ISuggestedEntry,
   IExplainResult,
+  IPageBookmark,
+  IPageBookmarkPackage,
 } from './assets/utils/interfaces';
 export type { SUGGESTION_KIND } from './assets/utils/enums';
 

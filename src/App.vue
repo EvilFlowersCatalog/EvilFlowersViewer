@@ -6,6 +6,7 @@ import type { IViewerConfig, IViewerOptions } from './assets/utils/interfaces';
 import type { TypedArray } from 'pdfjs-dist/types/src/display/api';
 import { Loader } from './components/pdf-aids';
 import {
+  addPageBookmarkFunc,
   closeFunction,
   exampleBookmarkToggleFunction,
   exampleCitation,
@@ -20,6 +21,8 @@ import {
   getGroupsFunc,
   saveGroupFunc,
   examplePrintFunction,
+  getPageBookmarksFunc,
+  removePageBookmarkFunc,
 } from './assets/examples/params/examples';
 
 const data = ref<TypedArray | null>(null);
@@ -55,6 +58,12 @@ const options: IViewerOptions = {
     getLayerFunc,
     getGroupsFunc,
     saveGroupFunc,
+  },
+  // Dev-only persistence: localStorage stand-in for the host's bookmark API.
+  pageBookmarkPackage: {
+    getBookmarksFunc: getPageBookmarksFunc,
+    addBookmarkFunc: addPageBookmarkFunc,
+    removeBookmarkFunc: removePageBookmarkFunc,
   },
   lang: 'sk',
 };

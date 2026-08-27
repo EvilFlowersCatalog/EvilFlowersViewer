@@ -1,4 +1,9 @@
-import type { IExplainResult, ILayer, ISuggestedEntry } from '@/assets/utils/interfaces';
+import type {
+  IExplainResult,
+  ILayer,
+  IPageBookmark,
+  ISuggestedEntry,
+} from '@/assets/utils/interfaces';
 
 const delay = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -171,3 +176,57 @@ export const exampleCitation: string = `@article {exmaple-citation,
   volume = {0},
   year = {1950}
 }`;
+
+
+//stub for annoatation layer
+const BOOKMARKS_KEY = 'efv-dev-page-bookmarks';
+
+const readBookmarks = (): IPageBookmark[] => {
+  try {
+    const raw = localStorage.getItem(BOOKMARKS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeBookmarks = (bookmarks: IPageBookmark[]) => {
+  try {
+    localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(bookmarks));
+  } catch {
+    // Private-mode / quota failures are non-fatal here — the viewer keeps its
+    // own in-memory state either way.
+  }
+};
+
+export const getPageBookmarksFunc = async (): Promise<IPageBookmark[]> => {
+  await delay(300);
+  return readBookmarks();
+};
+
+export const addPageBookmarkFunc = async (
+  page: number
+): Promise<IPageBookmark> => {
+  await delay(300);
+
+  const bookmarks = readBookmarks();
+  const existing = bookmarks.find((b) => b.page === page);
+  if (existing) return existing;
+
+  const bookmark: IPageBookmark = { page, id: `bookmark-${page}-${Date.now()}` };
+  writeBookmarks([...bookmarks, bookmark]);
+  return bookmark;
+};
+
+export const removePageBookmarkFunc = async (
+  page: number,
+  id?: string | null
+) => {
+  await delay(300);
+
+  // Prefer the record id when the caller has one, fall back to the page.
+  writeBookmarks(
+    readBookmarks().filter((b) => (id ? b.id !== id : b.page !== page))
+  );
+};

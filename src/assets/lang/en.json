@@ -85,5 +85,8 @@
   "advanced": "Advanced",
   "add-to-shelf": "Add to shelf",
   "remove-from-shelf": "Remove from shelf",
-  "no-suggestions": "Nothing found"
+  "no-suggestions": "Nothing found",
+  "add-page-bookmark": "Bookmark this page",
+  "remove-page-bookmark": "Remove page bookmark",
+  "bookmarked-page": "Bookmarked page"
 }

@@ -22,6 +22,7 @@ import {
   MOBILE_SIZE,
   SCALE_STEP,
 } from '@/assets/utils/constans';
+import { useViewerStore } from './viewer';
 
 /**
  * Per-instance document state. Refs are exposed directly (read + write) — see
@@ -63,6 +64,12 @@ export const useDocumentStore = defineStore('document', () => {
   // for via the DOM) so Search and PDFPage stay decoupled and the highlight
   // survives page/zoom re-renders.
   const searchHighlight = ref<ISearchHighlight | null>(null);
+  // Bookmarked pages → the host's record id for that bookmark (null when the
+  // host issues none, or when nothing is persisting them). A Map keeps the
+  // page-corner button and every thumbnail on one reactive source of truth.
+  const bookmarks = ref<Map<number, string | null>>(new Map());
+  // Pages with a bookmark call in flight, so double clicks can't race.
+  const bookmarkPending = ref<Set<number>>(new Set());
 
   // Page is considered ready once its bitmap is painted (text layer is async
   // and must not block navigation/zoom).
@@ -95,6 +102,58 @@ export const useDocumentStore = defineStore('document', () => {
   };
   const setModalContent = (val: MODAL_CONTENT) => {
     modalContent.value = modalContent.value === val ? MODAL_CONTENT.NULL : val;
+  };
+
+  const isBookmarked = (page: number) => bookmarks.value.has(page);
+
+  // Replaces the whole set from the host. Called once per document, so a
+  // document swap always starts from a clean slate even if the host has no
+  // bookmark package attached.
+  const loadBookmarks = async () => {
+    bookmarks.value = new Map();
+    const pkg = useViewerStore().pageBookmarkPackage;
+    if (!pkg) return;
+
+    try {
+      const saved = await pkg.getBookmarksFunc();
+      bookmarks.value = new Map(saved.map((b) => [b.page, b.id ?? null]));
+    } catch (error) {
+      console.error('Failed to load page bookmarks:\n', error);
+    }
+  };
+
+  // Optimistic: the button and the thumbnail flip immediately and roll back if
+  // the host call fails, so the UI never waits on the network.
+  const toggleBookmark = async (page: number) => {
+    if (bookmarkPending.value.has(page)) return;
+
+    const wasBookmarked = bookmarks.value.has(page);
+    const previousId = bookmarks.value.get(page) ?? null;
+
+    if (wasBookmarked) bookmarks.value.delete(page);
+    else bookmarks.value.set(page, null);
+
+    const pkg = useViewerStore().pageBookmarkPackage;
+    if (!pkg) return;
+
+    bookmarkPending.value.add(page);
+    try {
+      if (wasBookmarked) {
+        await pkg.removeBookmarkFunc(page, previousId);
+      } else {
+        const saved = await pkg.addBookmarkFunc(page);
+        // Keep the id only if the page is still bookmarked — the user may have
+        // toggled it off again while the request was in flight.
+        if (bookmarks.value.has(page))
+          bookmarks.value.set(page, saved?.id ?? null);
+      }
+    } catch (error) {
+      console.error('Failed to persist page bookmark:\n', error);
+      if (wasBookmarked) bookmarks.value.set(page, previousId);
+      else bookmarks.value.delete(page);
+    } finally {
+      bookmarkPending.value.delete(page);
+    }
   };
 
   const undo = () => {
@@ -132,6 +191,8 @@ export const useDocumentStore = defineStore('document', () => {
     undoFn,
     redoFn,
     searchHighlight,
+    bookmarks,
+    bookmarkPending,
     // actions
     isLoaded,
     setScale,
@@ -141,6 +202,9 @@ export const useDocumentStore = defineStore('document', () => {
     previousPage,
     setSidebarState,
     setModalContent,
+    isBookmarked,
+    loadBookmarks,
+    toggleBookmark,
     undo,
     redo,
   };

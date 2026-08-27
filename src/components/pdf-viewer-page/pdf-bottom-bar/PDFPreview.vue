@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DESIRED_HEIGHT, MAX_VISIBLE_PAGE } from '@/assets/utils/constans';
 import { useDocumentStore } from '@/stores';
+import { BookmarkIcon } from '@/components/pdf-aids';
 import { computed, inject, onMounted, ref, toRaw, watch, type Ref } from 'vue';
 
 const isDark = inject<Ref<boolean>>('isDark', ref(false));
@@ -159,6 +160,17 @@ watch(
         @keydown.space.prevent="docStore.activePage = key"
       >
       </canvas>
+
+      <!-- Bookmark flag — indicator only (the canvas underneath still handles
+           navigation), so a bookmarked page is recognisable while scrolling
+           the strip. -->
+      <span
+        v-if="docStore.isBookmarked(key)"
+        class="absolute top-[0px] right-[8px] w-[15px] h-[15px] flex items-center justify-center rounded-[4px] pointer-events-none"
+        :aria-label="`${$t('bookmarked-page')}: ${key}`"
+      >
+        <BookmarkIcon filled :width="8" :height="10" />
+      </span>
 
       <!-- Page number -->
       <span
