@@ -1,12 +1,27 @@
-# EvilFlowersViewer
+<div align="center">
+  <h1>EvilFlowersViewer</h1>
+  <p><strong>A focused, extensible PDF workspace for the browser</strong></p>
+  <p>
+    Read, search, annotate, cite and share documents without leaving the page.
+  </p>
+  <p>
+    <a href="https://github.com/EvilFlowersCatalog/EvilFlowersViewer/releases">
+      <img src="https://img.shields.io/github/v/release/EvilFlowersCatalog/EvilFlowersViewer?style=for-the-badge&label=release" alt="Latest release">
+    </a>
+    <a href="https://www.npmjs.com/package/@evilflowers/evilflowersviewer">
+      <img src="https://img.shields.io/npm/v/@evilflowers/evilflowersviewer?style=for-the-badge&label=npm" alt="npm package">
+    </a>
+    <a href="https://github.com/EvilFlowersCatalog/EvilFlowersViewer/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/EvilFlowersCatalog/EvilFlowersViewer?style=for-the-badge" alt="License">
+    </a>
+  </p>
+  <a href=".github/assets/viewer-preview.jpg">
+    <img src=".github/assets/viewer-preview.jpg" alt="EvilFlowersViewer displaying a PDF with annotations, search tools and page thumbnails" width="100%">
+  </a>
+</div>
 
-PDF Viewer based on pdf.js
-
-## Introduction
-
-EvilFlowersViewer is a PDF viewer based on pdf.js library that allows users to view and interact with PDF documents
-directly in the browser. This project is being developed by a university team, and aims to provide a reliable and
-efficient PDF viewer that is easy to use and customize.
+EvilFlowersViewer is a PDF viewer based on the pdf.js library that lets users view and interact with PDF documents
+directly in the browser. Developed by a university team, it is reliable, efficient and easy to customize.
 
 ## Features
 

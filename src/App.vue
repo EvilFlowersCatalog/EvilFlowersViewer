@@ -59,7 +59,6 @@ const options: IViewerOptions = {
     getGroupsFunc,
     saveGroupFunc,
   },
-  // Dev-only persistence: localStorage stand-in for the host's bookmark API.
   pageBookmarkPackage: {
     getBookmarksFunc: getPageBookmarksFunc,
     addBookmarkFunc: addPageBookmarkFunc,
