@@ -52,7 +52,7 @@ export const useViewerStore = defineStore('viewer', () => {
     | null
   >(null);
   const explainFunction = ref<
-    ((selectedText: string) => Promise<IExplainResult>) | null
+    ((selectedText: string, context?: { page?: number }) => Promise<IExplainResult>) | null
   >(null);
   const config = ref<IViewerConfig>({
     download: false,

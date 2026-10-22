@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { useViewerStore } from '@/stores';
+import { useDocumentStore, useViewerStore } from '@/stores';
 import type { IExplainResult } from '@/assets/utils/interfaces';
 import { Loader } from '@/components/pdf-aids';
 import { useSideAnchoredPosition } from './useSideAnchoredPosition';
@@ -12,6 +12,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ close: [] }>();
 
+const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
 const { style, calculate } = useSideAnchoredPosition(300);
 const loading = ref(true);
@@ -25,7 +26,8 @@ onMounted(async () => {
   window.addEventListener('resize', recalc);
 
   try {
-    result.value = (await viewerStore.explainFunction?.(props.selectedText)) ?? null;
+    result.value =
+      (await viewerStore.explainFunction?.(props.selectedText, { page: docStore.activePage })) ?? null;
   } catch {
     result.value = null;
   } finally {

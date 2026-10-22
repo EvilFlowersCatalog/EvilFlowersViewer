@@ -129,7 +129,9 @@ export interface IViewerOptions {
       ) => Promise<ISuggestedEntry[]>)
     | null;
   /** Opt-in "explain this passage" feed. Omitting it hides "Vysvetliť". */
-  explainFunction?: ((selectedText: string) => Promise<IExplainResult>) | null;
+  explainFunction?:
+    | ((selectedText: string, context?: { page?: number }) => Promise<IExplainResult>)
+    | null;
 }
 
 export interface IViewerProps {
