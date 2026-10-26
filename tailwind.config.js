@@ -48,4 +48,10 @@ export default {
   },
   plugins: [],
   darkMode: 'class',
+  // Every utility is emitted as `.efv-viewer .x` (one class more specific than
+  // a plain utility). Hosts built with Tailwind ship their own `.text-primary`,
+  // `.bg-secondary`, `.md:flex`, ... with different values, and whichever
+  // stylesheet loaded last used to win inside the viewer. The root element
+  // itself carries no utilities (see PDFViewer.vue) since it can't match.
+  important: '.efv-viewer',
 };
