@@ -136,7 +136,7 @@ onMounted(() => {
           {{ $t('close') }}
         </button>
         <button
-          class="px-5 py-2 bg-secondary hover:bg-secondary/80 text-white text-sm font-semibold rounded-lg transition-colors"
+          class="px-5 py-2 bg-secondary hover:bg-secondary-strong text-white text-sm font-semibold rounded-lg transition-colors"
           @click="modalHolder[docStore.modalContent]?.func"
         >
           {{ $t(modalHolder[docStore.modalContent]?.label!) }}

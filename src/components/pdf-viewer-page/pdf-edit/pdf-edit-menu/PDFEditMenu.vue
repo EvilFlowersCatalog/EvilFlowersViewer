@@ -80,7 +80,7 @@ onBeforeUnmount(() => {
       <button
         type="button"
         :disabled="!docStore.canUndo"
-        class="size-5 flex items-center justify-center rounded-[4px] p-1 hover:bg-secondary/40 disabled:opacity-30 disabled:pointer-events-none"
+        class="size-5 flex items-center justify-center rounded-[4px] p-1 hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none"
         :aria-label="$t('undo')"
         @click="docStore.undo"
       >
@@ -89,7 +89,7 @@ onBeforeUnmount(() => {
       <button
         type="button"
         :disabled="!docStore.canRedo"
-        class="size-5 flex items-center justify-center rounded-[4px] p-1 hover:bg-secondary/40 disabled:opacity-30 disabled:pointer-events-none"
+        class="size-5 flex items-center justify-center rounded-[4px] p-1 hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none"
         :aria-label="$t('redo')"
         @click="docStore.redo"
       >
@@ -108,15 +108,19 @@ onBeforeUnmount(() => {
         class="size-5 flex items-center justify-center rounded-[4px] p-1"
         :class="
           item.tool === docStore.editTool
-            ? 'bg-primary/40 border border-primary [&_svg_*]:fill-primary/80 [&_svg_*]:stroke-primary'
-            : 'hover:bg-secondary/40'
+            ? 'bg-accent-soft ring-1 ring-inset ring-accent-ink'
+            : 'hover:bg-black/5 dark:hover:bg-white/10'
         "
         :aria-label="$t(toolLabels[item.tool])"
         :aria-pressed="item.tool === docStore.editTool"
         @click="docStore.editTool = item.tool"
       >
         <!-- Icon -->
-        <component :is="item.icon" aria-hidden="true" class="icon-dark dark:!text-white" />
+        <component
+          :is="item.icon"
+          aria-hidden="true"
+          :class="item.tool === docStore.editTool ? 'size-5 cursor-pointer text-accent-ink' : 'icon-dark dark:!text-white'"
+        />
       </button>
     </div>
   </div>

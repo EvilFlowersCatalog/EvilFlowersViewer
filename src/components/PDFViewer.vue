@@ -212,13 +212,16 @@ onMounted(() => {
 </script>
 
 <template>
+  <!-- Scope root: design tokens, `dark` and the Tailwind `important` selector
+       (tailwind.config.js) all hang off this element, so every utility below
+       is `.efv-viewer .x` and can't be overridden by a host's same-named
+       classes (e.g. the host's own `text-primary`). -->
+  <div class="efv-viewer" :class="{ dark: isDark }" :lang="viewerStore.lang">
   <!-- Failed container -->
   <div
     v-if="failed"
-    class="efv-viewer flex flex-col h-screen w-screen justify-center items-center text-4xl uppercase font-extrabold text-white font-serif"
-    :class="{ dark: isDark }"
+    class="flex flex-col h-screen w-screen justify-center items-center text-4xl uppercase font-extrabold text-white font-serif"
     :style="{ backgroundColor: viewerBg }"
-    :lang="viewerStore.lang"
     role="alert"
   >
     {{ $t('failed-load-pdf') }}
@@ -227,10 +230,8 @@ onMounted(() => {
   <!-- Loading -->
   <div
     v-else-if="!failed && !docStore.pdf"
-    class="efv-viewer flex w-screen h-screen justify-center items-center text-white"
-    :class="{ dark: isDark }"
+    class="flex w-screen h-screen justify-center items-center text-white"
     :style="{ backgroundColor: viewerBg }"
-    :lang="viewerStore.lang"
   >
     <Loader :size="100" color="#0077CC" :label="$t('load')" />
   </div>
@@ -238,10 +239,8 @@ onMounted(() => {
   <!-- Success container -->
   <div
     v-else
-    class="efv-viewer flex h-screen w-screen overflow-hidden text-white"
+    class="flex h-screen w-screen overflow-hidden text-white"
     :style="{ backgroundColor: viewerBg }"
-    :class="{ dark: isDark }"
-    :lang="viewerStore.lang"
     role="region"
     :aria-label="$t('pdf-viewer')"
   >
@@ -288,5 +287,6 @@ onMounted(() => {
       <!-- Bottom bar -->
       <PDFBottomBar />
     </div>
+  </div>
   </div>
 </template>
