@@ -36,16 +36,39 @@ directly in the browser. Developed by a university team, it is reliable, efficie
 - Download document
 - Light / dark themes (honours the host-provided theme, defaults to light)
 - Fullscreen mode
-- Editing document (freehand, shapes, highlighter, eraser, undo/redo)
+- Editing document (freehand, shapes, highlighter, eraser, undo/redo) from a drawing rail docked
+  beside the page, so it never covers the document
+- Page bookmarks, shown on the page corner and on the thumbnails
 - Keyboard-friendly and screen-reader accessible (see [Accessibility](#accessibility))
+
+### Intelligent viewer
+
+Each of these appears only when the host passes the callback it needs (see
+[Intelligent viewer](#intelligent-viewer)):
+
+- **Explain** a selected passage, a figure, a table or an equation in a draggable popup, and hand
+  the explanation over to the chat
+- **Reading chat** about the open publication, docked beside the page: streamed answers with
+  links back into the book, recommended publications as cards, and attachments (selected
+  text, explanations, figures, highlights) as removable chips
+- **Chat history**: reopen earlier conversations; chats about other publications are read-only
+- **Figure, table and equation hover**: outlines what the catalog extracted from the page,
+  with a card showing the crop, caption, table or LaTeX and actions for the chat and explain
+- **AI highlights**: sentences the assistant marked for a prompt, drawn over the text, with a
+  comment badge per highlight, a sidebar list to step through them, and show/hide per
+  annotation
+- **Recommendations**: similar, prerequisite and advanced publications for the open page or a
+  selection
 
 ## Styling & isolation
 
 All viewer styles are scoped under a single `.efv-viewer` root class and Tailwind's
 global preflight is disabled, so **importing this library never restyles the host
-application** (`*`, `body`, buttons, inputs and scrollbars are left untouched). The
-Inter font is self-hosted (no external Google Fonts request). Consumers just import
-the stylesheet — no manual scoping/wrapping required:
+application** (`*`, `body`, buttons, inputs and scrollbars are left untouched). It works the
+other way too: every utility is emitted as `.efv-viewer .x` (Tailwind `important:
+'.efv-viewer'`), so a host that ships its own `.text-primary` or `.bg-secondary` cannot
+recolour the viewer. The Inter font is self-hosted (no external Google Fonts request).
+Consumers just import the stylesheet — no manual scoping/wrapping required:
 
 ```ts
 import '@evilflowers/evilflowersviewer/dist/style.css';
@@ -59,7 +82,8 @@ The viewer is built to be usable with a keyboard and assistive technologies:
   and color swatches respond to <kbd>Enter</kbd>/<kbd>Space</kbd>. Shortcuts:
   <kbd>←</kbd>/<kbd>→</kbd> page, <kbd>+</kbd>/<kbd>-</kbd> zoom, <kbd>F</kbd> search,
   <kbd>T</kbd> table of contents, <kbd>I</kbd> info, <kbd>S</kbd> share, <kbd>C</kbd>
-  citation, <kbd>Esc</kbd> steps back out (modal → panel → tool → zoom → page → close).
+  citation, <kbd>Esc</kbd> steps back out (explain popup → modal → panel → tool → zoom → page →
+  close). Typing in the chat or the AI highlights box never triggers these shortcuts.
 - **Screen readers**: every icon-only button has an accessible name (localized), toggles
   expose `aria-pressed`/`aria-expanded`, the left rail is a `role="toolbar"`, dialogs are
   `role="dialog"` + `aria-modal` with focus trapping, and loaders announce via
@@ -69,8 +93,6 @@ The viewer is built to be usable with a keyboard and assistive technologies:
   animations respect `prefers-reduced-motion`.
 - The viewer root carries a `lang` attribute matching `options.lang` so pronunciation is
   correct. All a11y CSS is scoped under `.efv-viewer` and never touches the host page.
-
-## Features Under Development
 
 ## Getting started
 
@@ -111,7 +133,7 @@ app.unmount();
 | Input                         | Description                                                                         |
 | -------------------------     | ----------------------------------------------------------------------------------- |
 | rootId                        | ID of your component where you use the `renderViewer` function.                     |
-| base64                        | String containing the Base64 format of the PDF.                                     |
+| data                          | TypedArray (e.g. `Uint8Array`) with the PDF bytes.                                  |
 | options                       | Optional object consisting of theme, language, citationBib, homeFunction, etc.      |
 | options.theme                 | 'dark' or 'light'. Determines the viewer's theme.                                   |
 | options.lang                  | 'sk' or 'en'. Specifies the language of the viewer.                                 |
@@ -130,12 +152,92 @@ app.unmount();
 | editPackage.saveLayerFunc     | Function (type: `(svg: string, groupId: string, page: number) => Promise<ILayer | null>`). Saves a new layer to a group on a specific page. |
 | editPackage.updateLayerFunc | Function (type: `(id: string, svg: string, groupId: string, page: number) => Promise<void>`). Updates an existing layer in a group on a specific page. |
 | editPackage.getLayerFunc  | Function (type: `(page: number, groupId: string) => Promise<ILayer | null> | null`). Retrieves a layer from a group on a specific page. |
+| options.pageBookmarkPackage | Optional `{ getBookmarksFunc, addBookmarkFunc, removeBookmarkFunc }` persisting page bookmarks. Without it bookmarks still work but last only as long as the viewer. |
+| options.openEntryDetailFunction | Function (type: `(entry: ISuggestedEntry) => void`). Opens the host's detail view for a clicked publication card (recommendations, chat). |
+| options.bookmarkToggleFunction | Function (type: `(entry: ISuggestedEntry) => Promise<{ isOnShelf, shelfRecordId? }>`). Adds or removes a card's publication from the reader's shelf. |
+| options.suggestionsFunction | Function (type: `(kind: SUGGESTION_KIND, context?: { selectedText?, page? }) => Promise<ISuggestedEntry[]>`). Enables recommendations and the selection menu's "Similar". |
+| options.explainFunction   | Function (type: `(text: string, context?: IExplainContext) => Promise<IExplainResult>`). Enables "Explain"; `context` carries `page` and, for a figure/table/equation, `regionId`. |
+| options.chatPackage       | Optional `IChatPackage`. Enables the reading chat — see [Intelligent viewer](#intelligent-viewer). |
+| options.regionPackage     | Optional `IRegionPackage`. Enables figure/table/equation hover.                      |
+| options.agentAnnotationPackage | Optional `IAgentAnnotationPackage`. Enables the AI highlight layer and its sidebar. |
 | config                    | Optional configuration object controlling viewer features.                          |
 | config.download           | Boolean. Enables or disables the download feature.                                  |
 | config.share              | Boolean. Enables or disables the share feature.                                     |
 | config.print              | Boolean. Enables or disables the print feature.                                     |
 | config.edit               | Boolean. Enables or disables the edit feature.                                      |
 
+## Intelligent viewer
+
+The viewer never talks to a backend itself. Every intelligent feature is a host callback, and
+**a feature is hidden entirely when its callback is not passed** — no button, no menu entry, no
+layer. All types are exported from the package.
+
+### Coordinates and pages
+
+- Page numbers are always the **reader's** page numbers (1-based, as shown in the viewer). A
+  host serving a cut or re-ordered copy converts them before answering.
+- Positions (`IPageBox`) are fractions `0..1` of the page width and height with a **top-left
+  origin**: `{ x0, y0, x1, y1 }`. They stay correct at any zoom.
+
+### Chat — `options.chatPackage`
+
+```ts
+chatPackage: {
+  // Required. Stream the answer through the handlers; resolve when done.
+  // chatId is the conversation to continue, or null to start one — return the id used.
+  sendMessageFunc: async (message, contexts, { onChunk, onMessage, onEntries, onError }, { page, chatId }) => {
+    // ...
+    return { chatId };
+  },
+  resetFunc: () => {},                 // optional: forget the current conversation
+  suggestions: ['Summarize this chapter'], // optional: prompt shortcuts in an empty chat
+  getChatsFunc: async () => [...],     // optional, with getChatFunc: enables chat history
+  getChatFunc: async (chatId) => [...],
+  deleteChatFunc: async (chatId) => {}, // optional: delete buttons in history
+}
+```
+
+- The open publication is always the chat's subject and is not sent as a context. `contexts`
+  carries what the reader attached: `selection`, `explain`, `region` or `highlight`
+  (`IChatContext`).
+- Answer text is markdown. `[[page:12]]` and `[[region:<id>]]` render as links that jump into the
+  book. `onEntries` shows publications as cards (the assistant's recommendation tool).
+- History lists `IChatSummary` items; `aboutThisBook: false` chats open read-only.
+
+### Regions — `options.regionPackage`
+
+```ts
+regionPackage: {
+  // Called once per page and cached.
+  getRegionsFunc: async (page) => [
+    { id, kind: 'figure' | 'table' | 'equation', page, bbox, caption, category, markdown, latex, imageUrl },
+  ],
+}
+```
+
+Without `imageUrl` the card crops the region from the rendered page.
+
+### AI highlights — `options.agentAnnotationPackage`
+
+```ts
+agentAnnotationPackage: {
+  getAnnotationsFunc: async () => [
+    { id, title, prompt, summary, status: 'pending' | 'done' | 'failed', unresolvedCount,
+      highlights: [{ id, seq, page, quads: [IPageBox, ...], text, note }] },
+  ],
+  requestAnnotationFunc: async (prompt) => annotation, // optional: "ask to highlight" box
+  deleteHighlightFunc: async (annotationId, highlightId) => {}, // optional
+  deleteAnnotationFunc: async (annotationId) => {},             // optional
+}
+```
+
+Each highlight is one sentence in reading order (`seq`), with one quad per text line.
+
+### Trying it locally
+
+`npm run dev` mounts the sample app (`src/App.vue`) with every feature wired to mocks in
+`src/assets/examples/params/examples.ts`. The AI highlight mock reads the sample PDF's real text
+lines, so highlights land on actual text; region boxes are fixed per page.
 
 
 ## Contributing
