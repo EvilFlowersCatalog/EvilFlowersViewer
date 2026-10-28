@@ -45,6 +45,155 @@ export interface IExplainResult {
   examples: { label: string; description: string }[];
 }
 
+/** What `explainFunction` gets besides the text. `regionId` is set when a figure/table/equation is explained. */
+export interface IExplainContext {
+  page?: number;
+  regionId?: string;
+}
+
+/**
+ * A rectangle on a page as fractions (0..1) of the page width and height,
+ * origin top-left (IP-018 "Coordinates"). Fractions survive any zoom level.
+ */
+export interface IPageBox {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+export type REGION_KIND = 'figure' | 'table' | 'equation';
+
+/** A figure, table or equation the catalog found on a page (IP-018 regions API). */
+export interface IRegion {
+  id: string;
+  kind: REGION_KIND;
+  /** 1-based page in the reader's numbering. */
+  page: number;
+  bbox: IPageBox;
+  caption?: string | null;
+  /** chart | photo | diagram | map | ... (figures only). */
+  category?: string | null;
+  /** Tables only. */
+  markdown?: string | null;
+  /** Equations only. */
+  latex?: string | null;
+  /** Authorized crop URL. Without it the viewer crops the rendered page itself. */
+  imageUrl?: string | null;
+}
+
+/** Host hooks for extracted regions. Omitting the package turns region hover off. */
+export interface IRegionPackage {
+  /** Regions on one reader page. Called once per page and cached. */
+  getRegionsFunc: (page: number) => Promise<IRegion[]>;
+}
+
+/** One sentence the assistant marked, an `AnnotationItem` of an agent annotation. */
+export interface IAgentHighlight {
+  id: string;
+  /** Reading order inside the annotation. */
+  seq: number;
+  /** 1-based page in the reader's numbering. */
+  page: number;
+  /** One box per text line the sentence covers. */
+  quads: IPageBox[];
+  text: string;
+  note?: string | null;
+}
+
+/** An `Annotation` of kind `agent`: the prompt, a summary and its ordered highlights. */
+export interface IAgentAnnotation {
+  id: string;
+  title: string;
+  prompt: string;
+  summary?: string | null;
+  status: 'pending' | 'done' | 'failed';
+  /** Quotes the agent returned that could not be found on the page. */
+  unresolvedCount?: number;
+  highlights: IAgentHighlight[];
+}
+
+/** Host hooks for agent annotations. Omitting the package hides the layer and its sidebar. */
+export interface IAgentAnnotationPackage {
+  /** All agent annotations of the open document. Called once after the PDF loads. */
+  getAnnotationsFunc: () => Promise<IAgentAnnotation[]>;
+  /** Asks the agent to highlight the book for `prompt`; resolves with the finished annotation. */
+  requestAnnotationFunc?: ((prompt: string) => Promise<IAgentAnnotation>) | null;
+  deleteHighlightFunc?: ((annotationId: string, highlightId: string) => Promise<void>) | null;
+  deleteAnnotationFunc?: ((annotationId: string) => Promise<void>) | null;
+}
+
+/**
+ * Something the reader attached to a chat message. The open publication itself
+ * is always the chat's subject and is never sent as a context.
+ */
+export type IChatContext =
+  | { kind: 'selection'; text: string; page: number }
+  | { kind: 'explain'; text: string; page: number; explanation: string; regionId?: string }
+  | { kind: 'region'; region: IRegion }
+  | { kind: 'highlight'; annotationId: string; highlight: IAgentHighlight };
+
+export interface IChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  /**
+   * Markdown. Assistant text may cite `[[page:12]]` and `[[region:<id>]]`,
+   * which the viewer renders as links into the book.
+   */
+  text: string;
+  contexts?: IChatContext[];
+  /** Publications the assistant recommended with this message. */
+  entries?: ISuggestedEntry[];
+  status?: 'streaming' | 'done' | 'error';
+}
+
+/** Stream callbacks, the same events the portal reads from the assistant SSE. */
+export interface IChatStreamHandlers {
+  /** Partial answer text, appended. */
+  onChunk: (text: string) => void;
+  /** The complete answer, replacing everything received so far. */
+  onMessage: (text: string) => void;
+  /** Publications to show as cards (the assistant's book recommendation tool). */
+  onEntries: (entries: ISuggestedEntry[]) => void;
+  onError: (detail: string) => void;
+}
+
+/** One past conversation in the chat history list. */
+export interface IChatSummary {
+  id: string;
+  title: string;
+  /** ISO date of the last message. */
+  updatedAt: string;
+  messageCount?: number;
+  /** True when the chat is about the publication open in the viewer. Others are read-only here. */
+  aboutThisBook: boolean;
+}
+
+/** Host hooks for the reading chat. Omitting the package hides the chat. */
+export interface IChatPackage {
+  /**
+   * Sends one message; resolves when the stream is finished. `chatId` is the
+   * conversation to continue, or null to start a new one; resolve with the id
+   * the message went to so follow-ups continue it.
+   */
+  sendMessageFunc: (
+    message: string,
+    contexts: IChatContext[],
+    handlers: IChatStreamHandlers,
+    meta: { page: number; chatId: string | null }
+  ) => Promise<{ chatId: string } | void>;
+  /** Forget the conversation so the next message starts a new chat. */
+  resetFunc?: (() => void) | null;
+  /** Prompt shortcuts shown in an empty chat; defaults are used when omitted. */
+  suggestions?: string[] | null;
+  /** The reader's past chats, newest first. With `getChatFunc`, enables the history view. */
+  getChatsFunc?: (() => Promise<IChatSummary[]>) | null;
+  /** All messages of one past chat, oldest first. */
+  getChatFunc?: ((chatId: string) => Promise<IChatMessage[]>) | null;
+  /** Deletes a past chat. Omitting it hides the delete buttons. */
+  deleteChatFunc?: ((chatId: string) => Promise<void>) | null;
+}
+
 /** Host hooks for the annotation/edit layer (create + persist SVG layers). */
 export interface IEditPackage {
   saveGroupFunc: (name: string) => Promise<{ response: { id: string } }>;
@@ -130,8 +279,14 @@ export interface IViewerOptions {
     | null;
   /** Opt-in "explain this passage" feed. Omitting it hides "Vysvetliť". */
   explainFunction?:
-    | ((selectedText: string, context?: { page?: number }) => Promise<IExplainResult>)
+    | ((selectedText: string, context?: IExplainContext) => Promise<IExplainResult>)
     | null;
+  /** Opt-in reading chat about the open publication. */
+  chatPackage?: IChatPackage | null;
+  /** Opt-in figure/table/equation hover. */
+  regionPackage?: IRegionPackage | null;
+  /** Opt-in agent highlight layer. */
+  agentAnnotationPackage?: IAgentAnnotationPackage | null;
 }
 
 export interface IViewerProps {

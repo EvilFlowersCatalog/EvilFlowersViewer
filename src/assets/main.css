@@ -144,6 +144,12 @@
   outline-offset: 2px;
   border-radius: 3px;
 }
+/* Inputs inside a composer box: the box shows focus (focus-within), so the
+   field itself must not draw a second outline. */
+.efv-viewer .efv-bare-input:focus,
+.efv-viewer .efv-bare-input:focus-visible {
+  outline: none;
+}
 
 /* Respect the user's reduced-motion preference (scoped to the viewer). */
 @media (prefers-reduced-motion: reduce) {
@@ -248,12 +254,105 @@
   border: none;
 }
 
+/* Assistant markdown (chat answers, region tables) */
+.efv-viewer .efv-md > * + * {
+  margin-top: 0.5em;
+}
+.efv-viewer .efv-md p,
+.efv-viewer .efv-md ul,
+.efv-viewer .efv-md ol,
+.efv-viewer .efv-md h4 {
+  margin-bottom: 0;
+}
+.efv-viewer .efv-md ul,
+.efv-viewer .efv-md ol {
+  padding-left: 1.2em;
+}
+.efv-viewer .efv-md ul {
+  list-style: disc;
+}
+.efv-viewer .efv-md ol {
+  list-style: decimal;
+}
+.efv-viewer .efv-md h4 {
+  font-weight: 600;
+}
+.efv-viewer .efv-md code {
+  font-size: 0.92em;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.06);
+}
+.efv-viewer.dark .efv-md code {
+  background: rgba(255, 255, 255, 0.1);
+}
+.efv-viewer .efv-md table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+.efv-viewer .efv-md th,
+.efv-viewer .efv-md td {
+  border: 1px solid var(--efv-border);
+  padding: 2px 6px;
+  text-align: left;
+}
+.efv-viewer .efv-md th {
+  font-weight: 600;
+  background: var(--efv-field-bg);
+}
+
+/* Chat citation into the book: [[page:N]] / [[region:ID]] */
+.efv-viewer .efv-cite {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 1px;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 500;
+  line-height: 1.5;
+  vertical-align: baseline;
+  color: var(--efv-accent-ink);
+  background: var(--efv-accent-soft);
+  cursor: pointer;
+}
+.efv-viewer .efv-cite:hover {
+  filter: brightness(0.95);
+  text-decoration: underline;
+}
+
+/* Region focused from a chat citation */
+@keyframes efv-region-flash {
+  0%, 60% { box-shadow: 0 0 0 3px var(--efv-primary); background-color: rgba(0, 119, 204, 0.15); }
+  100% { box-shadow: 0 0 0 2px var(--efv-primary); background-color: rgba(0, 119, 204, 0.06); }
+}
+.efv-viewer .efv-region-flash {
+  animation: efv-region-flash 1.6s ease-out;
+  box-shadow: 0 0 0 2px var(--efv-primary);
+}
+
+/* Agent highlight navigated to from the list */
+@keyframes efv-highlight-pulse {
+  0% { outline-color: rgba(0, 119, 204, 0.9); }
+  100% { outline-color: rgba(0, 119, 204, 0); }
+}
+.efv-viewer .efv-highlight-active {
+  outline: 2px solid rgba(0, 119, 204, 0);
+  outline-offset: 1px;
+  animation: efv-highlight-pulse 1.4s ease-out 2;
+}
+
 @layer components {
   .efv-viewer .icon {
     @apply size-5 cursor-pointer transition-colors duration-150;
   }
   .efv-viewer .icon-dark {
     @apply size-5 text-gray-600 dark:text-gray-300 cursor-pointer transition-colors duration-150;
+  }
+  /* Action buttons in the region / highlight cards: one height, one line, equal width */
+  .efv-viewer .efv-card-btn {
+    @apply flex-1 min-w-0 h-7 px-2 flex items-center justify-center rounded-[5px] text-[11px] font-medium whitespace-nowrap overflow-hidden text-ellipsis transition;
   }
   .efv-viewer .sidebar-label {
     @apply text-[12px] leading-none font-medium text-[#333] dark:text-gray-200 tracking-[0.1px];

@@ -3,6 +3,10 @@ import { useDocumentStore, useViewerStore } from '@/stores';
 import { ref, inject, computed, type Ref } from 'vue';
 import { PDFPreview } from '.';
 import { SuggestionsPopup } from '../pdf-suggestions';
+import { useEditRail } from '../pdf-edit/pdf-edit-menu/useEditRail';
+
+// The chip floats over the page's bottom-right corner; keep it left of the drawing rail.
+const editRail = useEditRail();
 
 const isDark = inject<Ref<boolean>>('isDark', ref(false));
 
@@ -75,7 +79,8 @@ const zoomBtnClass = (disabled: boolean) => {
       v-if="viewerStore.suggestionsFunction"
       @click="docStore.isSuggestionsPopupOpen = !docStore.isSuggestionsPopupOpen"
       class="absolute flex items-center text-xs font-normal text-black z-10 bg-accent-soft"
-      style="right: 10px; top: -31px; height: 24px; padding: 0 7px; gap: 6px; border-radius: 4px; box-shadow: 0 4px 6px 0 rgba(0,0,0,0.10);"
+      :style="{ right: `${10 + editRail.offset.value}px` }"
+      style="top: -31px; height: 24px; padding: 0 7px; gap: 6px; border-radius: 4px; box-shadow: 0 4px 6px 0 rgba(0,0,0,0.10);"
       :aria-label="$t('recommendations')"
       :aria-expanded="docStore.isSuggestionsPopupOpen"
     >

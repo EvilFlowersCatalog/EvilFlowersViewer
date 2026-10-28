@@ -2,10 +2,9 @@
 // Invisible: watches text selection over this page and drives the popups.
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { debounce } from '@/assets/utils/functions';
-import { useDocumentStore, useViewerStore } from '@/stores';
+import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import SelectionMenu from './SelectionMenu.vue';
 import SimilarBooksPopup from './SimilarBooksPopup.vue';
-import ExplainPopup from './ExplainPopup.vue';
 
 const props = defineProps<{
   textLayerRef: HTMLDivElement | null;
@@ -16,11 +15,12 @@ const emit = defineEmits<{ highlight: [rects: DOMRect[]] }>();
 
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
+const assistantStore = useAssistantStore();
 
 const selectionText = ref('');
 const selectionRects = ref<DOMRect[]>([]);
 const anchorRect = ref<DOMRect | null>(null);
-const activePopup = ref<'similar' | 'explain' | null>(null);
+const activePopup = ref<'similar' | null>(null);
 
 const getSelectionRects = (range: Range): DOMRect[] => {
   const startContainer = range.commonAncestorContainer;
@@ -90,6 +90,24 @@ const handleHighlight = () => {
   window.getSelection()?.removeAllRanges();
   clearSelection();
 };
+
+// The explain popup lives at the viewer root (draggable, survives the
+// selection), so the selection only hands it the text and goes away.
+const handleExplain = () => {
+  assistantStore.openExplain({
+    text: selectionText.value,
+    page: docStore.activePage,
+    anchor: props.pageBodyRef?.getBoundingClientRect() ?? null,
+  });
+  window.getSelection()?.removeAllRanges();
+  clearSelection();
+};
+
+const handleAsk = () => {
+  assistantStore.addContext({ kind: 'selection', text: selectionText.value.trim(), page: docStore.activePage });
+  window.getSelection()?.removeAllRanges();
+  clearSelection();
+};
 </script>
 
 <template>
@@ -100,19 +118,15 @@ const handleHighlight = () => {
       :show-similar="!!viewerStore.suggestionsFunction"
       :show-highlight="docStore.edit"
       :show-explain="!!viewerStore.explainFunction"
+      :show-ask="!!viewerStore.chatPackage"
       @copy="handleCopy"
       @similar="activePopup = 'similar'"
       @highlight="handleHighlight"
-      @explain="activePopup = 'explain'"
+      @explain="handleExplain"
+      @ask="handleAsk"
     />
     <SimilarBooksPopup
       v-else-if="activePopup === 'similar'"
-      :page-body-ref="pageBodyRef"
-      :selected-text="selectionText"
-      @close="clearSelection"
-    />
-    <ExplainPopup
-      v-else-if="activePopup === 'explain'"
       :page-body-ref="pageBodyRef"
       :selected-text="selectionText"
       @close="clearSelection"

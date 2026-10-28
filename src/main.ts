@@ -20,8 +20,21 @@ export type {
   IRenderViewerProps,
   ISuggestedEntry,
   IExplainResult,
+  IExplainContext,
   IPageBookmark,
   IPageBookmarkPackage,
+  IPageBox,
+  IRegion,
+  IRegionPackage,
+  REGION_KIND,
+  IAgentHighlight,
+  IAgentAnnotation,
+  IAgentAnnotationPackage,
+  IChatContext,
+  IChatMessage,
+  IChatStreamHandlers,
+  IChatPackage,
+  IChatSummary,
 } from './assets/utils/interfaces';
 export type { SUGGESTION_KIND } from './assets/utils/enums';
 

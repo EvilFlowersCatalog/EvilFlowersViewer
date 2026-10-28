@@ -16,6 +16,7 @@ export enum SIDEBAR_STATE {
   INFO = 'info',
   PRINT = 'print',
   TOC = 'table-of-content',
+  HIGHLIGHTS = 'agent-highlights',
   NULL = 'NULL',
 }
 

@@ -1,5 +1,5 @@
-<svg width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 6 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="Frame 28">
-<line id="Line 2" x1="3.85" y1="2" x2="3.85" y2="19" stroke="currentColor" stroke-width=".3"/>
-</g>
+<svg width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M4.5 15.5L15.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+<circle cx="4.5" cy="15.5" r="1.4" fill="currentColor"/>
+<circle cx="15.5" cy="4.5" r="1.4" fill="currentColor"/>
 </svg>

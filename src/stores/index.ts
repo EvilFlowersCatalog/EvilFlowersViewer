@@ -1,4 +1,5 @@
+import { useAssistantStore } from './assistant';
 import { useDocumentStore } from './document';
 import { useViewerStore } from './viewer';
 
-export { useDocumentStore, useViewerStore };
+export { useAssistantStore, useDocumentStore, useViewerStore };

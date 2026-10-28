@@ -23,6 +23,15 @@ import {
   examplePrintFunction,
   getPageBookmarksFunc,
   removePageBookmarkFunc,
+  exampleChatSendFunction,
+  getChatsFunc,
+  getChatFunc,
+  deleteChatFunc,
+  getRegionsFunc,
+  getAgentAnnotationsFunc,
+  requestAgentAnnotationFunc,
+  deleteAgentHighlightFunc,
+  deleteAgentAnnotationFunc,
 } from './assets/examples/params/examples';
 
 const data = ref<TypedArray | null>(null);
@@ -52,6 +61,21 @@ const options: IViewerOptions = {
   bookmarkToggleFunction: exampleBookmarkToggleFunction,
   suggestionsFunction: exampleSuggestionsFunction,
   explainFunction: exampleExplainFunction,
+  // IP-018 intelligent viewer mocks
+  chatPackage: {
+    sendMessageFunc: exampleChatSendFunction,
+    resetFunc: () => console.log('chat reset'),
+    getChatsFunc,
+    getChatFunc,
+    deleteChatFunc,
+  },
+  regionPackage: { getRegionsFunc },
+  agentAnnotationPackage: {
+    getAnnotationsFunc: getAgentAnnotationsFunc,
+    requestAnnotationFunc: requestAgentAnnotationFunc,
+    deleteHighlightFunc: deleteAgentHighlightFunc,
+    deleteAnnotationFunc: deleteAgentAnnotationFunc,
+  },
   editPackage: {
     saveLayerFunc,
     updateLayerFunc,

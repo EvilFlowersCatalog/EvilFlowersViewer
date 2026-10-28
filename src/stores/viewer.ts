@@ -1,7 +1,11 @@
 import { CITATION_FORMAT, CITATION_TYPE, SUGGESTION_KIND } from '@/assets/utils/enums';
 import type {
+  IAgentAnnotationPackage,
+  IChatPackage,
   IEditPackage,
+  IExplainContext,
   IExplainResult,
+  IRegionPackage,
   IPageBookmarkPackage,
   ISemanticSearchResult,
   ISuggestedEntry,
@@ -52,8 +56,11 @@ export const useViewerStore = defineStore('viewer', () => {
     | null
   >(null);
   const explainFunction = ref<
-    ((selectedText: string, context?: { page?: number }) => Promise<IExplainResult>) | null
+    ((selectedText: string, context?: IExplainContext) => Promise<IExplainResult>) | null
   >(null);
+  const chatPackage = ref<IChatPackage | null>(null);
+  const regionPackage = ref<IRegionPackage | null>(null);
+  const agentAnnotationPackage = ref<IAgentAnnotationPackage | null>(null);
   const config = ref<IViewerConfig>({
     download: false,
     share: false,
@@ -79,6 +86,9 @@ export const useViewerStore = defineStore('viewer', () => {
     bookmarkToggleFunction,
     suggestionsFunction,
     explainFunction,
+    chatPackage,
+    regionPackage,
+    agentAnnotationPackage,
     config,
   };
 });

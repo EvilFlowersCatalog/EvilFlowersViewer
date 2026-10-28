@@ -8,6 +8,8 @@ import { EDIT_TOOL, RENDER_STATE } from '@/assets/utils/enums';
 import { BookmarkIcon, Loader } from '../pdf-aids';
 import { EditCanvas } from './pdf-edit';
 import { SelectionLayer } from './pdf-selection';
+import RegionLayer from './pdf-regions/RegionLayer.vue';
+import AgentHighlightLayer from './pdf-agent/AgentHighlightLayer.vue';
 
 const docStore = useDocumentStore();
 let pdf = toRaw(docStore.pdf);
@@ -213,6 +215,7 @@ watch(
     <!-- Content -->
     <div
       ref="pageBodyRef"
+      data-page-body
       :class="
         docStore.renderState === RENDER_STATE.RENDERING
           ? 'hidden'
@@ -249,6 +252,13 @@ watch(
             : 'pointer-events-none select-none'
         "
       ></div>
+
+      <!-- IP-018 layers: agent highlights and extracted regions. Both hit-test
+           the pointer position, so the text layer underneath stays selectable. -->
+      <template v-if="EDIT_TOOL.MOUSE === docStore.editTool">
+        <AgentHighlightLayer :page-body-ref="pageBodyRef" />
+        <RegionLayer :page-body-ref="pageBodyRef" :canvas-ref="canvasRef" />
+      </template>
 
       <!-- Bookmark toggle — top-right corner of the page itself. Revealed on
            hover (or keyboard focus), and pinned visible once the page is

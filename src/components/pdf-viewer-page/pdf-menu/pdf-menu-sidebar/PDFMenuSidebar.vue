@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { SIDEBAR_STATE } from '@/assets/utils/enums';
-import { useDocumentStore } from '@/stores';
-import { Info, Share, Search, Print } from './items';
+import { useDocumentStore, useViewerStore } from '@/stores';
+import { AgentHighlights, Info, Share, Search, Print } from './items';
 import { TOC } from '@/components/pdf-viewer-page/pdf-modal/items';
 import { nextTick, ref, watch } from 'vue';
 
 const docStore = useDocumentStore();
+const viewerStore = useViewerStore();
 const panelRef = ref<HTMLDivElement | null>(null);
 
 // Move keyboard focus into the panel when it opens — prefer the first field so
@@ -29,6 +30,7 @@ const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
   [SIDEBAR_STATE.INFO]: 'info',
   [SIDEBAR_STATE.PRINT]: 'print',
   [SIDEBAR_STATE.TOC]: 'table-of-content',
+  [SIDEBAR_STATE.HIGHLIGHTS]: 'agent-highlights',
 };
 </script>
 
@@ -37,7 +39,8 @@ const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
   <div
     v-if="docStore.sidebarState !== SIDEBAR_STATE.NULL"
     ref="panelRef"
-    class="absolute top-3 left-1.5 bottom-3 w-[207px] flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[5px] shadow-[2px_0px_8px_rgba(0,0,0,0.12)] z-10 overflow-hidden"
+    :class="docStore.sidebarState === SIDEBAR_STATE.HIGHLIGHTS ? 'w-[260px]' : 'w-[207px]'"
+    class="absolute top-3 left-1.5 bottom-3 flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[5px] shadow-[2px_0px_8px_rgba(0,0,0,0.12)] z-10 overflow-hidden"
     role="region"
     :aria-label="$t(sidebarTitles[docStore.sidebarState] ?? docStore.sidebarState)"
   >
@@ -65,6 +68,7 @@ const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
       <Search v-if="docStore.sidebarState === SIDEBAR_STATE.SEARCH" />
       <Print  v-if="docStore.sidebarState === SIDEBAR_STATE.PRINT" />
       <TOC    v-if="docStore.sidebarState === SIDEBAR_STATE.TOC" />
+      <AgentHighlights v-if="docStore.sidebarState === SIDEBAR_STATE.HIGHLIGHTS && viewerStore.agentAnnotationPackage" />
     </div>
   </div>
 </template>

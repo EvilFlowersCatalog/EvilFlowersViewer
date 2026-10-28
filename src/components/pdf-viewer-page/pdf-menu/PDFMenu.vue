@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { MODAL_CONTENT, SIDEBAR_STATE } from '@/assets/utils/enums';
 import ToolTip from '@/components/pdf-aids/ToolTip.vue';
-import { useDocumentStore, useViewerStore } from '@/stores';
+import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import { toRaw, computed } from 'vue';
 import { AnFilledPrinter } from '@kalimahapps/vue-icons';
 import sunSvg from '@/assets/icons/sun.svg?raw';
@@ -14,6 +14,12 @@ const emit = defineEmits<{ (e: 'toggleDark'): void }>();
 
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
+const assistantStore = useAssistantStore();
+
+const toggleChat = () => {
+  if (assistantStore.isChatOpen) assistantStore.isChatOpen = false;
+  else assistantStore.openChat();
+};
 
 const download = () => {
   const link = document.createElement('a');
@@ -89,6 +95,27 @@ const btnClass = (active: boolean) => {
       <button @click="toggleSidebar(SIDEBAR_STATE.TOC)" :class="btnClass(docStore.sidebarState === SIDEBAR_STATE.TOC)" :aria-label="$t('table-of-content')" :aria-expanded="docStore.sidebarState === SIDEBAR_STATE.TOC">
         <svg class="icon" viewBox="0 0 19 15" fill="none">
           <path d="M17.8971 0.25V2.60294H4.95588V0.25H17.8971ZM4.95588 8.48529H17.8971V6.13235H4.95588V8.48529ZM4.95588 14.3676H17.8971V12.0147H4.95588V14.3676ZM1.42647 0.25C0.777059 0.25 0.25 0.775882 0.25 1.42647C0.25 2.07706 0.777059 2.60294 1.42647 2.60294C2.07588 2.60294 2.60294 2.07706 2.60294 1.42647C2.60294 0.775882 2.07588 0.25 1.42647 0.25ZM1.42647 6.13235C0.777059 6.13235 0.25 6.65824 0.25 7.30882C0.25 7.95941 0.777059 8.48529 1.42647 8.48529C2.07588 8.48529 2.60294 7.95941 2.60294 7.30882C2.60294 6.65824 2.07588 6.13235 1.42647 6.13235ZM1.42647 12.0147C0.777059 12.0147 0.25 12.5406 0.25 13.1912C0.25 13.8418 0.777059 14.3676 1.42647 14.3676C2.07588 14.3676 2.60294 13.8418 2.60294 13.1912C2.60294 12.5406 2.07588 12.0147 1.42647 12.0147Z" fill="currentColor" stroke="currentColor" stroke-width="0.3"/>
+        </svg>
+      </button>
+    </ToolTip>
+
+    <ToolTip v-if="viewerStore.chatPackage" position="right" :text="$t('assistant')">
+      <button @click="toggleChat" :class="btnClass(assistantStore.isChatOpen)" :aria-label="$t('assistant')" :aria-expanded="assistantStore.isChatOpen">
+        <svg class="icon" viewBox="0 0 20 20" fill="none">
+          <path d="M4 3.5h12A1.5 1.5 0 0 1 17.5 5v8a1.5 1.5 0 0 1-1.5 1.5H9.5L5 17.5v-3H4A1.5 1.5 0 0 1 2.5 13V5A1.5 1.5 0 0 1 4 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M6.5 8h7M6.5 11h4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </ToolTip>
+
+    <ToolTip v-if="viewerStore.agentAnnotationPackage" position="right" :text="$t('agent-highlights')">
+      <button @click="toggleSidebar(SIDEBAR_STATE.HIGHLIGHTS)" :class="btnClass(docStore.sidebarState === SIDEBAR_STATE.HIGHLIGHTS)" :aria-label="$t('agent-highlights')" :aria-expanded="docStore.sidebarState === SIDEBAR_STATE.HIGHLIGHTS">
+        <!-- Text lines, the middle one highlighted, with an AI sparkle -->
+        <svg class="icon" viewBox="0 0 20 20" fill="none">
+          <path d="M2.5 5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="2.5" y="8.5" width="12" height="3.5" rx="1" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M2.5 15.5h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M15.5 1.5l.85 2.15 2.15.85-2.15.85-.85 2.15-.85-2.15-2.15-.85 2.15-.85z" fill="currentColor"/>
         </svg>
       </button>
     </ToolTip>

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, computed, watch, provide } from 'vue';
-import { useDocumentStore, useViewerStore } from '@/stores';
+import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
+import { ExplainPopup } from './pdf-viewer-page/pdf-selection';
+import ChatPanel from './pdf-chat/ChatPanel.vue';
 import {
   GlobalWorkerOptions,
   getDocument,
@@ -32,6 +34,7 @@ GlobalWorkerOptions.workerSrc = PDFWorker;
 const { data, options, config } = defineProps<IViewerProps>();
 const viewerStore = useViewerStore();
 const docStore = useDocumentStore();
+const assistantStore = useAssistantStore();
 const failed = ref<boolean>(false);
 // Honor the host-provided theme; default to light (the Figma source of truth).
 const isDark = ref<boolean>(options?.theme === 'dark');
@@ -120,6 +123,8 @@ const loadDocument = async () => {
     // Bookmarks belong to the document, so they are (re)loaded with it. Not
     // awaited above: a slow/failing host must not delay the first paint.
     docStore.loadBookmarks();
+    assistantStore.reset();
+    assistantStore.loadAgentAnnotations();
   } catch (error) {
     failed.value = true;
     console.error('Failed to load PDF docStore:\n', error);
@@ -127,7 +132,8 @@ const loadDocument = async () => {
 };
 
 const handleEscape = () => {
-  if (docStore.modalContent !== MODAL_CONTENT.NULL)
+  if (assistantStore.explainRequest) assistantStore.closeExplain();
+  else if (docStore.modalContent !== MODAL_CONTENT.NULL)
     docStore.setModalContent(MODAL_CONTENT.NULL);
   else if (docStore.sidebarState !== SIDEBAR_STATE.NULL)
     docStore.setSidebarState(SIDEBAR_STATE.NULL);
@@ -154,6 +160,9 @@ onMounted(() => {
   viewerStore.bookmarkToggleFunction = options?.bookmarkToggleFunction ?? null;
   viewerStore.suggestionsFunction = options?.suggestionsFunction ?? null;
   viewerStore.explainFunction = options?.explainFunction ?? null;
+  viewerStore.chatPackage = options?.chatPackage ?? null;
+  viewerStore.regionPackage = options?.regionPackage ?? null;
+  viewerStore.agentAnnotationPackage = options?.agentAnnotationPackage ?? null;
   viewerStore.config = {
     download: false,
     share: false,
@@ -267,8 +276,16 @@ onMounted(() => {
     <!-- Content column -->
     <div class="relative flex flex-col flex-1 overflow-hidden" :style="{ backgroundColor: viewerBg }">
       <!-- Page area: floating sidebar panel is scoped to here so it never reaches the bottom bar -->
-      <div class="relative flex-1 overflow-hidden">
-        <!-- Edit menu -->
+      <div class="relative flex flex-1 overflow-hidden">
+        <div class="relative flex-1 overflow-hidden">
+          <!-- PDF page -->
+          <PDFPage v-if="docStore.pdf" />
+
+          <!-- Floating sidebar panel (Search, Share, Info, Print, TOC, ...) -->
+          <PDFMenuSidebar />
+        </div>
+
+        <!-- Drawing tools: docked rail, takes its own column -->
         <PDFEditMenu
           v-if="
             viewerStore.config.edit &&
@@ -277,16 +294,20 @@ onMounted(() => {
             docStore.edit
           "
         />
-
-        <!-- PDF page -->
-        <PDFPage v-if="docStore.pdf" />
-
-        <!-- Floating sidebar panel (Search, Share, Info, Print, TOC, ...) -->
-        <PDFMenuSidebar />
       </div>
 
       <!-- Bottom bar -->
       <PDFBottomBar />
     </div>
+
+    <!-- Reading chat, docked right (the page area shrinks) -->
+    <ChatPanel v-if="viewerStore.chatPackage && assistantStore.isChatOpen" />
+
+    <!-- Draggable explain popup; keyed so a new request starts fresh -->
+    <ExplainPopup
+      v-if="assistantStore.explainRequest"
+      :key="assistantStore.explainRequest.id"
+      :request="assistantStore.explainRequest"
+    />
   </div>
 </template>

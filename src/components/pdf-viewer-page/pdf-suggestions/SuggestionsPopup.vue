@@ -5,9 +5,11 @@ import { SUGGESTION_KIND } from '@/assets/utils/enums';
 import type { ISuggestedEntry } from '@/assets/utils/interfaces';
 import { Loader } from '@/components/pdf-aids';
 import SuggestionEntryItem from './SuggestionEntryItem.vue';
+import { useEditRail } from '../pdf-edit/pdf-edit-menu/useEditRail';
 
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
+const editRail = useEditRail();
 
 const tabs = [
   { kind: SUGGESTION_KIND.SIMILAR, label: 'similar' },
@@ -47,7 +49,8 @@ onMounted(() => load(activeTab.value));
 
 <template>
   <div
-    class="absolute bottom-full right-[10px] mb-[8px] w-[280px] max-h-[360px] flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[8px] shadow-[0px_6px_18px_rgba(0,0,0,0.2)] overflow-hidden z-20"
+    :style="{ right: `${10 + editRail.offset.value}px` }"
+    class="absolute bottom-full mb-[8px] w-[280px] max-h-[360px] flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[8px] shadow-[0px_6px_18px_rgba(0,0,0,0.2)] overflow-hidden z-20"
     role="dialog"
     :aria-label="$t('recommendations')"
   >

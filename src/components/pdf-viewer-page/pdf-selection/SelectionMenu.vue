@@ -6,6 +6,7 @@ const props = defineProps<{
   showSimilar: boolean;
   showHighlight: boolean;
   showExplain: boolean;
+  showAsk: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -13,6 +14,7 @@ const emit = defineEmits<{
   similar: [];
   highlight: [];
   explain: [];
+  ask: [];
 }>();
 
 // Centered above the selection; flips below when too close to the viewport top.
@@ -88,6 +90,19 @@ const style = computed(() => {
         <path d="M10 14v-.01M8.3 8a1.9 1.9 0 1 1 2.6 1.76c-.66.28-.9.7-.9 1.24" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
       <span class="text-[9px] font-normal whitespace-nowrap">{{ $t('explain') }}</span>
+    </button>
+
+    <button
+      v-if="showAsk"
+      type="button"
+      class="flex flex-col items-center gap-[3px] px-[10px] py-[2px] rounded-[5px] text-white/90 hover:bg-white/10 hover:text-white transition-colors"
+      role="menuitem"
+      @click="emit('ask')"
+    >
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 20 20" fill="none">
+        <path d="M4 4h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9l-4 3v-3H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+      </svg>
+      <span class="text-[9px] font-normal whitespace-nowrap">{{ $t('ask') }}</span>
     </button>
   </div>
 </template>
