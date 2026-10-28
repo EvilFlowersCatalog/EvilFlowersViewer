@@ -172,7 +172,7 @@ watch(
             v-for="suggestion in suggestions"
             :key="suggestion"
             type="button"
-            class="px-3 py-2 rounded-[8px] text-[11px] text-left bg-field hover:bg-accent-soft hover:text-accent-ink transition-colors"
+            class="px-3 py-2 rounded-[8px] text-[11px] text-left bg-field text-[#333] hover:bg-accent-soft hover:text-accent-ink dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white transition-colors"
             @click="send(suggestion)"
           >
             {{ suggestion }}

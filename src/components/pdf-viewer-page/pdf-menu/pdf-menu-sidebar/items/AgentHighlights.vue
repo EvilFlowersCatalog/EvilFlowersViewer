@@ -45,7 +45,7 @@ watch(
       type="button"
       role="switch"
       :aria-checked="assistantStore.showAgentHighlights"
-      class="flex items-center justify-between gap-2 px-2 py-1.5 rounded-[6px] bg-field hover:bg-accent-soft transition-colors select-none"
+      class="flex items-center justify-between gap-2 px-2 py-1.5 rounded-[6px] bg-field hover:bg-accent-soft dark:bg-white/5 dark:hover:bg-white/10 transition-colors select-none"
       @click="assistantStore.showAgentHighlights = !assistantStore.showAgentHighlights"
     >
       <span class="flex items-center gap-1.5 text-[11px] font-medium text-[#333] dark:text-gray-200">
