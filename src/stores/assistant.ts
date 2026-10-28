@@ -145,6 +145,7 @@ export const useAssistantStore = defineStore('assistant', () => {
           onChunk: (chunk) => (answer.text += chunk),
           onMessage: (full) => (answer.text = full),
           onEntries: (entries) => (answer.entries = entries),
+          onPages: (pages) => (answer.pages = pages),
           onError: (detail) => {
             answer.status = 'error';
             answer.text = detail;

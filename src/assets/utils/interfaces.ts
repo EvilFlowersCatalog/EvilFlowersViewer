@@ -144,6 +144,8 @@ export interface IChatMessage {
   contexts?: IChatContext[];
   /** Publications the assistant recommended with this message. */
   entries?: ISuggestedEntry[];
+  /** Pages the answer was drawn from, shown as links under it. */
+  pages?: number[];
   status?: 'streaming' | 'done' | 'error';
 }
 
@@ -155,6 +157,8 @@ export interface IChatStreamHandlers {
   onMessage: (text: string) => void;
   /** Publications to show as cards (the assistant's book recommendation tool). */
   onEntries: (entries: ISuggestedEntry[]) => void;
+  /** Pages the answer was drawn from (the assistant `pages` event). */
+  onPages?: (pages: number[]) => void;
   onError: (detail: string) => void;
 }
 
@@ -241,6 +245,8 @@ export interface IPageBookmarkPackage {
 export interface IViewerOptions {
   theme?: 'dark' | 'light';
   lang?: 'sk' | 'en';
+  /** 1-based page to open the document at, e.g. a page a chat citation pointed to. */
+  initialPage?: number | null;
   citationBib?: string | null;
   homeFunction?: (() => void) | null;
   closeFunction?: (() => void) | null;
