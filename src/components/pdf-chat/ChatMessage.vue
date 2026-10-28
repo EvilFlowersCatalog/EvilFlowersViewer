@@ -25,13 +25,17 @@ const html = computed(() =>
 );
 
 // Citations are rendered as plain buttons inside v-html; one delegated handler.
+const goToPage = (page: number) => {
+  docStore.activePage = Math.min(Math.max(1, page), docStore.totalPages);
+};
+
 const onClick = (event: MouseEvent) => {
   const cite = (event.target as HTMLElement).closest<HTMLElement>('.efv-cite');
   if (!cite) return;
   const page = cite.dataset.page;
   const regionId = cite.dataset.region;
   if (page) {
-    docStore.activePage = Math.min(Math.max(1, Number(page)), docStore.totalPages);
+    goToPage(Number(page));
   } else if (regionId) {
     const region = assistantStore.findRegion(regionId);
     if (region) assistantStore.goToRegion(region);
@@ -64,6 +68,14 @@ const onClick = (event: MouseEvent) => {
       </p>
       <!-- eslint-disable-next-line vue/no-v-html -- sanitized by renderMarkdown -->
       <div v-else class="efv-md" :class="{ 'text-red': message.status === 'error' }" v-html="html" @click="onClick" />
+    </div>
+
+    <!-- Pages the answer was drawn from -->
+    <div v-if="message.pages?.length" class="flex flex-wrap items-center gap-1 text-[10px] text-efv-muted">
+      <span>{{ $t('chat-sources') }}:</span>
+      <button v-for="page in message.pages" :key="page" type="button" class="efv-cite" @click="goToPage(page)">
+        {{ $t('page-short', { page }) }}
+      </button>
     </div>
 
     <!-- Recommended publications (assistant book tool) -->

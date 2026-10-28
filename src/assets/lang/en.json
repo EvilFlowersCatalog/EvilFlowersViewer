@@ -107,6 +107,7 @@
   "chat-placeholder-context": "Ask about the attached…",
   "chat-send": "Send",
   "chat-thinking": "Reading the book…",
+  "chat-sources": "Sources",
   "chat-error": "The assistant could not answer. Try again.",
   "chat-suggestion-summary": "Summarize this chapter for me",
   "chat-suggestion-page": "Explain what this page is about",

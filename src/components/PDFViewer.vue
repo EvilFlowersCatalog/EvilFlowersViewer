@@ -117,8 +117,10 @@ const loadDocument = async () => {
     }
 
     docStore.pdf = pdf;
-    docStore.activePage = 1;
     docStore.totalPages = pdf.numPages;
+    // The host can open the document at a page, e.g. one a chat citation pointed to.
+    const initialPage = Math.trunc(Number(options?.initialPage) || 1);
+    docStore.activePage = Math.min(Math.max(1, initialPage), pdf.numPages);
 
     // Bookmarks belong to the document, so they are (re)loaded with it. Not
     // awaited above: a slow/failing host must not delay the first paint.

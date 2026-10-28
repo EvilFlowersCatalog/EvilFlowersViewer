@@ -571,6 +571,7 @@ export const exampleChatSendFunction = async (
   // Record what the reader saw, so reopening the chat from history shows it.
   let answer = '';
   let entries: ISuggestedEntry[] | undefined;
+  let pages: number[] | undefined;
   const recording: IChatStreamHandlers = {
     onChunk: (text) => {
       answer += text;
@@ -584,12 +585,16 @@ export const exampleChatSendFunction = async (
       entries = list;
       handlers.onEntries(list);
     },
+    onPages: (list) => {
+      pages = list;
+      handlers.onPages?.(list);
+    },
     onError: handlers.onError,
   };
 
   await answerChat(message, contexts, recording, meta);
 
-  chat.messages.push(mockMessage('user', message, { contexts }), mockMessage('assistant', answer, { entries }));
+  chat.messages.push(mockMessage('user', message, { contexts }), mockMessage('assistant', answer, { entries, pages }));
   chat.summary.updatedAt = daysAgo(0);
   chat.summary.messageCount = chat.messages.length;
   return { chatId };
@@ -613,5 +618,6 @@ const answerChat = async (
   if (wantsBooks) paragraphs.push('Tu je zopár kníh, ktoré na to nadväzujú:');
 
   await streamText(paragraphs.join('\n\n'), handlers);
+  handlers.onPages?.([meta.page, meta.page + 1]);
   if (wantsBooks) handlers.onEntries(exampleEntries.slice(0, 3));
 };
