@@ -321,6 +321,14 @@
   filter: brightness(0.95);
   text-decoration: underline;
 }
+.efv-viewer.dark .efv-cite {
+  color: #7dd3fc;
+  background: rgba(56, 189, 248, 0.15);
+}
+.efv-viewer.dark .efv-cite:hover {
+  filter: none;
+  background: rgba(56, 189, 248, 0.25);
+}
 
 /* Region focused from a chat citation */
 @keyframes efv-region-flash {
