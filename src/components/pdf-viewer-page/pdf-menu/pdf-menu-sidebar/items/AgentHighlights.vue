@@ -205,7 +205,7 @@ watch(
               class="w-full flex gap-1.5 text-left px-1.5 py-1 rounded-[4px] transition-colors"
               :class="
                 assistantStore.activeHighlightId === highlight.id
-                  ? 'bg-accent-soft'
+                  ? 'bg-accent-soft dark:bg-white/10'
                   : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
               "
               @click="assistantStore.goToHighlight(annotation.id, highlight)"
