@@ -42,7 +42,12 @@ watch(optionsOpen, (open) => {
 });
 onBeforeUnmount(() => document.removeEventListener('pointerdown', onPointerDown, true));
 
+// Colours follow the dark-mode fix (0.6.3): `secondary` is a var() colour, so
+// opacity modifiers like `hover:bg-secondary/40` generate no CSS. Hover is a
+// neutral tint and the selected tool is an accent chip readable in both themes.
 const btn = 'size-7 flex items-center justify-center rounded-[5px] p-1 transition-colors';
+const hover = 'hover:bg-black/5 dark:hover:bg-white/10';
+const selected = 'bg-accent-soft ring-1 ring-inset ring-accent-ink';
 </script>
 
 <template>
@@ -57,25 +62,24 @@ const btn = 'size-7 flex items-center justify-center rounded-[5px] p-1 transitio
       v-for="item of tools"
       :key="item.tool"
       type="button"
-      :class="[
-        btn,
-        item.tool === docStore.editTool
-          ? 'bg-primary/40 border border-primary [&_svg_*]:fill-primary/80 [&_svg_*]:stroke-primary'
-          : 'hover:bg-secondary/40',
-      ]"
+      :class="[btn, item.tool === docStore.editTool ? selected : hover]"
       :title="$t(toolLabels[item.tool])"
       :aria-label="$t(toolLabels[item.tool])"
       :aria-pressed="item.tool === docStore.editTool"
       @click="docStore.editTool = item.tool"
     >
-      <component :is="item.icon" aria-hidden="true" class="icon-dark dark:!text-white" />
+      <component
+        :is="item.icon"
+        aria-hidden="true"
+        :class="item.tool === docStore.editTool ? 'size-5 cursor-pointer text-accent-ink' : 'icon-dark dark:!text-white'"
+      />
     </button>
 
     <!-- Current colour + size; opens the options to the left of the rail -->
     <div v-if="hasOptions" ref="optionsRef" class="relative mt-1">
       <button
         type="button"
-        :class="[btn, optionsOpen ? 'bg-secondary/20' : 'hover:bg-secondary/20']"
+        :class="[btn, optionsOpen ? 'bg-accent-soft' : hover]"
         :title="$t('colors')"
         :aria-label="$t('colors')"
         :aria-expanded="optionsOpen"
@@ -99,7 +103,7 @@ const btn = 'size-7 flex items-center justify-center rounded-[5px] p-1 transitio
     <button
       type="button"
       :disabled="!docStore.canUndo"
-      :class="[btn, 'hover:bg-secondary/40 disabled:opacity-30 disabled:pointer-events-none']"
+      :class="[btn, hover, 'disabled:opacity-30 disabled:pointer-events-none']"
       :title="$t('undo')"
       :aria-label="$t('undo')"
       @click="docStore.undo"
@@ -109,7 +113,7 @@ const btn = 'size-7 flex items-center justify-center rounded-[5px] p-1 transitio
     <button
       type="button"
       :disabled="!docStore.canRedo"
-      :class="[btn, 'hover:bg-secondary/40 disabled:opacity-30 disabled:pointer-events-none']"
+      :class="[btn, hover, 'disabled:opacity-30 disabled:pointer-events-none']"
       :title="$t('redo')"
       :aria-label="$t('redo')"
       @click="docStore.redo"

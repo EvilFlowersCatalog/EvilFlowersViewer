@@ -78,7 +78,7 @@ const sanitizedText = computed(() => {
 
     <div
       v-if="isTooltipVisible"
-      class="w-max text-center max-w-44 fixed px-3 py-2 text-primary bg-secondary border border-primary rounded text-xs z-50 pointer-events-none"
+      class="w-max text-center max-w-44 fixed px-3 py-2 text-white bg-primary border border-white/10 rounded shadow-md text-xs z-50 pointer-events-none"
       :style="tooltipPosition"
     >
       <!-- Use sanitizedText here -->

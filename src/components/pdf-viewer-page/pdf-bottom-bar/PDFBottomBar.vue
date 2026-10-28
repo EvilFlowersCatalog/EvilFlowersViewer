@@ -104,7 +104,7 @@ const zoomBtnClass = (disabled: boolean) => {
         :disabled="docStore.scale >= 3"
         :aria-label="$t('zoom-in')"
       >
-        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round">
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
           <path d="M7 2v10M2 7h10"/>
         </svg>
       </button>
@@ -114,7 +114,7 @@ const zoomBtnClass = (disabled: boolean) => {
         :disabled="docStore.scale <= 0.25"
         :aria-label="$t('zoom-out')"
       >
-        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round">
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
           <path d="M2 7h10"/>
         </svg>
       </button>

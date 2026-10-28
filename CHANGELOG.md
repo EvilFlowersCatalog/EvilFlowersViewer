@@ -9,6 +9,13 @@
 - 4 new opt-in host hooks on `options`: `openEntryDetailFunction`, `bookmarkToggleFunction`, `suggestionsFunction`, `explainFunction`. Each new UI piece that depends on one hides itself when the hook isn't supplied.
 - New exported types: `ISuggestedEntry`, `IExplainResult`, `SUGGESTION_KIND`.
 
+### Fixed
+
+- **Host colours leaking into the viewer**: every Tailwind utility is now emitted as `.efv-viewer .x` (`important: '.efv-viewer'`). A Tailwind host (elvira-portal) ships its own `.text-primary`, `.bg-secondary`, `.border-primary`, … with faculty colours, and its stylesheet loaded after ours, so e.g. the tooltip rendered red text on blue for STU. The `.efv-viewer` scope class (plus `dark`/`lang`) moved to a wrapper element so the root layout utilities still apply.
+- **Dark mode**: the zoom +/− glyphs had a hard-coded `#333` stroke (invisible on the dark bar); the selected drawing tool filled its icon with the near-black brand navy (invisible in dark mode) — it is now a light accent chip with an accent-ink icon in both themes.
+- Tooltip is white-on-navy instead of navy-on-blue.
+- `hover:bg-secondary/40` / `hover:bg-secondary/80` never generated any CSS (Tailwind 3 can't apply an opacity modifier to a `var()` colour); replaced with working hover styles.
+
 ## 0.6.0 : 2026-07-18
 
 A large release covering the core-viewer overhaul: Figma-aligned redesign, style isolation, dependency modernization, an internal architecture refactor, an accessibility pass and reading-experience polish. **No breaking change to the public API** — `renderPDFViewer(...)` and the `options` / `config` contract are unchanged (the default export now additionally returns the Vue `App` instance). Re-validated end-to-end in the browser (render, text layer, zoom, keyword + semantic search with highlight, thumbnails, navigation, editing, citation, theming, keyboard/focus) — no functional regressions.
