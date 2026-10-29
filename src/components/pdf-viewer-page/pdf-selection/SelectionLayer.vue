@@ -11,7 +11,7 @@ const props = defineProps<{
   pageBodyRef: HTMLDivElement | null;
 }>();
 
-const emit = defineEmits<{ highlight: [rects: DOMRect[]] }>();
+const emit = defineEmits<{ highlight: [rects: DOMRect[], text: string] }>();
 
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
@@ -86,7 +86,7 @@ const handleCopy = () => {
 };
 
 const handleHighlight = () => {
-  if (selectionRects.value.length) emit('highlight', selectionRects.value);
+  if (selectionRects.value.length) emit('highlight', selectionRects.value, selectionText.value);
   window.getSelection()?.removeAllRanges();
   clearSelection();
 };
@@ -116,7 +116,7 @@ const handleAsk = () => {
       v-if="activePopup === null"
       :anchor-rect="anchorRect"
       :show-similar="!!viewerStore.suggestionsFunction"
-      :show-highlight="docStore.edit"
+      :show-highlight="docStore.edit || !!viewerStore.readerHighlightPackage"
       :show-explain="!!viewerStore.explainFunction"
       :show-ask="!!viewerStore.chatPackage"
       @copy="handleCopy"

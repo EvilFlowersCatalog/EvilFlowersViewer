@@ -8,7 +8,10 @@ const PALETTE: [number, number, number][] = [
   [37, 99, 235], // blue
 ];
 
+/** The reader's own text highlights (index -1): the highlighter yellow. */
+const READER: [number, number, number] = [234, 179, 8];
+
 export const highlightColor = (index: number, alpha: number) => {
-  const [r, g, b] = PALETTE[index % PALETTE.length];
+  const [r, g, b] = index < 0 ? READER : PALETTE[index % PALETTE.length];
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };

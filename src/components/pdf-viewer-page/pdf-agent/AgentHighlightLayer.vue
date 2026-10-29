@@ -6,6 +6,7 @@ import { computed, watch } from 'vue';
 import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import { boxContains, boxStyle, unionBox, usePagePointer, useStickyHover } from '../usePageHover';
 import { highlightColor } from './colors';
+import { READER_ANNOTATION_ID } from '@/stores/assistant';
 
 const props = defineProps<{ pageBodyRef: HTMLDivElement | null }>();
 
@@ -80,11 +81,21 @@ const showInList = () => {
   assistantStore.openHighlightsSidebar();
 };
 
+const isReader = computed(() => active.value?.annotation.id === READER_ANNOTATION_ID);
+const canDelete = computed(() =>
+  isReader.value
+    ? !!viewerStore.readerHighlightPackage?.deleteHighlightFunc
+    : !!viewerStore.agentAnnotationPackage?.deleteHighlightFunc
+);
+
 const cardSide = computed(() => (active.value && active.value.bounds.x1 > 0.55 ? 'left' : 'right'));
 </script>
 
 <template>
-  <div v-if="viewerStore.agentAnnotationPackage" class="absolute inset-0 z-[5] pointer-events-none">
+  <div
+    v-if="viewerStore.agentAnnotationPackage || viewerStore.readerHighlightPackage"
+    class="absolute inset-0 z-[5] pointer-events-none"
+  >
     <!-- Tinted line boxes (multiply keeps the text readable) -->
     <template v-for="item in items" :key="item.highlight.id">
       <div
@@ -124,7 +135,7 @@ const cardSide = computed(() => (active.value && active.value.bounds.x1 > 0.55 ?
         class="absolute top-2 w-[280px] flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[8px] shadow-[0px_6px_18px_rgba(0,0,0,0.25)] overflow-hidden cursor-auto"
         :class="cardSide === 'right' ? 'left-3' : 'right-3'"
         role="dialog"
-        :aria-label="active.annotation.title"
+        :aria-label="isReader ? $t('my-highlights') : active.annotation.title"
         @mousedown.stop
         @dblclick.stop
       >
@@ -135,7 +146,7 @@ const cardSide = computed(() => (active.value && active.value.bounds.x1 > 0.55 ?
             aria-hidden="true"
           />
           <span class="flex-1 min-w-0 truncate text-[11px] font-semibold text-[#333] dark:text-gray-200">
-            {{ active.annotation.title }}
+            {{ isReader ? $t('my-highlights') : active.annotation.title }}
           </span>
           <span class="text-[10px] text-efv-muted shrink-0">
             {{ active.highlight.seq }} / {{ active.annotation.highlights.length }}
@@ -169,7 +180,7 @@ const cardSide = computed(() => (active.value && active.value.bounds.x1 > 0.55 ?
         <div class="px-3 py-2 flex flex-col gap-1.5 max-h-[160px] overflow-y-auto">
           <p class="text-[11px] leading-[15px] text-[#333] dark:text-gray-200">„{{ active.highlight.text }}“</p>
           <p v-if="active.highlight.note" class="text-[10px] leading-[14px] text-efv-muted">{{ active.highlight.note }}</p>
-          <p class="text-[10px] leading-[14px] text-efv-muted italic line-clamp-2">
+          <p v-if="active.annotation.prompt" class="text-[10px] leading-[14px] text-efv-muted italic line-clamp-2">
             {{ $t('agent-prompt') }}: {{ active.annotation.prompt }}
           </p>
         </div>
@@ -191,7 +202,7 @@ const cardSide = computed(() => (active.value && active.value.bounds.x1 > 0.55 ?
             {{ $t('show-in-list') }}
           </button>
           <button
-            v-if="viewerStore.agentAnnotationPackage?.deleteHighlightFunc"
+            v-if="canDelete"
             type="button"
             class="shrink-0 size-7 flex items-center justify-center rounded-[5px] text-gray-400 hover:text-red hover:bg-red/10 transition-colors"
             :aria-label="$t('delete')"

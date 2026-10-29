@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue';
-import { useDocumentStore } from '@/stores';
+import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import { TextLayer } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type { PageViewport } from 'pdfjs-dist/types/src/display/page_viewport';
 import type { PDFPageProxy } from 'pdfjs-dist/types/src/display/api';
@@ -12,6 +12,8 @@ import RegionLayer from './pdf-regions/RegionLayer.vue';
 import AgentHighlightLayer from './pdf-agent/AgentHighlightLayer.vue';
 
 const docStore = useDocumentStore();
+const viewerStore = useViewerStore();
+const assistantStore = useAssistantStore();
 let pdf = toRaw(docStore.pdf);
 
 // Template refs replace the former global getElementById('pdf-page-canvas' /
@@ -21,9 +23,45 @@ const textLayerRef = ref<HTMLDivElement | null>(null);
 const pageBodyRef = ref<HTMLDivElement | null>(null);
 const editCanvasRef = ref<InstanceType<typeof EditCanvas> | null>(null);
 
-// Forwarded from SelectionLayer's "Zvýrazniť" action to the drawing overlay.
-const handleHighlight = (rects: DOMRect[]) => {
-  editCanvasRef.value?.addHighlight(rects);
+// SelectionLayer's "Zvýrazniť". With a host that stores the reader's highlights
+// it becomes a listed text highlight (page fractions, one box per line);
+// otherwise it is painted onto the drawing overlay as before.
+const handleHighlight = (rects: DOMRect[], text: string) => {
+  const body = pageBodyRef.value;
+  if (!viewerStore.readerHighlightPackage || !body) {
+    editCanvasRef.value?.addHighlight(rects);
+    return;
+  }
+  const bounds = body.getBoundingClientRect();
+  assistantStore.addReaderHighlight({
+    page: docStore.activePage,
+    text: text.replace(/\s+/g, ' ').trim(),
+    quads: lineBoxes(rects).map((rect) => ({
+      x0: clamp((rect.left - bounds.left) / bounds.width),
+      y0: clamp((rect.top - bounds.top) / bounds.height),
+      x1: clamp((rect.right - bounds.left) / bounds.width),
+      y1: clamp((rect.bottom - bounds.top) / bounds.height),
+    })),
+  });
+};
+
+const clamp = (value: number) => Math.min(1, Math.max(0, Number(value.toFixed(5))));
+
+/** One box per text line: the selection's client rects come one per text span. */
+const lineBoxes = (rects: DOMRect[]) => {
+  const lines: { left: number; top: number; right: number; bottom: number }[] = [];
+  for (const rect of [...rects].sort((a, b) => a.top - b.top || a.left - b.left)) {
+    const line = lines.find((l) => Math.abs(l.top - rect.top) < rect.height / 2);
+    if (line) {
+      line.left = Math.min(line.left, rect.left);
+      line.right = Math.max(line.right, rect.right);
+      line.top = Math.min(line.top, rect.top);
+      line.bottom = Math.max(line.bottom, rect.bottom);
+    } else {
+      lines.push({ left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom });
+    }
+  }
+  return lines;
 };
 
 // A single reused render task + TextLayer instance. Keeping the TextLayer lets

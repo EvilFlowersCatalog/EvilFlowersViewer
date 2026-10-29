@@ -108,7 +108,7 @@ const btnClass = (active: boolean) => {
       </button>
     </ToolTip>
 
-    <ToolTip v-if="viewerStore.agentAnnotationPackage" position="right" :text="$t('agent-highlights')">
+    <ToolTip v-if="viewerStore.agentAnnotationPackage || viewerStore.readerHighlightPackage" position="right" :text="$t('agent-highlights')">
       <button @click="toggleSidebar(SIDEBAR_STATE.HIGHLIGHTS)" :class="btnClass(docStore.sidebarState === SIDEBAR_STATE.HIGHLIGHTS)" :aria-label="$t('agent-highlights')" :aria-expanded="docStore.sidebarState === SIDEBAR_STATE.HIGHLIGHTS">
         <!-- Text lines, the middle one highlighted, with an AI sparkle -->
         <svg class="icon" viewBox="0 0 20 20" fill="none">

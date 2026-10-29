@@ -30,6 +30,8 @@ export type {
   IAgentHighlight,
   IAgentAnnotation,
   IAgentAnnotationPackage,
+  INewReaderHighlight,
+  IReaderHighlightPackage,
   IChatContext,
   IChatMessage,
   IChatStreamHandlers,

@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 import type {
   IAgentAnnotation,
@@ -6,6 +6,7 @@ import type {
   IChatContext,
   IChatMessage,
   IChatSummary,
+  INewReaderHighlight,
   IRegion,
 } from '@/assets/utils/interfaces';
 import { SIDEBAR_STATE } from '@/assets/utils/enums';
@@ -20,6 +21,9 @@ export interface IExplainRequest {
   regionId?: string;
   anchor: DOMRect | null;
 }
+
+/** Id of the pseudo-annotation holding the reader's own text highlights. */
+export const READER_ANNOTATION_ID = 'reader';
 
 let sequence = 0;
 const nextId = (prefix: string) => `${prefix}-${++sequence}`;
@@ -258,14 +262,57 @@ export const useAssistantStore = defineStore('assistant', () => {
   const hiddenAnnotationIds = ref<Set<string>>(new Set());
   const activeHighlightId = ref<string | null>(null);
 
+  // The reader's own text highlights, as one annotation listed first ("My
+  // highlights"), so the page layer, the card and stepping treat them like the
+  // agent's. Numbered in reading order.
+  const readerHighlights = ref<IAgentHighlight[]>([]);
+  const readerAnnotation = computed<IAgentAnnotation>(() => ({
+    id: READER_ANNOTATION_ID,
+    kind: 'reader',
+    title: '',
+    prompt: '',
+    status: 'done',
+    highlights: [...readerHighlights.value]
+      .sort((a, b) => a.page - b.page || (a.quads[0]?.y0 ?? 0) - (b.quads[0]?.y0 ?? 0))
+      .map((highlight, index) => ({ ...highlight, seq: index + 1 })),
+  }));
+
+  /** The reader's highlights (when the host stores them) followed by the agent's annotations. */
+  const allAnnotations = computed<IAgentAnnotation[]>(() =>
+    useViewerStore().readerHighlightPackage && readerHighlights.value.length
+      ? [readerAnnotation.value, ...agentAnnotations.value]
+      : agentAnnotations.value
+  );
+
   const loadAgentAnnotations = async () => {
     agentAnnotations.value = [];
-    const pkg = useViewerStore().agentAnnotationPackage;
+    readerHighlights.value = [];
+    const { agentAnnotationPackage, readerHighlightPackage } = useViewerStore();
+    await Promise.all([
+      agentAnnotationPackage
+        ?.getAnnotationsFunc()
+        .then((annotations) => (agentAnnotations.value = annotations))
+        .catch((error) => console.error('Failed to load agent annotations:\n', error)),
+      readerHighlightPackage
+        ?.getHighlightsFunc()
+        .then((highlights) => (readerHighlights.value = highlights))
+        .catch((error) => console.error('Failed to load highlights:\n', error)),
+    ]);
+  };
+
+  /** Stores a highlight the reader made from the selection menu; shown at once, replaced once saved. */
+  const addReaderHighlight = async (highlight: INewReaderHighlight) => {
+    const pkg = useViewerStore().readerHighlightPackage;
     if (!pkg) return;
+    const draft: IAgentHighlight = { ...highlight, id: nextId('highlight'), seq: 0 };
+    readerHighlights.value.push(draft);
     try {
-      agentAnnotations.value = await pkg.getAnnotationsFunc();
+      const saved = await pkg.addHighlightFunc(highlight);
+      const index = readerHighlights.value.findIndex((h) => h.id === draft.id);
+      if (index !== -1) readerHighlights.value.splice(index, 1, saved);
     } catch (error) {
-      console.error('Failed to load agent annotations:\n', error);
+      console.error('Failed to save highlight:\n', error);
+      readerHighlights.value = readerHighlights.value.filter((h) => h.id !== draft.id);
     }
   };
 
@@ -277,13 +324,14 @@ export const useAssistantStore = defineStore('assistant', () => {
     else hiddenAnnotationIds.value.add(id);
   };
 
-  // Stable per annotation, so hiding one never recolours the others.
+  // Stable per annotation, so hiding one never recolours the others. The
+  // reader's own highlights get their own colour (-1, see `highlightColor`).
   const annotationColorIndex = (id: string) =>
-    Math.max(0, agentAnnotations.value.findIndex((a) => a.id === id));
+    id === READER_ANNOTATION_ID ? -1 : Math.max(0, agentAnnotations.value.findIndex((a) => a.id === id));
 
   /** Visible highlights on `page`, each with the annotation it belongs to. */
   const highlightsOnPage = (page: number) =>
-    agentAnnotations.value
+    allAnnotations.value
       .filter((a) => isAnnotationVisible(a.id))
       .flatMap((a) =>
         a.highlights
@@ -292,7 +340,7 @@ export const useAssistantStore = defineStore('assistant', () => {
       );
 
   const findHighlight = (highlightId: string) => {
-    for (const annotation of agentAnnotations.value) {
+    for (const annotation of allAnnotations.value) {
       const highlight = annotation.highlights.find((h) => h.id === highlightId);
       if (highlight) return { annotation, highlight };
     }
@@ -308,7 +356,7 @@ export const useAssistantStore = defineStore('assistant', () => {
 
   /** Steps through an annotation's highlights in reading order. */
   const stepHighlight = (annotationId: string, direction: 1 | -1) => {
-    const annotation = agentAnnotations.value.find((a) => a.id === annotationId);
+    const annotation = allAnnotations.value.find((a) => a.id === annotationId);
     if (!annotation?.highlights.length) return;
     const ordered = [...annotation.highlights].sort((a, b) => a.seq - b.seq);
     const current = ordered.findIndex((h) => h.id === activeHighlightId.value);
@@ -350,6 +398,20 @@ export const useAssistantStore = defineStore('assistant', () => {
   };
 
   const deleteHighlight = async (annotationId: string, highlightId: string) => {
+    if (annotationId === READER_ANNOTATION_ID) {
+      const index = readerHighlights.value.findIndex((h) => h.id === highlightId);
+      if (index === -1) return;
+      const [removed] = readerHighlights.value.splice(index, 1);
+      if (activeHighlightId.value === highlightId) activeHighlightId.value = null;
+      try {
+        await useViewerStore().readerHighlightPackage?.deleteHighlightFunc?.(highlightId);
+      } catch (error) {
+        console.error('Failed to delete highlight:\n', error);
+        readerHighlights.value.splice(index, 0, removed);
+      }
+      return;
+    }
+
     const annotation = agentAnnotations.value.find((a) => a.id === annotationId);
     if (!annotation) return;
     const index = annotation.highlights.findIndex((h) => h.id === highlightId);
@@ -439,6 +501,9 @@ export const useAssistantStore = defineStore('assistant', () => {
     deleteChat,
     // agent annotations
     agentAnnotations,
+    allAnnotations,
+    readerHighlights,
+    addReaderHighlight,
     showAgentHighlights,
     hiddenAnnotationIds,
     activeHighlightId,
