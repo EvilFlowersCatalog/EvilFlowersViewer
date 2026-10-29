@@ -6,6 +6,7 @@ import { useAssistantStore, useViewerStore } from '@/stores';
 import { Loader } from '@/components/pdf-aids';
 import { highlightColor } from '@/components/pdf-viewer-page/pdf-agent/colors';
 import type { IAgentAnnotation } from '@/assets/utils/interfaces';
+import { READER_ANNOTATION_ID } from '@/stores/assistant';
 
 const viewerStore = useViewerStore();
 const assistantStore = useAssistantStore();
@@ -111,13 +112,13 @@ watch(
       <span class="flex-1 h-px bg-efv-border" aria-hidden="true" />
     </div>
 
-    <p v-if="!assistantStore.agentAnnotations.length" class="text-[10px] text-efv-muted px-1">
+    <p v-if="!assistantStore.allAnnotations.length" class="text-[10px] text-efv-muted px-1">
       {{ $t('agent-empty') }}
     </p>
 
     <!-- Annotations -->
     <section
-      v-for="annotation in assistantStore.agentAnnotations"
+      v-for="annotation in assistantStore.allAnnotations"
       :key="annotation.id"
       class="flex flex-col rounded-[8px] border border-efv-border bg-white dark:bg-[#262626] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
       :class="{ 'opacity-50': !assistantStore.isAnnotationVisible(annotation.id) && annotation.status === 'done' }"
@@ -134,7 +135,7 @@ watch(
           :aria-expanded="!collapsed.has(annotation.id)"
           @click="toggleCollapsed(annotation.id)"
         >
-          {{ annotation.title }}
+          {{ annotation.id === READER_ANNOTATION_ID ? $t('my-highlights') : annotation.title }}
         </button>
         <template v-if="annotation.status === 'done'">
           <button
@@ -151,7 +152,7 @@ watch(
             </svg>
           </button>
           <button
-            v-if="viewerStore.agentAnnotationPackage?.deleteAnnotationFunc"
+            v-if="annotation.id !== READER_ANNOTATION_ID && viewerStore.agentAnnotationPackage?.deleteAnnotationFunc"
             type="button"
             class="p-0.5 rounded text-efv-muted hover:text-red"
             :aria-label="$t('delete')"

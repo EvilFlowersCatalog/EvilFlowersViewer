@@ -1,6 +1,7 @@
 import { CITATION_FORMAT, CITATION_TYPE, SUGGESTION_KIND } from '@/assets/utils/enums';
 import type {
   IAgentAnnotationPackage,
+  IReaderHighlightPackage,
   IChatPackage,
   IEditPackage,
   IExplainContext,
@@ -61,6 +62,7 @@ export const useViewerStore = defineStore('viewer', () => {
   const chatPackage = ref<IChatPackage | null>(null);
   const regionPackage = ref<IRegionPackage | null>(null);
   const agentAnnotationPackage = ref<IAgentAnnotationPackage | null>(null);
+  const readerHighlightPackage = ref<IReaderHighlightPackage | null>(null);
   const config = ref<IViewerConfig>({
     download: false,
     share: false,
@@ -89,6 +91,7 @@ export const useViewerStore = defineStore('viewer', () => {
     chatPackage,
     regionPackage,
     agentAnnotationPackage,
+    readerHighlightPackage,
     config,
   };
 });

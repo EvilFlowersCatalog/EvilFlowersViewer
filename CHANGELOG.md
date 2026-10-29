@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.3 : 2026-10-29
+
+### Added
+
+- **My highlights**: new opt-in `readerHighlightPackage` (`getHighlightsFunc`, `addHighlightFunc`, `deleteHighlightFunc`). With it, "Zvýrazniť" in the selection menu stores the selection's text and line boxes instead of painting it on the drawing layer, and the reader's highlights are listed first in the AI highlights sidebar as "My highlights", in yellow, with the same jump, step, card and delete as agent highlights. Without it nothing changes.
+- New exported types: `IReaderHighlightPackage`, `INewReaderHighlight`; `IAgentAnnotation.kind`.
+
 ## 0.7.2 : 2026-10-29
 
 ### Fixed

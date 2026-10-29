@@ -68,7 +68,7 @@ const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
       <Search v-if="docStore.sidebarState === SIDEBAR_STATE.SEARCH" />
       <Print  v-if="docStore.sidebarState === SIDEBAR_STATE.PRINT" />
       <TOC    v-if="docStore.sidebarState === SIDEBAR_STATE.TOC" />
-      <AgentHighlights v-if="docStore.sidebarState === SIDEBAR_STATE.HIGHLIGHTS && viewerStore.agentAnnotationPackage" />
+      <AgentHighlights v-if="docStore.sidebarState === SIDEBAR_STATE.HIGHLIGHTS && (viewerStore.agentAnnotationPackage || viewerStore.readerHighlightPackage)" />
     </div>
   </div>
 </template>

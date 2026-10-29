@@ -104,6 +104,8 @@ export interface IAgentHighlight {
 /** An `Annotation` of kind `agent`: the prompt, a summary and its ordered highlights. */
 export interface IAgentAnnotation {
   id: string;
+  /** `reader` for the reader's own text highlights, listed beside the agent's. */
+  kind?: 'agent' | 'reader';
   title: string;
   prompt: string;
   summary?: string | null;
@@ -121,6 +123,29 @@ export interface IAgentAnnotationPackage {
   requestAnnotationFunc?: ((prompt: string) => Promise<IAgentAnnotation>) | null;
   deleteHighlightFunc?: ((annotationId: string, highlightId: string) => Promise<void>) | null;
   deleteAnnotationFunc?: ((annotationId: string) => Promise<void>) | null;
+}
+
+/** A text highlight the reader makes from the selection menu ("Zvýrazniť"). */
+export interface INewReaderHighlight {
+  /** 1-based page in the reader's numbering. */
+  page: number;
+  text: string;
+  /** One box per text line, page fractions. */
+  quads: IPageBox[];
+}
+
+/**
+ * Host hooks for the reader's own text highlights. With it, "Zvýrazniť" stores
+ * the selection's text and position (listed under "My highlights" beside the
+ * AI highlights, steppable like them) instead of painting it on the drawing
+ * layer. Omitting it keeps the drawing-layer behaviour.
+ */
+export interface IReaderHighlightPackage {
+  /** The reader's highlights of the open document. Called once after the PDF loads. */
+  getHighlightsFunc: () => Promise<IAgentHighlight[]>;
+  /** Stores a new highlight; resolves with it as stored (its id). */
+  addHighlightFunc: (highlight: INewReaderHighlight) => Promise<IAgentHighlight>;
+  deleteHighlightFunc?: ((highlightId: string) => Promise<void>) | null;
 }
 
 /**
@@ -293,6 +318,8 @@ export interface IViewerOptions {
   regionPackage?: IRegionPackage | null;
   /** Opt-in agent highlight layer. */
   agentAnnotationPackage?: IAgentAnnotationPackage | null;
+  /** Opt-in list of the reader's own text highlights (shares the agent layer). */
+  readerHighlightPackage?: IReaderHighlightPackage | null;
 }
 
 export interface IViewerProps {

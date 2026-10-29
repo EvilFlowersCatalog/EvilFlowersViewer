@@ -165,6 +165,7 @@ onMounted(() => {
   viewerStore.chatPackage = options?.chatPackage ?? null;
   viewerStore.regionPackage = options?.regionPackage ?? null;
   viewerStore.agentAnnotationPackage = options?.agentAnnotationPackage ?? null;
+  viewerStore.readerHighlightPackage = options?.readerHighlightPackage ?? null;
   viewerStore.config = {
     download: false,
     share: false,
