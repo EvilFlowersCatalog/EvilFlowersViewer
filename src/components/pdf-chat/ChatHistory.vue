@@ -60,7 +60,7 @@ const remove = (chat: IChatSummary) => assistantStore.deleteChat(chat.id);
             class="w-full flex flex-col gap-0.5 text-left pl-2.5 pr-8 py-2 rounded-[6px] transition-colors"
             :class="
               chat.id === assistantStore.currentChatId
-                ? 'bg-accent-soft'
+                ? 'bg-accent-soft dark:bg-white/10'
                 : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
             "
             :aria-current="chat.id === assistantStore.currentChatId ? 'true' : undefined"

@@ -45,7 +45,7 @@ watch(
       type="button"
       role="switch"
       :aria-checked="assistantStore.showAgentHighlights"
-      class="flex items-center justify-between gap-2 px-2 py-1.5 rounded-[6px] bg-field hover:bg-accent-soft transition-colors select-none"
+      class="flex items-center justify-between gap-2 px-2 py-1.5 rounded-[6px] bg-field hover:bg-accent-soft dark:bg-white/5 dark:hover:bg-white/10 transition-colors select-none"
       @click="assistantStore.showAgentHighlights = !assistantStore.showAgentHighlights"
     >
       <span class="flex items-center gap-1.5 text-[11px] font-medium text-[#333] dark:text-gray-200">
@@ -205,7 +205,7 @@ watch(
               class="w-full flex gap-1.5 text-left px-1.5 py-1 rounded-[4px] transition-colors"
               :class="
                 assistantStore.activeHighlightId === highlight.id
-                  ? 'bg-accent-soft'
+                  ? 'bg-accent-soft dark:bg-white/10'
                   : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
               "
               @click="assistantStore.goToHighlight(annotation.id, highlight)"
