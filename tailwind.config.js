@@ -47,7 +47,10 @@ export default {
     },
   },
   plugins: [],
-  darkMode: 'class',
+  // Only the viewer's own root decides the theme. With plain `class`, a host
+  // page in dark mode (`<html class="dark">`) switched every `dark:` utility on
+  // while the viewer itself was light: white icons on the white toolbar.
+  darkMode: ['variant', '&:is(.efv-viewer.dark *)'],
   // Every utility is emitted as `.efv-viewer .x` (one class more specific than
   // a plain utility). Hosts built with Tailwind ship their own `.text-primary`,
   // `.bg-secondary`, `.md:flex`, ... with different values, and whichever

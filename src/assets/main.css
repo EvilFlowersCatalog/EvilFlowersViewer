@@ -220,13 +220,16 @@
   height: 0;
 }
 
-/* pdf.js text layer */
+/* pdf.js text layer. pdf.js 6 sizes its spans from `--total-scale-factor`,
+   which its own PDFPageView sets; this viewer renders pages itself and only
+   sets `--scale-factor` (PDFPage.vue), so the total is derived here. Without
+   it every span fell back to 16px and selection landed on the wrong lines. */
+.efv-viewer .textLayer {
+  --user-unit: 1;
+  --total-scale-factor: calc(var(--scale-factor) * var(--user-unit));
+}
 .efv-viewer .textLayer br {
   user-select: none;
-}
-.efv-viewer .textLayer span {
-  height: 100%;
-  width: 100%;
 }
 .efv-viewer .textLayer span::selection {
   background-color: rgba(0, 119, 204, 0.35);

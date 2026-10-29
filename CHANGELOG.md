@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.2 : 2026-10-29
+
+### Fixed
+
+- **Text selection landed on the wrong lines**: pdf.js 6 sizes text-layer spans from `--total-scale-factor`, which only its own page view sets. The viewer sets `--scale-factor` only, so every span fell back to 16px, and a leftover `.textLayer span { height: 100%; width: 100% }` stretched each one over the whole page. The total is now derived in CSS and the rule is gone.
+- **Light mode inside a dark host**: `dark:` utilities matched any ancestor with `.dark`, so a host page in dark mode (`<body class="dark">`) turned them on while the viewer was light: a dark sidebar, white tool icons on the white toolbar. They now follow the viewer's own root only (`.efv-viewer.dark`).
+- Dark mode: chat suggestions, AI highlight rows, the selected chat, the active highlight and citations were unreadable.
+
 ## Unreleased
 
 ### Added
