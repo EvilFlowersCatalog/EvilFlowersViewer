@@ -71,7 +71,12 @@ export interface IRegion {
   /** 1-based page in the reader's numbering. */
   page: number;
   bbox: IPageBox;
+  /** What clients show: the printed caption, else the model's description. */
   caption?: string | null;
+  /** The caption printed in the document ("Figure 2.1: ..."), verbatim. */
+  printedCaption?: string | null;
+  /** A description written by a multimodal model, when captions are on. */
+  description?: string | null;
   /** chart | photo | diagram | map | ... (figures only). */
   category?: string | null;
   /** Tables only. */
@@ -86,6 +91,8 @@ export interface IRegion {
 export interface IRegionPackage {
   /** Regions on one reader page. Called once per page and cached. */
   getRegionsFunc: (page: number) => Promise<IRegion[]>;
+  /** Every region of the copy, for the Figures tab of the contents. Omitting it hides the tab. */
+  getAllRegionsFunc?: () => Promise<IRegion[]>;
 }
 
 /** One sentence the assistant marked, an `AnnotationItem` of an agent annotation. */

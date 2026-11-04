@@ -67,9 +67,21 @@ const tableHtml = computed(() =>
     : ''
 );
 
+// The document's own caption first; a model's description beside it, smaller.
+const captionText = computed(() => props.region.printedCaption || props.region.caption || null);
+const descriptionText = computed(() => {
+  const description = props.region.description;
+  return description && description !== captionText.value ? description : null;
+});
+
 // The text explain/chat get for a region: its caption, table or formula.
 const regionText = computed(
-  () => props.region.caption ?? props.region.markdown ?? props.region.latex ?? props.region.kind
+  () =>
+    [captionText.value, descriptionText.value].filter(Boolean).join('
+') ||
+    props.region.markdown ||
+    props.region.latex ||
+    props.region.kind
 );
 
 const addToChat = () => {
@@ -139,10 +151,10 @@ const explain = (event: MouseEvent) => {
 
     <div class="flex-1 min-h-0 overflow-y-auto p-3 flex flex-col gap-2">
       <p
-        v-if="isTable && region.caption"
-        :title="region.caption"
+        v-if="isTable && captionText"
+        :title="captionText"
         class="text-[12px] leading-[16px] font-medium text-[#333] dark:text-gray-200"
-      >{{ region.caption }}</p>
+      >{{ captionText }}</p>
 
       <!-- Table: a grid of cells, scrolling inside itself; the header row stays visible. -->
       <div v-if="gridShown" class="efv-table-grid overflow-auto max-h-[55vh] rounded border border-efv-border">
@@ -170,10 +182,15 @@ const explain = (event: MouseEvent) => {
       />
 
       <p
-        v-if="!isTable && region.caption"
-        :title="region.caption"
+        v-if="!isTable && captionText"
+        :title="captionText"
         class="line-clamp-3 text-[11px] leading-[15px] text-[#333] dark:text-gray-200"
-      >{{ region.caption }}</p>
+      >{{ captionText }}</p>
+      <p
+        v-if="descriptionText"
+        :title="descriptionText"
+        class="line-clamp-3 text-[10px] leading-[14px] text-efv-muted"
+      >{{ descriptionText }}</p>
       <div v-if="tableHtml" class="efv-md text-[11px] text-[#333] dark:text-gray-200" v-html="tableHtml" />
       <code
         v-if="region.latex"

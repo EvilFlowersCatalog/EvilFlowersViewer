@@ -142,5 +142,10 @@
   "copy-markdown": "Copy Markdown",
   "copied": "Copied",
   "table-show-image": "Image",
-  "table-show-grid": "Table"
+  "table-show-grid": "Table",
+  "toc-tab-chapters": "Chapters",
+  "toc-tab-figures": "Figures",
+  "toc-kind-all": "All",
+  "toc-no-figures": "No figures, tables or equations extracted yet.",
+  "loading": "Loading…"
 }

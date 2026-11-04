@@ -141,5 +141,10 @@
   "copy-markdown": "Kopírovať Markdown",
   "copied": "Skopírované",
   "table-show-image": "Obrázok",
-  "table-show-grid": "Tabuľka"
+  "table-show-grid": "Tabuľka",
+  "toc-tab-chapters": "Kapitoly",
+  "toc-tab-figures": "Obrázky",
+  "toc-kind-all": "Všetko",
+  "toc-no-figures": "Zatiaľ neboli nájdené žiadne obrázky, tabuľky ani rovnice.",
+  "loading": "Načítava sa…"
 }

@@ -64,7 +64,36 @@ export const useAssistantStore = defineStore('assistant', () => {
     }
   };
 
+  // Every region of the copy, for the contents' Figures tab. null until loaded.
+  const allRegions = ref<IRegion[] | null>(null);
+  const allRegionsLoading = ref(false);
+  const loadAllRegions = async () => {
+    const pkg = useViewerStore().regionPackage;
+    if (!pkg?.getAllRegionsFunc || allRegions.value || allRegionsLoading.value) return;
+    allRegionsLoading.value = true;
+    try {
+      const regions = await pkg.getAllRegionsFunc();
+      allRegions.value = regions;
+      // Seeds the per-page cache too, so pages opened from the list need no request.
+      const byPage = new Map<number, IRegion[]>();
+      for (const region of regions) byPage.set(region.page, [...(byPage.get(region.page) ?? []), region]);
+      for (const [page, list] of byPage) {
+        if (!regionsRequested.has(page)) {
+          regionsRequested.add(page);
+          regionsByPage.value.set(page, list);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load regions:
+', error);
+    } finally {
+      allRegionsLoading.value = false;
+    }
+  };
+
   const findRegion = (id: string): IRegion | null => {
+    const listed = allRegions.value?.find((r) => r.id === id);
+    if (listed) return listed;
     for (const regions of regionsByPage.value.values()) {
       const found = regions.find((r) => r.id === id);
       if (found) return found;
@@ -451,6 +480,7 @@ export const useAssistantStore = defineStore('assistant', () => {
   const reset = () => {
     regionsByPage.value = new Map();
     regionsRequested.clear();
+    allRegions.value = null;
     focusedRegionId.value = null;
     explainRequest.value = null;
     messages.value = [];
@@ -465,6 +495,9 @@ export const useAssistantStore = defineStore('assistant', () => {
 
   return {
     // regions
+    allRegions,
+    allRegionsLoading,
+    loadAllRegions,
     regionsByPage,
     focusedRegionId,
     loadRegions,
