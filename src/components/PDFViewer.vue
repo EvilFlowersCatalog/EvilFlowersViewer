@@ -189,18 +189,6 @@ onMounted(() => {
       ['t']: () => docStore.setSidebarState(SIDEBAR_STATE.TOC),
     };
 
-    // Ctrl/Cmd+F searches the document: the browser's find cannot see a PDF page.
-    if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLocaleLowerCase() === 'f') {
-      event.preventDefault();
-      docStore.setSidebarState(SIDEBAR_STATE.SEARCH);
-      return;
-    }
-    // Other Ctrl/Cmd/Alt combinations belong to the browser (copy, ...), and
-    // typing in a field is never a shortcut.
-    if (event.ctrlKey || event.metaKey || event.altKey) return;
-    const target = event.target as HTMLElement | null;
-    if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
-
     const action = keyActions[event.key.toLocaleLowerCase()];
     if (action) {
       event.preventDefault();
