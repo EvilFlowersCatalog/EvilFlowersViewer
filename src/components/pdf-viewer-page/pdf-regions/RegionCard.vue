@@ -77,8 +77,7 @@ const descriptionText = computed(() => {
 // The text explain/chat get for a region: its caption, table or formula.
 const regionText = computed(
   () =>
-    [captionText.value, descriptionText.value].filter(Boolean).join('
-') ||
+    [captionText.value, descriptionText.value].filter(Boolean).join(' — ') ||
     props.region.markdown ||
     props.region.latex ||
     props.region.kind
