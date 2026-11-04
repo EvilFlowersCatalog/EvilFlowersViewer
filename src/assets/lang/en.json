@@ -137,5 +137,10 @@
   "chat-about-other-book": "Conversation about another publication",
   "chat-read-only": "This chat is about another publication. You can read it here, but continue only in a new chat.",
   "my-highlights": "My highlights",
-  "agent-annotations": "Annotations"
+  "agent-annotations": "Annotations",
+  "copy-csv": "Copy CSV",
+  "copy-markdown": "Copy Markdown",
+  "copied": "Copied",
+  "table-show-image": "Image",
+  "table-show-grid": "Table"
 }
