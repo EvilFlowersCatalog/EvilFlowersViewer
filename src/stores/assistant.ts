@@ -64,7 +64,35 @@ export const useAssistantStore = defineStore('assistant', () => {
     }
   };
 
+  // Every region of the copy, for the contents' Figures tab. null until loaded.
+  const allRegions = ref<IRegion[] | null>(null);
+  const allRegionsLoading = ref(false);
+  const loadAllRegions = async () => {
+    const pkg = useViewerStore().regionPackage;
+    if (!pkg?.getAllRegionsFunc || allRegions.value || allRegionsLoading.value) return;
+    allRegionsLoading.value = true;
+    try {
+      const regions = await pkg.getAllRegionsFunc();
+      allRegions.value = regions;
+      // Seeds the per-page cache too, so pages opened from the list need no request.
+      const byPage = new Map<number, IRegion[]>();
+      for (const region of regions) byPage.set(region.page, [...(byPage.get(region.page) ?? []), region]);
+      for (const [page, list] of byPage) {
+        if (!regionsRequested.has(page)) {
+          regionsRequested.add(page);
+          regionsByPage.value.set(page, list);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load regions:\n', error);
+    } finally {
+      allRegionsLoading.value = false;
+    }
+  };
+
   const findRegion = (id: string): IRegion | null => {
+    const listed = allRegions.value?.find((r) => r.id === id);
+    if (listed) return listed;
     for (const regions of regionsByPage.value.values()) {
       const found = regions.find((r) => r.id === id);
       if (found) return found;
@@ -150,6 +178,10 @@ export const useAssistantStore = defineStore('assistant', () => {
           onMessage: (full) => (answer.text = full),
           onEntries: (entries) => (answer.entries = entries),
           onPages: (pages) => (answer.pages = pages),
+          onAnnotation: (annotation) => {
+            answer.annotationIds = [...(answer.annotationIds ?? []), annotation.id];
+            trackAnnotation(annotation);
+          },
           onError: (detail) => {
             answer.status = 'error';
             answer.text = detail;
@@ -397,6 +429,44 @@ export const useAssistantStore = defineStore('assistant', () => {
     }
   };
 
+  /** Adds an annotation the chat started and follows it until it is finished. */
+  const trackAnnotation = async (annotation: IAgentAnnotation) => {
+    const put = (next: IAgentAnnotation) => {
+      const index = agentAnnotations.value.findIndex((a) => a.id === next.id);
+      if (index === -1) agentAnnotations.value.unshift(next);
+      else agentAnnotations.value.splice(index, 1, next);
+    };
+    put(annotation);
+    if (annotation.status !== 'pending') return;
+
+    const pkg = useViewerStore().agentAnnotationPackage;
+    try {
+      let finished: IAgentAnnotation | undefined;
+      if (pkg?.waitForAnnotationFunc) {
+        finished = await pkg.waitForAnnotationFunc(annotation.id);
+      } else if (pkg) {
+        const deadline = Date.now() + 15 * 60 * 1000;
+        while (Date.now() < deadline) {
+          await new Promise((resolve) => setTimeout(resolve, 4000));
+          finished = (await pkg.getAnnotationsFunc()).find((a) => a.id === annotation.id);
+          if (finished && finished.status !== 'pending') break;
+        }
+      }
+      if (finished) put(finished);
+    } catch (error) {
+      console.error('Agent annotation failed:\n', error);
+      put({ ...annotation, status: 'failed' });
+    }
+  };
+
+  /** Opens an annotation in the AI highlights sidebar, at its first highlight. */
+  const openAnnotation = (annotationId: string) => {
+    useDocumentStore().setSidebarState(SIDEBAR_STATE.HIGHLIGHTS);
+    const annotation = allAnnotations.value.find((a) => a.id === annotationId);
+    const first = annotation && [...annotation.highlights].sort((a, b) => a.seq - b.seq)[0];
+    if (first) goToHighlight(annotationId, first);
+  };
+
   const deleteHighlight = async (annotationId: string, highlightId: string) => {
     if (annotationId === READER_ANNOTATION_ID) {
       const index = readerHighlights.value.findIndex((h) => h.id === highlightId);
@@ -451,6 +521,7 @@ export const useAssistantStore = defineStore('assistant', () => {
   const reset = () => {
     regionsByPage.value = new Map();
     regionsRequested.clear();
+    allRegions.value = null;
     focusedRegionId.value = null;
     explainRequest.value = null;
     messages.value = [];
@@ -464,7 +535,12 @@ export const useAssistantStore = defineStore('assistant', () => {
   };
 
   return {
+    trackAnnotation,
+    openAnnotation,
     // regions
+    allRegions,
+    allRegionsLoading,
+    loadAllRegions,
     regionsByPage,
     focusedRegionId,
     loadRegions,

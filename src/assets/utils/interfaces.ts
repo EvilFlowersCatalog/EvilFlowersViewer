@@ -71,7 +71,12 @@ export interface IRegion {
   /** 1-based page in the reader's numbering. */
   page: number;
   bbox: IPageBox;
+  /** What clients show: the printed caption, else the model's description. */
   caption?: string | null;
+  /** The caption printed in the document ("Figure 2.1: ..."), verbatim. */
+  printedCaption?: string | null;
+  /** A description written by a multimodal model, when captions are on. */
+  description?: string | null;
   /** chart | photo | diagram | map | ... (figures only). */
   category?: string | null;
   /** Tables only. */
@@ -86,6 +91,8 @@ export interface IRegion {
 export interface IRegionPackage {
   /** Regions on one reader page. Called once per page and cached. */
   getRegionsFunc: (page: number) => Promise<IRegion[]>;
+  /** Every region of the copy, for the Figures tab of the contents. Omitting it hides the tab. */
+  getAllRegionsFunc?: () => Promise<IRegion[]>;
 }
 
 /** One sentence the assistant marked, an `AnnotationItem` of an agent annotation. */
@@ -121,6 +128,11 @@ export interface IAgentAnnotationPackage {
   getAnnotationsFunc: () => Promise<IAgentAnnotation[]>;
   /** Asks the agent to highlight the book for `prompt`; resolves with the finished annotation. */
   requestAnnotationFunc?: ((prompt: string) => Promise<IAgentAnnotation>) | null;
+  /**
+   * Resolves once an annotation the chat started is finished (done or failed).
+   * Without it the viewer reloads `getAnnotationsFunc` until it is.
+   */
+  waitForAnnotationFunc?: ((annotationId: string) => Promise<IAgentAnnotation>) | null;
   deleteHighlightFunc?: ((annotationId: string, highlightId: string) => Promise<void>) | null;
   deleteAnnotationFunc?: ((annotationId: string) => Promise<void>) | null;
 }
@@ -171,6 +183,8 @@ export interface IChatMessage {
   entries?: ISuggestedEntry[];
   /** Pages the answer was drawn from, shown as links under it. */
   pages?: number[];
+  /** Agent annotations the assistant created with this answer, by id. */
+  annotationIds?: string[];
   status?: 'streaming' | 'done' | 'error';
 }
 
@@ -184,6 +198,8 @@ export interface IChatStreamHandlers {
   onEntries: (entries: ISuggestedEntry[]) => void;
   /** Pages the answer was drawn from (the assistant `pages` event). */
   onPages?: (pages: number[]) => void;
+  /** An agent annotation the assistant started (the assistant `annotation` event), usually pending. */
+  onAnnotation?: (annotation: IAgentAnnotation) => void;
   onError: (detail: string) => void;
 }
 

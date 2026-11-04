@@ -137,5 +137,19 @@
   "chat-about-other-book": "Conversation about another publication",
   "chat-read-only": "This chat is about another publication. You can read it here, but continue only in a new chat.",
   "my-highlights": "My highlights",
-  "agent-annotations": "Annotations"
+  "agent-annotations": "Annotations",
+  "copy-csv": "Copy CSV",
+  "copy-markdown": "Copy Markdown",
+  "copied": "Copied",
+  "table-show-image": "Image",
+  "table-show-grid": "Table",
+  "toc-tab-chapters": "Chapters",
+  "toc-tab-figures": "Figures",
+  "toc-kind-all": "All",
+  "toc-no-figures": "No figures, tables or equations extracted yet.",
+  "loading": "Loading…",
+  "chat-highlights": "AI highlights",
+  "chat-highlights-pending": "Marking passages…",
+  "chat-highlights-failed": "Could not mark passages",
+  "chat-highlights-count": "{count} highlights · open"
 }

@@ -136,5 +136,19 @@
   "chat-about-other-book": "Rozhovor o inej publikácii",
   "chat-read-only": "Tento rozhovor je o inej publikácii. Tu si ho môžeš prečítať, pokračovať môžeš len v novom rozhovore.",
   "my-highlights": "Moje zvýraznenia",
-  "agent-annotations": "Anotácie"
+  "agent-annotations": "Anotácie",
+  "copy-csv": "Kopírovať CSV",
+  "copy-markdown": "Kopírovať Markdown",
+  "copied": "Skopírované",
+  "table-show-image": "Obrázok",
+  "table-show-grid": "Tabuľka",
+  "toc-tab-chapters": "Kapitoly",
+  "toc-tab-figures": "Obrázky",
+  "toc-kind-all": "Všetko",
+  "toc-no-figures": "Zatiaľ neboli nájdené žiadne obrázky, tabuľky ani rovnice.",
+  "loading": "Načítava sa…",
+  "chat-highlights": "AI zvýraznenia",
+  "chat-highlights-pending": "Označujem pasáže…",
+  "chat-highlights-failed": "Pasáže sa nepodarilo označiť",
+  "chat-highlights-count": "{count} zvýraznení · otvoriť"
 }

@@ -187,7 +187,6 @@ onMounted(() => {
       ['s']: () => docStore.setSidebarState(SIDEBAR_STATE.SHARE),
       ['i']: () => docStore.setSidebarState(SIDEBAR_STATE.INFO),
       ['t']: () => docStore.setSidebarState(SIDEBAR_STATE.TOC),
-      ['c']: () => docStore.setModalContent(MODAL_CONTENT.CITATE),
     };
 
     const action = keyActions[event.key.toLocaleLowerCase()];
