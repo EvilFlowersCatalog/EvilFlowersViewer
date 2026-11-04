@@ -29,6 +29,13 @@ const goToPage = (page: number) => {
   docStore.activePage = Math.min(Math.max(1, page), docStore.totalPages);
 };
 
+// Highlight layers the assistant created with this answer, as the layer list knows them.
+const annotations = computed(() =>
+  (props.message.annotationIds ?? []).map(
+    (id) => assistantStore.allAnnotations.find((a) => a.id === id) ?? { id, title: '', status: 'pending' as const, highlights: [] }
+  )
+);
+
 const onClick = (event: MouseEvent) => {
   const cite = (event.target as HTMLElement).closest<HTMLElement>('.efv-cite');
   if (!cite) return;
@@ -77,6 +84,37 @@ const onClick = (event: MouseEvent) => {
         {{ $t('page-short', { page }) }}
       </button>
     </div>
+
+    <!-- AI highlights the assistant created (create_highlights tool) -->
+    <button
+      v-for="annotation in annotations"
+      :key="annotation.id"
+      type="button"
+      class="flex items-center gap-2 px-2.5 py-2 rounded-[8px] bg-white dark:bg-white/5 shadow-[0_1px_3px_rgba(0,0,0,0.08)] text-left hover:brightness-95 disabled:cursor-default"
+      :disabled="annotation.status !== 'done'"
+      @click="assistantStore.openAnnotation(annotation.id)"
+    >
+      <span class="size-4 inline-flex shrink-0 items-center justify-center">
+        <Loader v-if="annotation.status === 'pending'" :size="14" color="#0077cc" :label="$t('chat-highlights-pending')" />
+        <svg v-else aria-hidden="true" class="size-4 text-accent-ink" viewBox="0 0 20 20" fill="none">
+          <path d="M4 15h12M6 12l6-6 2 2-6 6H6v-2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+        </svg>
+      </span>
+      <span class="flex-1 min-w-0">
+        <span class="block text-[11px] font-medium text-[#333] dark:text-gray-200 truncate">
+          {{ annotation.title || $t('chat-highlights') }}
+        </span>
+        <span class="block text-[10px] text-efv-muted">
+          {{
+            annotation.status === 'pending'
+              ? $t('chat-highlights-pending')
+              : annotation.status === 'failed'
+                ? $t('chat-highlights-failed')
+                : $t('chat-highlights-count', { count: annotation.highlights.length })
+          }}
+        </span>
+      </span>
+    </button>
 
     <!-- Recommended publications (assistant book tool) -->
     <div v-if="message.entries?.length" class="flex flex-col gap-0.5 rounded-[8px] bg-white dark:bg-white/5 p-1 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">

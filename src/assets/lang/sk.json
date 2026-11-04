@@ -146,5 +146,9 @@
   "toc-tab-figures": "Obrázky",
   "toc-kind-all": "Všetko",
   "toc-no-figures": "Zatiaľ neboli nájdené žiadne obrázky, tabuľky ani rovnice.",
-  "loading": "Načítava sa…"
+  "loading": "Načítava sa…",
+  "chat-highlights": "AI zvýraznenia",
+  "chat-highlights-pending": "Označujem pasáže…",
+  "chat-highlights-failed": "Pasáže sa nepodarilo označiť",
+  "chat-highlights-count": "{count} zvýraznení · otvoriť"
 }
