@@ -84,8 +84,7 @@ export const useAssistantStore = defineStore('assistant', () => {
         }
       }
     } catch (error) {
-      console.error('Failed to load regions:
-', error);
+      console.error('Failed to load regions:\n', error);
     } finally {
       allRegionsLoading.value = false;
     }
