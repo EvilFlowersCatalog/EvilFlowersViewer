@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.5 : 2026-11-04
+
+### Fixed
+
+- **Table region card scrolled both ways**: a markdown grid did not fit the 280px card, and a rotated or irregular table read as letter salad. With a crop the card now shows the image (caption clamped to three lines); the markdown still goes to explain and chat. A crop that fails to load falls back to the markdown.
+
 ## 0.7.4 : 2026-11-04
 
 ### Fixed

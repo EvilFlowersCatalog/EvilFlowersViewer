@@ -33,8 +33,13 @@ onMounted(() => {
   }
 });
 
+// A table is shown as its crop: a markdown grid does not fit a 280px card without
+// scrolling both ways, and a rotated or irregular table reads badly as text. The
+// markdown still goes to explain and chat (regionText). Only without a crop is it rendered.
 const tableHtml = computed(() =>
-  props.region.markdown ? renderMarkdown(props.region.markdown, { page: (p) => p, region: (id) => id }) : ''
+  props.region.markdown && !preview.value
+    ? renderMarkdown(props.region.markdown, { page: (p) => p, region: (id) => id })
+    : ''
 );
 
 // The text explain/chat get for a region: its caption, table or formula.
@@ -92,9 +97,11 @@ const explain = (event: MouseEvent) => {
         v-if="preview"
         :src="preview"
         :alt="region.caption ?? ''"
-        class="w-full max-h-[120px] object-contain rounded border border-efv-border bg-white"
+        class="w-full object-contain rounded border border-efv-border bg-white"
+        :class="region.kind === 'equation' ? 'max-h-[120px]' : 'max-h-[190px]'"
+        @error="preview = null"
       />
-      <p v-if="region.caption" class="text-[11px] leading-[15px] text-[#333] dark:text-gray-200">{{ region.caption }}</p>
+      <p v-if="region.caption" :title="region.caption" class="line-clamp-3 text-[11px] leading-[15px] text-[#333] dark:text-gray-200">{{ region.caption }}</p>
       <div v-if="tableHtml" class="efv-md text-[11px] text-[#333] dark:text-gray-200" v-html="tableHtml" />
       <code
         v-if="region.latex"
