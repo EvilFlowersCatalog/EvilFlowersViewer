@@ -187,8 +187,13 @@ onMounted(() => {
       ['s']: () => docStore.setSidebarState(SIDEBAR_STATE.SHARE),
       ['i']: () => docStore.setSidebarState(SIDEBAR_STATE.INFO),
       ['t']: () => docStore.setSidebarState(SIDEBAR_STATE.TOC),
-      ['c']: () => docStore.setModalContent(MODAL_CONTENT.CITATE),
     };
+
+    // Ctrl/Cmd/Alt combinations belong to the browser (copy, find, ...), and
+    // typing in a field is never a shortcut.
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
 
     const action = keyActions[event.key.toLocaleLowerCase()];
     if (action) {
