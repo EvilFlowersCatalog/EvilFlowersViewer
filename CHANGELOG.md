@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.4 : 2026-11-04
+
+### Fixed
+
+- **Search spinner never stopped**: full-text search ran in a web worker that did not start once the viewer was bundled into a host app, and nothing handled that, so the sidebar spun forever. Search now runs on the main thread over page text extracted once per document, escapes the query (a `(` or `.` no longer breaks the pattern), drops superseded queries and always ends with a result.
+
 ## 0.7.3 : 2026-10-29
 
 ### Added

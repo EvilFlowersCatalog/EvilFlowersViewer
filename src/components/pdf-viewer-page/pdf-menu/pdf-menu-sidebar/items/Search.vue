@@ -40,50 +40,68 @@ const semanticResults = ref<ISemanticSearchResult[]>([]);
 const semanticState = ref<SEARCH_STATE>(SEARCH_STATE.NULL);
 const selectedSemantic = ref<number | null>(null);
 
-let searchWorker: Worker | null = null;
 let pdf = toRaw(docStore.pdf);
 
-const searchDocument = debounce(async (pattern: string) => {
-  if (!pdf || !window.Worker) return;
+// Page text is extracted once per document and reused by every query.
+let pageTextCache: Promise<{ textItems: Array<TextItem>; page: number }[]> | null = null;
 
-  if (searchWorker) {
-    searchWorker.terminate();
-    searchWorker = null;
-  }
-
-  const textContent: { textItems: Array<TextItem>; page: number }[] = [];
-
-  try {
-    const pagesContent = await Promise.all(
+const pageTexts = () => {
+  if (!pageTextCache) {
+    const document = pdf!;
+    const params: getTextContentParameters = { disableNormalization: false, includeMarkedContent: false };
+    pageTextCache = Promise.all(
       Array.from(Array(docStore.totalPages).keys()).map(async (n) => {
-        const page = await pdf!.getPage(n + 1);
-        const e: getTextContentParameters = {
-          disableNormalization: false,
-          includeMarkedContent: false,
-        };
-        const content = await page.getTextContent(e);
+        const page = await document.getPage(n + 1);
+        const content = await page.getTextContent(params);
         return { textItems: content.items as TextItem[], page: n + 1 };
       })
     );
-
-    textContent.push(...pagesContent);
-
-    searchWorker = new Worker(new URL('./SearchWorker.ts', import.meta.url), {
-      type: 'module',
-    });
-    selectedMatch.value = null;
-    searchWorker.postMessage([pattern, textContent]);
-
-    searchWorker.onmessage = (e) => {
-      matches.value = e.data;
-      if (searchWorker) searchWorker.terminate();
-      searchWorker = null;
-      searchState.value = SEARCH_STATE.DONE;
-    };
-  } catch {
-    inputValue.value = '';
-    searchState.value = SEARCH_STATE.NULL;
+    pageTextCache.catch(() => (pageTextCache = null));
   }
+  return pageTextCache;
+};
+
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Tracks the latest keyword query so a slow, superseded one cannot overwrite it.
+let keywordRequestId = 0;
+
+// Runs on the main thread. The former web worker did not start when the viewer
+// was bundled into a host app, and nothing caught that, so the spinner never stopped.
+const searchDocument = debounce(async (pattern: string) => {
+  const requestId = ++keywordRequestId;
+  selectedMatch.value = null;
+  if (!pdf) {
+    matches.value = [];
+    searchState.value = SEARCH_STATE.DONE;
+    return;
+  }
+
+  try {
+    const textContent = await pageTexts();
+    if (requestId !== keywordRequestId) return;
+
+    const reg = new RegExp('.{0,20}' + escapeRegExp(pattern) + '.{0,20}', 'gimu');
+    const found: typeof matches.value = [];
+    for (const content of textContent) {
+      for (const textItem of content.textItems) {
+        for (const text of textItem.str?.match(reg) ?? []) {
+          found.push({
+            page: content.page,
+            text,
+            transform: textItem.transform,
+            width: textItem.width,
+            height: textItem.height,
+          });
+        }
+      }
+    }
+    matches.value = found;
+  } catch {
+    if (requestId !== keywordRequestId) return;
+    matches.value = [];
+  }
+  searchState.value = SEARCH_STATE.DONE;
 });
 
 // Tracks the latest semantic query so out-of-order responses are discarded.
@@ -143,10 +161,7 @@ const handleSelectSemantic = (index: number, page: number) => {
 };
 
 onBeforeUnmount(() => {
-  if (searchWorker) {
-    searchWorker.terminate();
-    searchWorker = null;
-  }
+  keywordRequestId++;
   // Clear the highlight so closing the panel repaints a clean page.
   docStore.searchHighlight = null;
 });
@@ -171,6 +186,7 @@ watch(
   () => docStore.pdf,
   () => {
     pdf = toRaw(docStore.pdf);
+    pageTextCache = null;
   }
 );
 
