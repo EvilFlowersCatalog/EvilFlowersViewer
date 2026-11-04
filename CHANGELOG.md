@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.6 : 2026-11-04
+
+### Added
+
+- **Tables as a grid**: a table region's card shows its markdown as a real table (sticky header, scrolling inside a card up to 640px wide and 70% of the view) with **Copy CSV** and **Copy Markdown**. The crop is the fallback, and a toggle away.
+- **Contents tabs**: "Obsah" has **Chapters** and **Figures**; the latter lists every figure, table and equation of the copy with caption and page, filterable by kind, and opens the region on click. Needs the new optional `regionPackage.getAllRegionsFunc`.
+- **Captions**: `IRegion.printedCaption` and `IRegion.description`; the printed caption is shown first, the model's description under it.
+- **AI highlights from the chat**: `IChatStreamHandlers.onAnnotation` adds a layer the assistant started and follows it until it is done (`agentAnnotationPackage.waitForAnnotationFunc`, optional); the answer shows a card that opens it. `IChatMessage.annotationIds` for chats read back.
+
+### Changed
+
+- The `c` shortcut (citation) is gone, so Ctrl+C copies the selection again.
+
 ## 0.7.5 : 2026-11-04
 
 ### Fixed
