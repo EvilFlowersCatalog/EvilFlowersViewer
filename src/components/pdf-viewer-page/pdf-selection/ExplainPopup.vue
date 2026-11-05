@@ -8,6 +8,7 @@ import { useAssistantStore, useViewerStore } from '@/stores';
 import type { IExplainResult } from '@/assets/utils/interfaces';
 import { Loader } from '@/components/pdf-aids';
 import { useDraggable } from '@/components/pdf-aids/useDraggable';
+import { useEscapeLayer } from '@/components/pdf-aids/useEscapeLayer';
 import type { IExplainRequest } from '@/stores/assistant';
 
 const WIDTH = 300;
@@ -42,6 +43,7 @@ const onDragEnd = () => {
 };
 
 const close = () => assistantStore.closeExplain();
+useEscapeLayer(() => true, close);
 
 const discussInChat = () => {
   if (!result.value) return;

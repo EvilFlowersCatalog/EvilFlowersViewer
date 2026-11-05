@@ -117,6 +117,7 @@ const kindIcon: Record<IRegion['kind'], string> = {
       :anchor="cardAnchor"
       :bounds="cardBounds"
       @grab="hover.pin"
+      @close="hover.close"
       @mouseenter="hover.holdEnter"
       @mouseleave="hover.holdLeave"
     >

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // Full-screen view of one image (a figure or table crop). Closes on Escape, on
 // the close button and on a click beside the image.
-import { inject, onBeforeUnmount, onMounted, ref, type Ref } from 'vue';
+import { inject, onMounted, ref, type Ref } from 'vue';
+import { useEscapeLayer } from './useEscapeLayer';
 import Loader from './Loader.vue';
 
 defineProps<{ src: string | null; caption?: string | null; loading?: boolean }>();
@@ -10,18 +11,8 @@ const emit = defineEmits<{ close: [] }>();
 const layer = inject<Ref<HTMLElement | null>>('floatLayer', ref(null));
 const closeButton = ref<HTMLButtonElement | null>(null);
 
-// Captured on window so the viewer's own Escape handling doesn't also run.
-const onKeydown = (event: KeyboardEvent) => {
-  if (event.key !== 'Escape') return;
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  emit('close');
-};
-onMounted(() => {
-  window.addEventListener('keydown', onKeydown, true);
-  closeButton.value?.focus();
-});
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown, true));
+useEscapeLayer(() => true, () => emit('close'));
+onMounted(() => closeButton.value?.focus());
 </script>
 
 <template>

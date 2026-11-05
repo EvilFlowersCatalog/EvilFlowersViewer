@@ -54,7 +54,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <FloatingCard :anchor="cardAnchor" :bounds="cardBounds">
+  <FloatingCard :anchor="cardAnchor" :bounds="cardBounds" @close="emit('close')">
   <div
     class="w-[300px] max-w-full min-h-0 max-h-[400px] flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[8px] shadow-[0px_6px_18px_rgba(0,0,0,0.25)] overflow-hidden"
     role="dialog"

@@ -29,6 +29,7 @@ import { PDFModal } from './pdf-viewer-page/pdf-modal';
 import { PDFMenuSidebar } from './pdf-viewer-page/pdf-menu/pdf-menu-sidebar';
 import { PDFMenu } from './pdf-viewer-page/pdf-menu';
 import i18n from '@/assets/lang/i18n';
+import { closeTopLayer, useEscapeLayer } from './pdf-aids/useEscapeLayer';
 GlobalWorkerOptions.workerSrc = PDFWorker;
 
 const { data, options, config } = defineProps<IViewerProps>();
@@ -138,17 +139,21 @@ const loadDocument = async () => {
   }
 };
 
+// Escape closes the top layer only (cards, popups, modal, sidebar panel, in
+// the order they opened), then drops a drawing tool. It never zooms, changes
+// the page or leaves the viewer.
+useEscapeLayer(
+  () => docStore.modalContent !== MODAL_CONTENT.NULL,
+  () => docStore.setModalContent(MODAL_CONTENT.NULL)
+);
+useEscapeLayer(
+  () => docStore.sidebarState !== SIDEBAR_STATE.NULL,
+  () => docStore.setSidebarState(SIDEBAR_STATE.NULL)
+);
+
 const handleEscape = () => {
-  if (assistantStore.explainRequest) assistantStore.closeExplain();
-  else if (docStore.modalContent !== MODAL_CONTENT.NULL)
-    docStore.setModalContent(MODAL_CONTENT.NULL);
-  else if (docStore.sidebarState !== SIDEBAR_STATE.NULL)
-    docStore.setSidebarState(SIDEBAR_STATE.NULL);
-  else if (docStore.editTool !== EDIT_TOOL.MOUSE)
-    docStore.editTool = EDIT_TOOL.MOUSE;
-  else if (docStore.scale !== 1) docStore.setScale(1);
-  else if (docStore.activePage !== 1) docStore.activePage = 1;
-  else if (viewerStore.closeFunction) viewerStore.closeFunction();
+  if (closeTopLayer()) return;
+  if (docStore.editTool !== EDIT_TOOL.MOUSE) docStore.editTool = EDIT_TOOL.MOUSE;
 };
 
 onMounted(() => {

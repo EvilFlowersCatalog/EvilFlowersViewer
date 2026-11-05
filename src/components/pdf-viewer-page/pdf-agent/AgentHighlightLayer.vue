@@ -140,6 +140,7 @@ const cardBounds = () => pageViewport(props.pageBodyRef);
       :anchor="cardAnchor"
       :bounds="cardBounds"
       @grab="hover.pin"
+      @close="close"
       @mouseenter="hover.holdEnter"
       @mouseleave="hover.holdLeave"
     >

@@ -11,6 +11,7 @@
 // an element marked [data-drag-handle]; then it stays where it was dropped.
 import { inject, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue';
 import { useDocumentStore } from '@/stores';
+import { useEscapeLayer } from './useEscapeLayer';
 
 export type FloatRect = { left: number; top: number; right: number; bottom: number };
 
@@ -29,7 +30,9 @@ const props = withDefaults(
 defineOptions({ inheritAttrs: false });
 
 // Any press inside the card means the reader is using it: the owner pins it.
-const emit = defineEmits<{ grab: [] }>();
+// Escape closes the card when it is the top layer.
+const emit = defineEmits<{ grab: []; close: [] }>();
+useEscapeLayer(() => true, () => emit('close'));
 
 const MARGIN = 8;
 

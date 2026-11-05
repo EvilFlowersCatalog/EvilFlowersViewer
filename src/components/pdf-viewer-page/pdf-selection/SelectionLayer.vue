@@ -5,6 +5,7 @@ import { debounce } from '@/assets/utils/functions';
 import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import SelectionMenu from './SelectionMenu.vue';
 import SimilarBooksPopup from './SimilarBooksPopup.vue';
+import { useEscapeLayer } from '@/components/pdf-aids/useEscapeLayer';
 
 const props = defineProps<{
   textLayerRef: HTMLDivElement | null;
@@ -75,6 +76,15 @@ const handleSelectionChange = debounce(() => {
   anchorRect.value = range.getBoundingClientRect();
   activePopup.value = null; // a fresh selection re-shows the menu, not a stale popup
 }, 150);
+
+// Escape dismisses the selection menu (the similar-books card closes itself).
+useEscapeLayer(
+  () => anchorRect.value !== null && activePopup.value === null,
+  () => {
+    window.getSelection()?.removeAllRanges();
+    clearSelection();
+  }
+);
 
 onMounted(() => document.addEventListener('selectionchange', handleSelectionChange));
 onBeforeUnmount(() =>
