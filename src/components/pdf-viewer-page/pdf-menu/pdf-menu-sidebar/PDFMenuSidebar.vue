@@ -39,6 +39,7 @@ const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
   <div
     v-if="docStore.sidebarState !== SIDEBAR_STATE.NULL"
     ref="panelRef"
+    data-efv-float
     :class="docStore.sidebarState === SIDEBAR_STATE.HIGHLIGHTS || (docStore.sidebarState === SIDEBAR_STATE.TOC && viewerStore.regionPackage?.getAllRegionsFunc) ? 'w-[260px]' : 'w-[207px]'"
     class="absolute top-3 left-1.5 bottom-3 flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[5px] shadow-[2px_0px_8px_rgba(0,0,0,0.12)] z-10 overflow-hidden"
     role="region"

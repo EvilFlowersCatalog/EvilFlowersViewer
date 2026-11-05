@@ -65,15 +65,18 @@ export const useAssistantStore = defineStore('assistant', () => {
   };
 
   // Every region of the copy, for the contents' Figures tab. null until loaded.
+  // Re-fetched each time the tab is shown: extraction may still be running (or
+  // the host may have failed and answered []), so an empty answer is not final.
   const allRegions = ref<IRegion[] | null>(null);
   const allRegionsLoading = ref(false);
   const loadAllRegions = async () => {
     const pkg = useViewerStore().regionPackage;
-    if (!pkg?.getAllRegionsFunc || allRegions.value || allRegionsLoading.value) return;
+    if (!pkg?.getAllRegionsFunc || allRegionsLoading.value) return;
     allRegionsLoading.value = true;
     try {
       const regions = await pkg.getAllRegionsFunc();
-      allRegions.value = regions;
+      // Never replace a list with a smaller one from a failed call.
+      if (!allRegions.value || regions.length >= allRegions.value.length) allRegions.value = regions;
       // Seeds the per-page cache too, so pages opened from the list need no request.
       const byPage = new Map<number, IRegion[]>();
       for (const region of regions) byPage.set(region.page, [...(byPage.get(region.page) ?? []), region]);
@@ -89,6 +92,15 @@ export const useAssistantStore = defineStore('assistant', () => {
       allRegionsLoading.value = false;
     }
   };
+
+  // The Figures list: the full list plus whatever pages loaded on their own
+  // (hover works there even when the full list is late or empty), in reading order.
+  const listedRegions = computed<IRegion[]>(() => {
+    const byId = new Map<string, IRegion>();
+    for (const region of allRegions.value ?? []) byId.set(region.id, region);
+    for (const regions of regionsByPage.value.values()) for (const region of regions) if (!byId.has(region.id)) byId.set(region.id, region);
+    return [...byId.values()].sort((a, b) => a.page - b.page || a.bbox.y0 - b.bbox.y0 || a.bbox.x0 - b.bbox.x0);
+  });
 
   const findRegion = (id: string): IRegion | null => {
     const listed = allRegions.value?.find((r) => r.id === id);
@@ -540,6 +552,7 @@ export const useAssistantStore = defineStore('assistant', () => {
     // regions
     allRegions,
     allRegionsLoading,
+    listedRegions,
     loadAllRegions,
     regionsByPage,
     focusedRegionId,

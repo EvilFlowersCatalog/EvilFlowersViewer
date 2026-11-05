@@ -73,6 +73,7 @@ onMounted(async () => {
 
 <template>
   <div
+    data-efv-float
     class="fixed z-40 w-[300px] max-h-[420px] flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[8px] shadow-[0px_6px_18px_rgba(0,0,0,0.25)] overflow-hidden"
     :style="style"
     role="dialog"

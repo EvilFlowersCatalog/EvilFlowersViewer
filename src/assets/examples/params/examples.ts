@@ -438,6 +438,14 @@ export const getRegionsFunc = async (page: number): Promise<IRegion[]> => {
   return regions;
 };
 
+// Every region of the copy, for Obsah > Figures. The sample PDFs are short, so
+// the first pages are enough; pages the PDF lacks just never get navigated to.
+export const getAllRegionsFunc = async (): Promise<IRegion[]> => {
+  await delay(400);
+  const pages = await Promise.all(Array.from({ length: 12 }, (_, i) => getRegionsFunc(i + 1)));
+  return pages.flat();
+};
+
 // Chat: streams a canned answer word by word, like the assistant SSE.
 const streamText = async (text: string, handlers: IChatStreamHandlers) => {
   for (const part of text.split(/(\s+)/)) {

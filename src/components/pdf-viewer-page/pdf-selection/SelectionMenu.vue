@@ -33,6 +33,7 @@ const style = computed(() => {
 
 <template>
   <div
+    data-efv-float
     class="fixed z-30 flex items-stretch gap-[2px] px-[6px] py-[6px] rounded-[8px] bg-[#333333] shadow-[0px_4px_10px_rgba(0,0,0,0.35)]"
     :style="style"
     role="menu"

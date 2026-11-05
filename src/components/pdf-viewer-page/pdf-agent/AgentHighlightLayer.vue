@@ -4,7 +4,8 @@
 // top-right corner; the badge opens the highlight's note and actions.
 import { computed, watch } from 'vue';
 import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
-import { boxContains, boxStyle, unionBox, usePagePointer, useStickyHover } from '../usePageHover';
+import { boxContains, boxStyle, boxToViewport, pageViewport, unionBox, usePagePointer, useStickyHover } from '../usePageHover';
+import { FloatingCard } from '@/components/pdf-aids';
 import { highlightColor } from './colors';
 import { READER_ANNOTATION_ID } from '@/stores/assistant';
 
@@ -88,7 +89,9 @@ const canDelete = computed(() =>
     : !!viewerStore.agentAnnotationPackage?.deleteHighlightFunc
 );
 
-const cardSide = computed(() => (active.value && active.value.bounds.x1 > 0.55 ? 'left' : 'right'));
+// The card goes beside the highlight, inside the visible page area.
+const cardAnchor = () => (active.value ? boxToViewport(props.pageBodyRef, active.value.bounds) : null);
+const cardBounds = () => pageViewport(props.pageBodyRef);
 </script>
 
 <template>
@@ -128,18 +131,29 @@ const cardSide = computed(() => (active.value && active.value.bounds.x1 > 0.55 ?
       >
         {{ active.highlight.seq }}
       </button>
+    </div>
 
-      <!-- Card -->
+    <!-- Card -->
+    <FloatingCard
+      v-if="active && hover.cardOpen.value"
+      :key="active.highlight.id"
+      :anchor="cardAnchor"
+      :bounds="cardBounds"
+      @grab="hover.pin"
+      @mouseenter="hover.holdEnter"
+      @mouseleave="hover.holdLeave"
+    >
       <div
-        v-if="hover.cardOpen.value"
-        class="absolute top-2 w-[280px] flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[8px] shadow-[0px_6px_18px_rgba(0,0,0,0.25)] overflow-hidden cursor-auto"
-        :class="cardSide === 'right' ? 'left-3' : 'right-3'"
+        class="w-[300px] max-w-full min-h-0 flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[8px] shadow-[0px_6px_18px_rgba(0,0,0,0.25)] overflow-hidden cursor-auto"
         role="dialog"
         :aria-label="isReader ? $t('my-highlights') : active.annotation.title"
         @mousedown.stop
-        @dblclick.stop
       >
-        <div class="flex items-center gap-1 px-3 py-2 border-b border-gray-200 dark:border-white/10">
+        <!-- Header doubles as the drag handle -->
+        <div
+          data-drag-handle
+          class="flex items-center gap-1 px-3 py-2 border-b border-gray-200 dark:border-white/10 shrink-0 select-none touch-none cursor-grab"
+        >
           <span
             class="size-2 rounded-full shrink-0"
             :style="{ backgroundColor: highlightColor(active.colorIndex, 1) }"
@@ -148,6 +162,11 @@ const cardSide = computed(() => (active.value && active.value.bounds.x1 > 0.55 ?
           <span class="flex-1 min-w-0 truncate text-[11px] font-semibold text-[#333] dark:text-gray-200">
             {{ isReader ? $t('my-highlights') : active.annotation.title }}
           </span>
+          <svg aria-hidden="true" class="size-3.5 shrink-0 text-gray-300 dark:text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+            <circle cx="7" cy="5" r="1.4" /><circle cx="13" cy="5" r="1.4" />
+            <circle cx="7" cy="10" r="1.4" /><circle cx="13" cy="10" r="1.4" />
+            <circle cx="7" cy="15" r="1.4" /><circle cx="13" cy="15" r="1.4" />
+          </svg>
           <span class="text-[10px] text-efv-muted shrink-0">
             {{ active.highlight.seq }} / {{ active.annotation.highlights.length }}
           </span>
@@ -177,7 +196,7 @@ const cardSide = computed(() => (active.value && active.value.bounds.x1 > 0.55 ?
           </button>
         </div>
 
-        <div class="px-3 py-2 flex flex-col gap-1.5 max-h-[160px] overflow-y-auto">
+        <div class="px-3 py-2 flex flex-col gap-1.5 min-h-0 max-h-[220px] overflow-y-auto">
           <p class="text-[11px] leading-[15px] text-[#333] dark:text-gray-200">„{{ active.highlight.text }}“</p>
           <p v-if="active.highlight.note" class="text-[10px] leading-[14px] text-efv-muted">{{ active.highlight.note }}</p>
           <p v-if="active.annotation.prompt" class="text-[10px] leading-[14px] text-efv-muted italic line-clamp-2">
@@ -185,7 +204,7 @@ const cardSide = computed(() => (active.value && active.value.bounds.x1 > 0.55 ?
           </p>
         </div>
 
-        <div class="flex items-center gap-1.5 px-3 py-2 border-t border-gray-200 dark:border-white/10">
+        <div class="flex items-center gap-1.5 px-3 py-2 border-t border-gray-200 dark:border-white/10 shrink-0">
           <button
             v-if="viewerStore.chatPackage"
             type="button"
@@ -215,6 +234,6 @@ const cardSide = computed(() => (active.value && active.value.bounds.x1 > 0.55 ?
           </button>
         </div>
       </div>
-    </div>
+    </FloatingCard>
   </div>
 </template>

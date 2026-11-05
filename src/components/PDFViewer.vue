@@ -51,6 +51,11 @@ provide('topbarBg', topbarBg);
 provide('viewerBg', viewerBg);
 provide('isDark', isDark);
 
+// Cards, popups and the lightbox teleport here: inside the scope root (so the
+// scoped styles and dark mode apply) but outside every clipping container.
+const floatLayer = ref<HTMLElement | null>(null);
+provide('floatLayer', floatLayer);
+
 const getTOC = async (
   outline: IPDFOutlineItem[],
   level: number,
@@ -231,7 +236,7 @@ onMounted(() => {
   <!-- Failed container -->
   <div
     v-if="failed"
-    class="flex flex-col h-screen w-screen justify-center items-center text-4xl uppercase font-extrabold text-white font-serif"
+    class="flex flex-col h-screen w-full justify-center items-center text-4xl uppercase font-extrabold text-white font-serif"
     :style="{ backgroundColor: viewerBg }"
     role="alert"
   >
@@ -241,7 +246,7 @@ onMounted(() => {
   <!-- Loading -->
   <div
     v-else-if="!failed && !docStore.pdf"
-    class="flex w-screen h-screen justify-center items-center text-white"
+    class="flex w-full h-screen justify-center items-center text-white"
     :style="{ backgroundColor: viewerBg }"
   >
     <Loader :size="100" color="#0077CC" :label="$t('load')" />
@@ -250,7 +255,7 @@ onMounted(() => {
   <!-- Success container -->
   <div
     v-else
-    class="flex h-screen w-screen overflow-hidden text-white"
+    class="relative flex h-screen w-full overflow-hidden text-white"
     :style="{ backgroundColor: viewerBg }"
     role="region"
     :aria-label="$t('pdf-viewer')"
@@ -311,5 +316,6 @@ onMounted(() => {
       :request="assistantStore.explainRequest"
     />
   </div>
+  <div ref="floatLayer" />
   </div>
 </template>

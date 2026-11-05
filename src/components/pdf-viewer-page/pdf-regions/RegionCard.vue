@@ -1,8 +1,9 @@
 <script setup lang="ts">
 // What the catalog knows about one region: crop, caption, table or LaTeX, and
 // the actions that hand it to the assistant.
-import { computed, onMounted, ref } from 'vue';
-import { useAssistantStore, useViewerStore } from '@/stores';
+import { computed, onMounted, ref, toRaw } from 'vue';
+import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
+import { ImageLightbox } from '@/components/pdf-aids';
 import type { IRegion } from '@/assets/utils/interfaces';
 import { renderMarkdown } from '@/assets/utils/markdown';
 import { parseMarkdownTable, toCsv } from '@/assets/utils/table';
@@ -12,6 +13,7 @@ const emit = defineEmits<{ close: [] }>();
 
 const viewerStore = useViewerStore();
 const assistantStore = useAssistantStore();
+const docStore = useDocumentStore();
 
 // Without a crop URL from the host, cut the region out of the rendered page.
 const preview = ref<string | null>(props.region.imageUrl ?? null);
@@ -33,6 +35,46 @@ onMounted(() => {
     preview.value = null;
   }
 });
+
+// Full-screen view: the host's crop when there is one, otherwise the region
+// rendered afresh from the PDF at a resolution that fills the screen (the
+// on-screen canvas is only as sharp as the current zoom).
+const lightboxOpen = ref(false);
+const lightboxSrc = ref<string | null>(null);
+const lightboxLoading = ref(false);
+
+const renderRegion = async () => {
+  const pdf = toRaw(docStore.pdf);
+  if (!pdf) return null;
+  const page = await pdf.getPage(props.region.page);
+  const base = page.getViewport({ scale: 1 });
+  const { x0, y0, x1, y1 } = props.region.bbox;
+  const width = Math.max(1, (x1 - x0) * base.width);
+  const height = Math.max(1, (y1 - y0) * base.height);
+  const ratio = window.devicePixelRatio || 1;
+  const scale = Math.min(6, Math.max(1, Math.min((window.innerWidth * 0.92 * ratio) / width, (window.innerHeight * 0.85 * ratio) / height)));
+  const viewport = page.getViewport({ scale });
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.ceil(width * scale);
+  canvas.height = Math.ceil(height * scale);
+  await page.render({ canvas, viewport, transform: [1, 0, 0, 1, -x0 * viewport.width, -y0 * viewport.height] }).promise;
+  return canvas.toDataURL('image/png');
+};
+
+const openLightbox = async () => {
+  lightboxOpen.value = true;
+  lightboxSrc.value = preview.value;
+  if (props.region.imageUrl) return;
+  lightboxLoading.value = true;
+  try {
+    const sharp = await renderRegion();
+    if (sharp && lightboxOpen.value) lightboxSrc.value = sharp;
+  } catch {
+    // keep the on-screen crop
+  } finally {
+    lightboxLoading.value = false;
+  }
+};
 
 // A table is shown as a grid of cells parsed from its markdown; the crop is the
 // fallback when there is no markdown or it does not parse, and a toggle away.
@@ -102,14 +144,17 @@ const explain = (event: MouseEvent) => {
 
 <template>
   <div
-    class="flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[8px] shadow-[0px_6px_18px_rgba(0,0,0,0.25)] overflow-hidden text-left cursor-auto"
-    :class="isTable ? 'w-[min(640px,85vw)] max-h-[70vh]' : 'w-[280px] max-h-[360px]'"
+    class="flex flex-col min-h-0 max-w-full bg-white dark:bg-[#1e1e1e] rounded-[8px] shadow-[0px_6px_18px_rgba(0,0,0,0.25)] overflow-hidden text-left cursor-auto"
+    :class="isTable ? 'w-[640px] max-h-[70vh]' : 'w-[300px] max-h-[440px]'"
     role="dialog"
     :aria-label="$t(`region-${region.kind}`)"
     @mousedown.stop
-    @dblclick.stop
   >
-    <div class="flex items-center justify-between gap-2 px-3 py-2 border-b border-gray-200 dark:border-white/10 shrink-0">
+    <!-- Header doubles as the drag handle -->
+    <div
+      data-drag-handle
+      class="flex items-center justify-between gap-2 px-3 py-2 border-b border-gray-200 dark:border-white/10 shrink-0 select-none touch-none cursor-grab"
+    >
       <span class="text-[11px] font-semibold text-[#333] dark:text-gray-200">
         {{ $t(`region-${region.kind}`) }}
         <span class="font-normal text-efv-muted">· {{ $t('page-short', { page: region.page }) }}</span>
@@ -118,6 +163,11 @@ const explain = (event: MouseEvent) => {
         </span>
       </span>
       <div class="ml-auto flex items-center gap-1">
+        <svg aria-hidden="true" class="size-3.5 text-gray-300 dark:text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+          <circle cx="7" cy="5" r="1.4" /><circle cx="13" cy="5" r="1.4" />
+          <circle cx="7" cy="10" r="1.4" /><circle cx="13" cy="10" r="1.4" />
+          <circle cx="7" cy="15" r="1.4" /><circle cx="13" cy="15" r="1.4" />
+        </svg>
         <template v-if="isTable && rows">
           <button
             v-if="preview"
@@ -171,14 +221,22 @@ const explain = (event: MouseEvent) => {
         </table>
       </div>
 
-      <img
+      <button
         v-else-if="preview"
-        :src="preview"
-        :alt="region.caption ?? ''"
-        class="w-full object-contain rounded border border-efv-border bg-white"
-        :class="region.kind === 'equation' ? 'max-h-[120px]' : isTable ? 'max-h-[55vh]' : 'max-h-[190px]'"
-        @error="preview = null"
-      />
+        type="button"
+        class="shrink-0 block w-full rounded border border-efv-border bg-white cursor-zoom-in hover:border-secondary transition-colors"
+        :aria-label="$t('open-fullscreen')"
+        :title="$t('open-fullscreen')"
+        @click="openLightbox"
+      >
+        <img
+          :src="preview"
+          :alt="region.caption ?? ''"
+          class="w-full object-contain rounded"
+          :class="region.kind === 'equation' ? 'max-h-[120px]' : isTable ? 'max-h-[55vh]' : 'max-h-[220px]'"
+          @error="preview = null"
+        />
+      </button>
 
       <p
         v-if="!isTable && captionText"
@@ -215,5 +273,13 @@ const explain = (event: MouseEvent) => {
         {{ $t('explain') }}
       </button>
     </div>
+
+    <ImageLightbox
+      v-if="lightboxOpen"
+      :src="lightboxSrc"
+      :caption="captionText"
+      :loading="lightboxLoading"
+      @close="lightboxOpen = false"
+    />
   </div>
 </template>

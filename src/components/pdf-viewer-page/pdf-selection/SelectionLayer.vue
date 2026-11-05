@@ -129,6 +129,7 @@ const handleAsk = () => {
       v-else-if="activePopup === 'similar'"
       :page-body-ref="pageBodyRef"
       :selected-text="selectionText"
+      :anchor-rect="anchorRect"
       @close="clearSelection"
     />
   </template>

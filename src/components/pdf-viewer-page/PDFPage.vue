@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue';
 import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import { TextLayer } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type { PageViewport } from 'pdfjs-dist/types/src/display/page_viewport';
@@ -10,6 +10,8 @@ import { EditCanvas } from './pdf-edit';
 import { SelectionLayer } from './pdf-selection';
 import RegionLayer from './pdf-regions/RegionLayer.vue';
 import AgentHighlightLayer from './pdf-agent/AgentHighlightLayer.vue';
+import { boxStyle } from './usePageHover';
+import type { IPageBox } from '@/assets/utils/interfaces';
 
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
@@ -64,6 +66,98 @@ const lineBoxes = (rects: DOMRect[]) => {
   return lines;
 };
 
+// Clickable links over the page: the PDF's own link annotations (web links open
+// in a new tab, internal ones jump to their page) plus web addresses that are
+// only printed as text. Boxes are page fractions, so zoom needs no recompute.
+type PageLink = { box: IPageBox; href?: string; page?: number };
+const links = ref<PageLink[]>([]);
+const URL_IN_TEXT = /\b(?:https?:\/\/|www\.)[^\s<>"'`]+[^\s<>"'`.,;:!?)\]}]/gi;
+
+const resolveDestPage = async (dest: unknown): Promise<number | undefined> => {
+  if (!pdf || !dest) return undefined;
+  try {
+    const explicit = typeof dest === 'string' ? await pdf.getDestination(dest) : (dest as any[]);
+    const target = explicit?.[0];
+    if (target == null) return undefined;
+    return (typeof target === 'number' ? target : await pdf.getPageIndex(target)) + 1;
+  } catch {
+    return undefined;
+  }
+};
+
+const annotationLinks = async (page: PDFPageProxy): Promise<PageLink[]> => {
+  const viewport = page.getViewport({ scale: 1 });
+  const found: PageLink[] = [];
+  for (const annotation of await page.getAnnotations({ intent: 'display' })) {
+    if (annotation.subtype !== 'Link' || !annotation.rect) continue;
+    const [ax, ay, bx, by] = viewport.convertToViewportRectangle(annotation.rect);
+    const box = {
+      x0: Math.min(ax, bx) / viewport.width,
+      y0: Math.min(ay, by) / viewport.height,
+      x1: Math.max(ax, bx) / viewport.width,
+      y1: Math.max(ay, by) / viewport.height,
+    };
+    const href = annotation.url || annotation.unsafeUrl;
+    if (href && /^(https?:|mailto:)/i.test(href)) found.push({ box, href });
+    else {
+      const target = await resolveDestPage(annotation.dest);
+      if (target) found.push({ box, page: target });
+    }
+  }
+  return found;
+};
+
+// Addresses in the rendered text layer, one box per line they occupy.
+const textLinks = (known: PageLink[]): PageLink[] => {
+  const layer = textLayerRef.value;
+  const body = pageBodyRef.value?.getBoundingClientRect();
+  if (!layer || !body?.width || !body.height) return [];
+  const found: PageLink[] = [];
+  const walker = document.createTreeWalker(layer, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const text = node.textContent ?? '';
+    for (const match of text.matchAll(URL_IN_TEXT)) {
+      const href = /^https?:/i.test(match[0]) ? match[0] : `https://${match[0]}`;
+      if (known.some((link) => link.href === href)) continue;
+      const range = document.createRange();
+      range.setStart(node, match.index!);
+      range.setEnd(node, match.index! + match[0].length);
+      for (const rect of range.getClientRects()) {
+        if (!rect.width || !rect.height) continue;
+        found.push({
+          href,
+          box: {
+            x0: (rect.left - body.left) / body.width,
+            y0: (rect.top - body.top) / body.height,
+            x1: (rect.right - body.left) / body.width,
+            y1: (rect.bottom - body.top) / body.height,
+          },
+        });
+      }
+    }
+  }
+  return found;
+};
+
+const collectLinks = async (page: PDFPageProxy) => {
+  const pageNumber = docStore.activePage;
+  let fromAnnotations: PageLink[] = [];
+  try {
+    fromAnnotations = await annotationLinks(page);
+  } catch {
+    // a broken annotation dictionary only costs the links
+  }
+  await nextTick(); // the page body is hidden until the render state flips
+  if (pageNumber !== docStore.activePage) return;
+  links.value = [...fromAnnotations, ...textLinks(fromAnnotations)];
+};
+
+const followLink = (event: MouseEvent, link: PageLink) => {
+  if (link.href) return; // the anchor opens it in a new tab
+  event.preventDefault();
+  if (link.page) docStore.activePage = link.page;
+};
+
 // A single reused render task + TextLayer instance. Keeping the TextLayer lets
 // us reflow it on zoom via pdf.js 6's update() instead of rebuilding it.
 let renderTask: ReturnType<PDFPageProxy['render']> | null = null;
@@ -75,18 +169,6 @@ let textLayerPage = 0; // page number the current TextLayer was built for
 const isBookmarked = computed(() => docStore.isBookmarked(docStore.activePage));
 
 const toggleBookmark = () => docStore.toggleBookmark(docStore.activePage);
-
-const handleDoubleClick = () => {
-  docStore.setScale(
-    docStore.scale > 1.5
-      ? 1.5
-      : docStore.scale < 1
-      ? 1
-      : docStore.scale === 1.5
-      ? 1
-      : 1.5
-  );
-};
 
 const paintCanvas = async (page: PDFPageProxy, viewport: PageViewport) => {
   const canvas = canvasRef.value;
@@ -153,6 +235,7 @@ const renderPage = async () => {
   if (!pdf) return;
   docStore.renderState = RENDER_STATE.RENDERING;
 
+  links.value = [];
   const page = await pdf.getPage(docStore.activePage);
   const viewport = page.getViewport({ scale: docStore.scale });
   docStore.canvasWidth = viewport.width;
@@ -163,6 +246,7 @@ const renderPage = async () => {
   drawHighlight(viewport);
 
   docStore.renderState = RENDER_STATE.RENDERED;
+  collectLinks(page);
 };
 
 // Zoom: re-rasterise the canvas for crispness, but only reflow the existing
@@ -240,8 +324,8 @@ watch(
 
 <template>
   <div
+    data-page-scroll
     class="flex w-full h-full p-5 overflow-auto"
-    @dblclick="handleDoubleClick"
   >
     <!-- Loader -->
     <Loader
@@ -290,6 +374,22 @@ watch(
             : 'pointer-events-none select-none'
         "
       ></div>
+
+      <!-- Links (web: new tab; internal: jump to the page) -->
+      <template v-if="EDIT_TOOL.MOUSE === docStore.editTool">
+        <a
+          v-for="(link, index) in links"
+          :key="index"
+          class="absolute z-[4] rounded-[2px] cursor-pointer hover:bg-secondary/15 hover:shadow-[inset_0_-1px_0_var(--efv-primary)]"
+          :style="boxStyle(link.box)"
+          :href="link.href ?? '#'"
+          :target="link.href ? '_blank' : undefined"
+          :rel="link.href ? 'noopener noreferrer' : undefined"
+          :title="link.href ?? $t('page-short', { page: link.page })"
+          :aria-label="link.href ?? $t('page-short', { page: link.page })"
+          @click="followLink($event, link)"
+        />
+      </template>
 
       <!-- IP-018 layers: agent highlights and extracted regions. Both hit-test
            the pointer position, so the text layer underneath stays selectable. -->
