@@ -99,6 +99,8 @@
   "region-figure": "Obrázok",
   "region-table": "Tabuľka",
   "region-equation": "Rovnica",
+  "beta": "Beta",
+  "beta-hint": "AI funkcia v beta verzii. Výsledky môžu byť neúplné alebo nepresné.",
   "assistant": "Asistent",
   "chat-about-book": "Rozhovor o tejto publikácii",
   "chat-new": "Nový rozhovor",

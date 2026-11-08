@@ -3,7 +3,7 @@
 // the actions that hand it to the assistant.
 import { computed, onMounted, ref, toRaw } from 'vue';
 import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
-import { ImageLightbox } from '@/components/pdf-aids';
+import { BetaBadge, ImageLightbox } from '@/components/pdf-aids';
 import type { IRegion } from '@/assets/utils/interfaces';
 import { renderMarkdown } from '@/assets/utils/markdown';
 import { parseMarkdownTable, toCsv } from '@/assets/utils/table';
@@ -161,6 +161,7 @@ const explain = (event: MouseEvent) => {
         <span v-if="region.category" class="ml-1 px-1.5 py-[1px] rounded bg-accent-soft text-accent-ink text-[9px] font-medium">
           {{ region.category }}
         </span>
+        <BetaBadge class="ml-1" />
       </span>
       <div class="ml-auto flex items-center gap-1">
         <svg aria-hidden="true" class="size-3.5 text-gray-300 dark:text-gray-600" viewBox="0 0 20 20" fill="currentColor">

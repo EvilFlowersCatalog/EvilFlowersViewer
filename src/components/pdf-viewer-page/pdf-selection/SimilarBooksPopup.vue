@@ -7,7 +7,7 @@ import { useViewerStore } from '@/stores';
 import { SUGGESTION_KIND } from '@/assets/utils/enums';
 import type { ISuggestedEntry } from '@/assets/utils/interfaces';
 import type { IPageBox } from '@/assets/utils/interfaces';
-import { FloatingCard, Loader } from '@/components/pdf-aids';
+import { BetaBadge, FloatingCard, Loader } from '@/components/pdf-aids';
 import { SuggestionEntryItem } from '@/components/pdf-viewer-page/pdf-suggestions';
 import { boxToViewport, pageViewport } from '../usePageHover';
 
@@ -65,8 +65,9 @@ onMounted(async () => {
       data-drag-handle
       class="flex items-center gap-1 px-3 py-2 border-b border-gray-200 dark:border-white/10 shrink-0 select-none touch-none cursor-grab"
     >
-      <h2 class="flex-1 text-[12px] font-medium text-[#333] dark:text-gray-200">
+      <h2 class="flex-1 flex items-center gap-1.5 text-[12px] font-medium text-[#333] dark:text-gray-200">
         {{ $t('similar-books') }}
+        <BetaBadge />
       </h2>
       <svg aria-hidden="true" class="size-3.5 text-gray-300 dark:text-gray-600" viewBox="0 0 20 20" fill="currentColor">
         <circle cx="7" cy="5" r="1.4" /><circle cx="13" cy="5" r="1.4" />

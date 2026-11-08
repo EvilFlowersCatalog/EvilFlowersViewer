@@ -6,6 +6,7 @@ import { MODAL_CONTENT } from '@/assets/utils/enums';
 import type { IRegion, ITOCItem } from '@/assets/utils/interfaces';
 import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import { TOCItem } from '.';
+import { BetaBadge } from '@/components/pdf-aids';
 
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
@@ -75,7 +76,7 @@ const kindIcon: Record<IRegion['kind'], string> = {
         type="button"
         role="tab"
         :aria-selected="tab === name"
-        class="flex-1 h-6 rounded-[5px] text-[11px] font-medium transition"
+        class="flex-1 h-6 inline-flex items-center justify-center gap-1 rounded-[5px] text-[11px] font-medium transition"
         :class="
           tab === name
             ? 'bg-white dark:bg-[#2a2a2a] text-[#333] dark:text-gray-100 shadow-sm'
@@ -84,6 +85,7 @@ const kindIcon: Record<IRegion['kind'], string> = {
         @click="tab = name"
       >
         {{ $t(`toc-tab-${name}`) }}
+        <BetaBadge v-if="name === 'figures'" />
       </button>
     </div>
 

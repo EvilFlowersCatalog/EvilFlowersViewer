@@ -4,6 +4,7 @@ import { useDocumentStore, useViewerStore } from '@/stores';
 import { AgentHighlights, Info, Share, Search, Print } from './items';
 import { TOC } from '@/components/pdf-viewer-page/pdf-modal/items';
 import { nextTick, ref, watch } from 'vue';
+import { BetaBadge } from '@/components/pdf-aids';
 
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
@@ -47,8 +48,9 @@ const sidebarTitles: Partial<Record<SIDEBAR_STATE, string>> = {
   >
     <!-- Header -->
     <div class="flex items-center justify-between px-4 py-1 border-b border-gray-200 dark:border-white/10 shrink-0">
-      <h2 class="text-[13px] font-medium uppercase text-[#333] dark:text-gray-200 tracking-[0.1px]">
+      <h2 class="flex items-center gap-1.5 text-[13px] font-medium uppercase text-[#333] dark:text-gray-200 tracking-[0.1px]">
         {{ $t(sidebarTitles[docStore.sidebarState] ?? docStore.sidebarState) }}
+        <BetaBadge v-if="docStore.sidebarState === SIDEBAR_STATE.HIGHLIGHTS" />
       </h2>
       <button
         @click="docStore.setSidebarState(SIDEBAR_STATE.NULL)"
