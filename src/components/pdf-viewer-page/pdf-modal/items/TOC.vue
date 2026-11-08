@@ -2,19 +2,19 @@
 // Contents: the outline ("Chapters") and, when the host can list them, every
 // figure, table and equation of the copy ("Figures", IP-018 Phase 8).
 import { computed, ref, watch } from 'vue';
-import { MODAL_CONTENT, SIDEBAR_STATE } from '@/assets/utils/enums';
+import { MODAL_CONTENT } from '@/assets/utils/enums';
 import type { IRegion, ITOCItem } from '@/assets/utils/interfaces';
 import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import { TOCItem } from '.';
+import { BetaBadge } from '@/components/pdf-aids';
 
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
 const assistantStore = useAssistantStore();
 
-const closePanels = () => {
-  docStore.setModalContent(MODAL_CONTENT.NULL);
-  docStore.setSidebarState(SIDEBAR_STATE.NULL);
-};
+// The sidebar panel stays open while navigating with it; only the modal
+// (which covers the page) closes so the target is visible.
+const closePanels = () => docStore.setModalContent(MODAL_CONTENT.NULL);
 
 const handleItemClick = (page: number) => {
   if (page === -1) return;
@@ -39,12 +39,12 @@ watch(
 );
 
 const kinds = computed(() => {
-  const present = new Set((assistantStore.allRegions ?? []).map((r) => r.kind));
+  const present = new Set(assistantStore.listedRegions.map((r) => r.kind));
   return (['figure', 'table', 'equation'] as const).filter((k) => present.has(k));
 });
 
 const regions = computed(() =>
-  (assistantStore.allRegions ?? []).filter((r) => kind.value === 'all' || r.kind === kind.value)
+  assistantStore.listedRegions.filter((r) => kind.value === 'all' || r.kind === kind.value)
 );
 
 const label = (region: IRegion) =>
@@ -76,7 +76,7 @@ const kindIcon: Record<IRegion['kind'], string> = {
         type="button"
         role="tab"
         :aria-selected="tab === name"
-        class="flex-1 h-6 rounded-[5px] text-[11px] font-medium transition"
+        class="flex-1 h-6 inline-flex items-center justify-center gap-1 rounded-[5px] text-[11px] font-medium transition"
         :class="
           tab === name
             ? 'bg-white dark:bg-[#2a2a2a] text-[#333] dark:text-gray-100 shadow-sm'
@@ -85,6 +85,7 @@ const kindIcon: Record<IRegion['kind'], string> = {
         @click="tab = name"
       >
         {{ $t(`toc-tab-${name}`) }}
+        <BetaBadge v-if="name === 'figures'" />
       </button>
     </div>
 
@@ -112,7 +113,7 @@ const kindIcon: Record<IRegion['kind'], string> = {
         </button>
       </div>
 
-      <p v-if="assistantStore.allRegionsLoading" class="text-[11px] text-efv-muted px-1 py-2">{{ $t('loading') }}</p>
+      <p v-if="assistantStore.allRegionsLoading && !regions.length" class="text-[11px] text-efv-muted px-1 py-2">{{ $t('loading') }}</p>
       <p v-else-if="!regions.length" class="text-[11px] text-efv-muted px-1 py-2">{{ $t('toc-no-figures') }}</p>
 
       <button

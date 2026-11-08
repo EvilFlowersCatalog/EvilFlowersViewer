@@ -52,18 +52,54 @@ export const boxStyle = (box: IPageBox) => ({
   height: `${(box.y1 - box.y0) * 100}%`,
 });
 
+/** `box` (page fractions) in viewport pixels, for cards placed beside it. */
+export const boxToViewport = (pageBody: HTMLElement | null, box: IPageBox) => {
+  if (!pageBody) return null;
+  const rect = pageBody.getBoundingClientRect();
+  if (!rect.width || !rect.height) return null;
+  return {
+    left: rect.left + box.x0 * rect.width,
+    top: rect.top + box.y0 * rect.height,
+    right: rect.left + box.x1 * rect.width,
+    bottom: rect.top + box.y1 * rect.height,
+  };
+};
+
+/** The visible part of the page scroller (scrollbars excluded): where page cards may go. */
+export const pageViewport = (pageBody: HTMLElement | null) => {
+  const scroller = pageBody?.closest<HTMLElement>('[data-page-scroll]');
+  if (!scroller) return null;
+  const rect = scroller.getBoundingClientRect();
+  return {
+    left: rect.left,
+    top: rect.top,
+    right: rect.left + scroller.clientWidth,
+    bottom: rect.top + scroller.clientHeight,
+  };
+};
+
+// Only one page card (figure, table, highlight) is open at a time, across layers.
+const openCardOwner = ref<symbol | null>(null);
+
 /**
  * Hover with a grace period. `hitId` is what the pointer is over right now;
  * `activeId` lingers briefly after it leaves, so the pointer can travel to the
  * item's corner badge. Hovering the badge (`holdEnter`) opens its card, and a
- * click pins the card until it is closed.
+ * click pins the card until it is closed. An open card stays while the pointer
+ * is over its item, so the pointer can cross the item to reach the card.
  */
 export const useStickyHover = (hitId: Ref<string | null>, grace = 250) => {
   const activeId = ref<string | null>(null);
   const cardOpen = ref(false);
   const pinned = ref(false);
+  const owner = Symbol('page-card');
   let held = false;
   let timer: ReturnType<typeof setTimeout> | null = null;
+
+  watch(cardOpen, (open) => {
+    if (open) openCardOwner.value = owner;
+    else if (openCardOwner.value === owner) openCardOwner.value = null;
+  });
 
   const clearTimer = () => {
     if (timer) clearTimeout(timer);
@@ -74,6 +110,7 @@ export const useStickyHover = (hitId: Ref<string | null>, grace = 250) => {
     clearTimer();
     timer = setTimeout(() => {
       if (held || pinned.value) return;
+      if (cardOpen.value && hitId.value === activeId.value) return;
       cardOpen.value = false;
       activeId.value = hitId.value;
     }, grace);
@@ -103,6 +140,10 @@ export const useStickyHover = (hitId: Ref<string | null>, grace = 250) => {
     pinned.value = !pinned.value;
     cardOpen.value = true;
   };
+  const pin = () => {
+    pinned.value = true;
+    cardOpen.value = true;
+  };
   const close = () => {
     pinned.value = false;
     held = false;
@@ -117,7 +158,15 @@ export const useStickyHover = (hitId: Ref<string | null>, grace = 250) => {
     pinned.value = true;
   };
 
-  onBeforeUnmount(clearTimer);
+  // Another layer opened its card: this one gives way.
+  watch(openCardOwner, (current) => {
+    if (current && current !== owner && cardOpen.value) close();
+  });
 
-  return { activeId, cardOpen, pinned, holdEnter, holdLeave, togglePin, close, open };
+  onBeforeUnmount(() => {
+    clearTimer();
+    if (openCardOwner.value === owner) openCardOwner.value = null;
+  });
+
+  return { activeId, cardOpen, pinned, holdEnter, holdLeave, togglePin, pin, close, open };
 };

@@ -1,6 +1,7 @@
 {
   "failed-load-pdf": "Načítanie PDF dokumentu zlyhalo",
   "enable-edit": "Pridať úpravy",
+  "open-fullscreen": "Otvoriť na celú obrazovku",
   "close": "Zavrieť",
   "went-wrong": "Niečo sa pokazilo :/",
   "table-of-content": "Obsah",
@@ -98,6 +99,8 @@
   "region-figure": "Obrázok",
   "region-table": "Tabuľka",
   "region-equation": "Rovnica",
+  "beta": "Beta",
+  "beta-hint": "AI funkcia v beta verzii. Výsledky môžu byť neúplné alebo nepresné.",
   "assistant": "Asistent",
   "chat-about-book": "Rozhovor o tejto publikácii",
   "chat-new": "Nový rozhovor",

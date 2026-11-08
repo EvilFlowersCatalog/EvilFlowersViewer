@@ -6,8 +6,9 @@
 import { onMounted, ref } from 'vue';
 import { useAssistantStore, useViewerStore } from '@/stores';
 import type { IExplainResult } from '@/assets/utils/interfaces';
-import { Loader } from '@/components/pdf-aids';
+import { BetaBadge, Loader } from '@/components/pdf-aids';
 import { useDraggable } from '@/components/pdf-aids/useDraggable';
+import { useEscapeLayer } from '@/components/pdf-aids/useEscapeLayer';
 import type { IExplainRequest } from '@/stores/assistant';
 
 const WIDTH = 300;
@@ -42,6 +43,7 @@ const onDragEnd = () => {
 };
 
 const close = () => assistantStore.closeExplain();
+useEscapeLayer(() => true, close);
 
 const discussInChat = () => {
   if (!result.value) return;
@@ -73,6 +75,7 @@ onMounted(async () => {
 
 <template>
   <div
+    data-efv-float
     class="fixed z-40 w-[300px] max-h-[420px] flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[8px] shadow-[0px_6px_18px_rgba(0,0,0,0.25)] overflow-hidden"
     :style="style"
     role="dialog"
@@ -88,6 +91,7 @@ onMounted(async () => {
       @pointercancel="onDragEnd"
     >
       <div class="flex items-center gap-[14px]">
+        <BetaBadge class="mb-2" />
         <button
           type="button"
           class="pb-2 text-[12px] font-medium transition-colors"

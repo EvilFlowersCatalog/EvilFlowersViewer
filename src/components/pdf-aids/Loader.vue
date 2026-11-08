@@ -11,7 +11,7 @@ const { size, color, label } = defineProps<ILoaderProps>();
 
 <template>
   <div
-    class="w-full h-full flex justify-center items-center"
+    class="relative w-full h-full flex justify-center items-center"
     role="status"
     aria-live="polite"
   >

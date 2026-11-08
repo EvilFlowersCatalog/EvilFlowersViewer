@@ -29,6 +29,7 @@ import { PDFModal } from './pdf-viewer-page/pdf-modal';
 import { PDFMenuSidebar } from './pdf-viewer-page/pdf-menu/pdf-menu-sidebar';
 import { PDFMenu } from './pdf-viewer-page/pdf-menu';
 import i18n from '@/assets/lang/i18n';
+import { closeTopLayer, useEscapeLayer } from './pdf-aids/useEscapeLayer';
 GlobalWorkerOptions.workerSrc = PDFWorker;
 
 const { data, options, config } = defineProps<IViewerProps>();
@@ -50,6 +51,11 @@ const toggleDark = () => {
 provide('topbarBg', topbarBg);
 provide('viewerBg', viewerBg);
 provide('isDark', isDark);
+
+// Cards, popups and the lightbox teleport here: inside the scope root (so the
+// scoped styles and dark mode apply) but outside every clipping container.
+const floatLayer = ref<HTMLElement | null>(null);
+provide('floatLayer', floatLayer);
 
 const getTOC = async (
   outline: IPDFOutlineItem[],
@@ -133,17 +139,21 @@ const loadDocument = async () => {
   }
 };
 
+// Escape closes the top layer only (cards, popups, modal, sidebar panel, in
+// the order they opened), then drops a drawing tool. It never zooms, changes
+// the page or leaves the viewer.
+useEscapeLayer(
+  () => docStore.modalContent !== MODAL_CONTENT.NULL,
+  () => docStore.setModalContent(MODAL_CONTENT.NULL)
+);
+useEscapeLayer(
+  () => docStore.sidebarState !== SIDEBAR_STATE.NULL,
+  () => docStore.setSidebarState(SIDEBAR_STATE.NULL)
+);
+
 const handleEscape = () => {
-  if (assistantStore.explainRequest) assistantStore.closeExplain();
-  else if (docStore.modalContent !== MODAL_CONTENT.NULL)
-    docStore.setModalContent(MODAL_CONTENT.NULL);
-  else if (docStore.sidebarState !== SIDEBAR_STATE.NULL)
-    docStore.setSidebarState(SIDEBAR_STATE.NULL);
-  else if (docStore.editTool !== EDIT_TOOL.MOUSE)
-    docStore.editTool = EDIT_TOOL.MOUSE;
-  else if (docStore.scale !== 1) docStore.setScale(1);
-  else if (docStore.activePage !== 1) docStore.activePage = 1;
-  else if (viewerStore.closeFunction) viewerStore.closeFunction();
+  if (closeTopLayer()) return;
+  if (docStore.editTool !== EDIT_TOOL.MOUSE) docStore.editTool = EDIT_TOOL.MOUSE;
 };
 
 onMounted(() => {
@@ -231,7 +241,7 @@ onMounted(() => {
   <!-- Failed container -->
   <div
     v-if="failed"
-    class="flex flex-col h-screen w-screen justify-center items-center text-4xl uppercase font-extrabold text-white font-serif"
+    class="flex flex-col h-screen w-full justify-center items-center text-4xl uppercase font-extrabold text-white font-serif"
     :style="{ backgroundColor: viewerBg }"
     role="alert"
   >
@@ -241,7 +251,7 @@ onMounted(() => {
   <!-- Loading -->
   <div
     v-else-if="!failed && !docStore.pdf"
-    class="flex w-screen h-screen justify-center items-center text-white"
+    class="flex w-full h-screen justify-center items-center text-white"
     :style="{ backgroundColor: viewerBg }"
   >
     <Loader :size="100" color="#0077CC" :label="$t('load')" />
@@ -250,7 +260,7 @@ onMounted(() => {
   <!-- Success container -->
   <div
     v-else
-    class="flex h-screen w-screen overflow-hidden text-white"
+    class="relative flex h-screen w-full overflow-hidden text-white"
     :style="{ backgroundColor: viewerBg }"
     role="region"
     :aria-label="$t('pdf-viewer')"
@@ -311,5 +321,6 @@ onMounted(() => {
       :request="assistantStore.explainRequest"
     />
   </div>
+  <div ref="floatLayer" />
   </div>
 </template>

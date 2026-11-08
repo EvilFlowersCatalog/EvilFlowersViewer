@@ -1,6 +1,7 @@
 {
   "failed-load-pdf": "Failed to load PDF document",
   "enable-edit": "Include edit",
+  "open-fullscreen": "Open full screen",
   "close": "Close",
   "went-wrong": "Something went wrong :/",
   "table-of-content": "Table of Content",
@@ -99,6 +100,8 @@
   "region-figure": "Figure",
   "region-table": "Table",
   "region-equation": "Equation",
+  "beta": "Beta",
+  "beta-hint": "AI feature in beta. Results may be incomplete or inaccurate.",
   "assistant": "Assistant",
   "chat-about-book": "Talking about this publication",
   "chat-new": "New conversation",

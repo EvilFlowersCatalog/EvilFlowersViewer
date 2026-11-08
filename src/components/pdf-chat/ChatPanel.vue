@@ -9,6 +9,7 @@ import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import ChatMessage from './ChatMessage.vue';
 import ChatHistory from './ChatHistory.vue';
 import ContextChip from './ContextChip.vue';
+import { BetaBadge } from '@/components/pdf-aids';
 
 const { t } = useI18n();
 const docStore = useDocumentStore();
@@ -101,8 +102,9 @@ watch(
       <svg aria-hidden="true" class="size-4 text-secondary shrink-0" viewBox="0 0 20 20" fill="none">
         <path d="M10 2.5l1.6 4.2 4.4.3-3.4 2.8 1.1 4.3L10 11.7l-3.7 2.4 1.1-4.3L4 7l4.4-.3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
       </svg>
-      <h2 class="flex-1 text-[13px] font-semibold uppercase tracking-[0.1px]">
+      <h2 class="flex-1 flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-[0.1px]">
         {{ showHistory ? $t('chat-history') : $t('assistant') }}
+        <BetaBadge />
       </h2>
       <button
         v-if="assistantStore.hasHistory()"

@@ -6,7 +6,8 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import type { IRegion } from '@/assets/utils/interfaces';
-import { boxContains, boxStyle, usePagePointer, useStickyHover } from '../usePageHover';
+import { boxContains, boxStyle, boxToViewport, pageViewport, usePagePointer, useStickyHover } from '../usePageHover';
+import { FloatingCard } from '@/components/pdf-aids';
 import RegionCard from './RegionCard.vue';
 
 const props = defineProps<{
@@ -62,8 +63,9 @@ watch(
   { immediate: true }
 );
 
-// Cards on the right half of the page open to the badge's left.
-const cardSide = (region: IRegion) => (region.bbox.x1 > 0.55 ? 'left' : 'right');
+// The card goes beside the region, inside the visible page area.
+const cardAnchor = () => (active.value ? boxToViewport(props.pageBodyRef, active.value.bbox) : null);
+const cardBounds = () => pageViewport(props.pageBodyRef);
 
 const kindIcon: Record<IRegion['kind'], string> = {
   figure: 'M3 5h14v10H3zM3 12l4-4 4 4 2-2 4 4',
@@ -87,7 +89,7 @@ const kindIcon: Record<IRegion['kind'], string> = {
       "
       :style="boxStyle(region.bbox)"
     >
-      <!-- Corner badge (+ its card, as a child so hovering the card keeps it open) -->
+      <!-- Corner badge; hovering it opens the card, a click pins it -->
       <div
         v-if="active?.id === region.id"
         class="absolute -top-2.5 -right-2.5 pointer-events-auto"
@@ -106,16 +108,20 @@ const kindIcon: Record<IRegion['kind'], string> = {
           </svg>
           {{ $t(`region-${region.kind}`) }}
         </button>
-
-        <RegionCard
-          v-if="hover.cardOpen.value"
-          :region="region"
-          :canvas-ref="canvasRef"
-          class="absolute top-7"
-          :class="cardSide(region) === 'right' ? 'left-0' : 'right-0'"
-          @close="hover.close"
-        />
       </div>
     </div>
+
+    <FloatingCard
+      v-if="active && hover.cardOpen.value"
+      :key="active.id"
+      :anchor="cardAnchor"
+      :bounds="cardBounds"
+      @grab="hover.pin"
+      @close="hover.close"
+      @mouseenter="hover.holdEnter"
+      @mouseleave="hover.holdLeave"
+    >
+      <RegionCard :region="active" :canvas-ref="canvasRef" @close="hover.close" />
+    </FloatingCard>
   </div>
 </template>

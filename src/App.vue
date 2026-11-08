@@ -28,6 +28,7 @@ import {
   getChatFunc,
   deleteChatFunc,
   getRegionsFunc,
+  getAllRegionsFunc,
   getAgentAnnotationsFunc,
   requestAgentAnnotationFunc,
   deleteAgentHighlightFunc,
@@ -69,7 +70,7 @@ const options: IViewerOptions = {
     getChatFunc,
     deleteChatFunc,
   },
-  regionPackage: { getRegionsFunc },
+  regionPackage: { getRegionsFunc, getAllRegionsFunc },
   agentAnnotationPackage: {
     getAnnotationsFunc: getAgentAnnotationsFunc,
     requestAnnotationFunc: requestAgentAnnotationFunc,
