@@ -200,7 +200,42 @@ export interface IChatStreamHandlers {
   onPages?: (pages: number[]) => void;
   /** An agent annotation the assistant started (the assistant `annotation` event), usually pending. */
   onAnnotation?: (annotation: IAgentAnnotation) => void;
+  /**
+   * One-line progress label ("Thinking…", "Searching the catalog…"), already
+   * translated by the host. Shown under the last message until text streams or
+   * the turn ends.
+   */
+  onStatus?: (label: string) => void;
+  /**
+   * A tool call of this turn, for the activity log. Sent twice per call:
+   * `done: false` when it starts, `done: true` (same `id`) when it finished.
+   */
+  onActivity?: (activity: IChatActivity) => void;
   onError: (detail: string) => void;
+}
+
+/**
+ * One tool call the assistant made while answering, shown in the collapsible
+ * activity log above the answer. Only kept for the current session; chats
+ * loaded from history show no log.
+ */
+export interface IChatActivity {
+  /** Stable per call within the turn; the `done: true` update replaces the start. */
+  id: string;
+  /** Raw tool name, never shown. */
+  tool: string;
+  /** Translated past-tense verb phrase, e.g. "Searched the catalog", "Read the publication". */
+  label: string;
+  /** Readable query/request the model used. */
+  query?: string;
+  /** Pages read or matched. */
+  pages?: number[];
+  /** Number of results. */
+  count?: number;
+  /** Publications found; only the titles are shown. */
+  entries?: { id?: string; title: string }[];
+  error?: boolean;
+  done: boolean;
 }
 
 /** One past conversation in the chat history list. */

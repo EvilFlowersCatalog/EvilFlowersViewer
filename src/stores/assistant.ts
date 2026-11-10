@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 import type {
   IAgentAnnotation,
   IAgentHighlight,
+  IChatActivity,
   IChatContext,
   IChatMessage,
   IChatSummary,
@@ -137,6 +138,10 @@ export const useAssistantStore = defineStore('assistant', () => {
   const messages = ref<IChatMessage[]>([]);
   const pendingContexts = ref<IChatContext[]>([]);
   const isGenerating = ref(false);
+  // Tool calls per assistant message id (onActivity), only for this session's turns.
+  const activities = ref<Record<string, IChatActivity[]>>({});
+  // The host's one-line progress label (onStatus) for the message being generated.
+  const chatStatus = ref<string | null>(null);
   // The conversation being shown; null until the first message creates one.
   const currentChatId = ref<string | null>(null);
   // Past chats about other publications can be read here but not continued.
@@ -181,13 +186,29 @@ export const useAssistantStore = defineStore('assistant', () => {
     const answer = messages.value[messages.value.length - 1];
 
     isGenerating.value = true;
+    chatStatus.value = null;
     try {
       const sent = await pkg.sendMessageFunc(
         message,
         contexts,
         {
-          onChunk: (chunk) => (answer.text += chunk),
-          onMessage: (full) => (answer.text = full),
+          onChunk: (chunk) => {
+            chatStatus.value = null;
+            answer.text += chunk;
+          },
+          onMessage: (full) => {
+            chatStatus.value = null;
+            answer.text = full;
+          },
+          onStatus: (label) => (chatStatus.value = label || null),
+          onActivity: (activity) => {
+            const list = activities.value[answer.id] ?? [];
+            const index = list.findIndex((a) => a.id === activity.id);
+            const next = [...list];
+            if (index >= 0) next[index] = { ...activity };
+            else next.push({ ...activity });
+            activities.value = { ...activities.value, [answer.id]: next };
+          },
           onEntries: (entries) => (answer.entries = entries),
           onPages: (pages) => (answer.pages = pages),
           onAnnotation: (annotation) => {
@@ -195,6 +216,7 @@ export const useAssistantStore = defineStore('assistant', () => {
             trackAnnotation(annotation);
           },
           onError: (detail) => {
+            chatStatus.value = null;
             answer.status = 'error';
             answer.text = detail;
           },
@@ -210,12 +232,14 @@ export const useAssistantStore = defineStore('assistant', () => {
       answer.text = '';
     } finally {
       isGenerating.value = false;
+      chatStatus.value = null;
     }
   };
 
   const resetChat = () => {
     if (isGenerating.value) return;
     messages.value = [];
+    activities.value = {};
     pendingContexts.value = [];
     currentChatId.value = null;
     isCurrentChatReadOnly.value = false;
@@ -569,6 +593,8 @@ export const useAssistantStore = defineStore('assistant', () => {
     messages,
     pendingContexts,
     isGenerating,
+    activities,
+    chatStatus,
     focusInputTick,
     openChat,
     addContext,

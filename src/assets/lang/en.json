@@ -154,5 +154,10 @@
   "chat-highlights": "AI highlights",
   "chat-highlights-pending": "Marking passages…",
   "chat-highlights-failed": "Could not mark passages",
-  "chat-highlights-count": "{count} highlights · open"
+  "chat-highlights-count": "{count} highlights · open",
+  "chat-activity-show": "Show what the assistant did",
+  "chat-activity-hide": "Hide what the assistant did",
+  "chat-activity-results": "{n} results",
+  "chat-activity-pages": "pages {pages}",
+  "chat-activity-failed": "failed"
 }

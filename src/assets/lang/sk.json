@@ -153,5 +153,10 @@
   "chat-highlights": "AI zvýraznenia",
   "chat-highlights-pending": "Označujem pasáže…",
   "chat-highlights-failed": "Pasáže sa nepodarilo označiť",
-  "chat-highlights-count": "{count} zvýraznení · otvoriť"
+  "chat-highlights-count": "{count} zvýraznení · otvoriť",
+  "chat-activity-show": "Zobraziť, čo asistent robil",
+  "chat-activity-hide": "Skryť, čo asistent robil",
+  "chat-activity-results": "výsledky: {n}",
+  "chat-activity-pages": "s. {pages}",
+  "chat-activity-failed": "zlyhalo"
 }

@@ -35,6 +35,7 @@ export type {
   IChatContext,
   IChatMessage,
   IChatStreamHandlers,
+  IChatActivity,
   IChatPackage,
   IChatSummary,
 } from './assets/utils/interfaces';

@@ -7,12 +7,19 @@ import { useAssistantStore, useDocumentStore } from '@/stores';
 import { Loader } from '@/components/pdf-aids';
 import SuggestionEntryItem from '@/components/pdf-viewer-page/pdf-suggestions/SuggestionEntryItem.vue';
 import ContextChip from './ContextChip.vue';
+import ChatActivityLog from './ChatActivityLog.vue';
 
 const props = defineProps<{ message: IChatMessage }>();
 
 const { t } = useI18n();
 const docStore = useDocumentStore();
 const assistantStore = useAssistantStore();
+
+const streaming = computed(() => props.message.status === 'streaming');
+// Tool calls of this answer (current session only; history has none).
+const activities = computed(() => assistantStore.activities[props.message.id] ?? []);
+// Host progress label; only one answer streams at a time.
+const status = computed(() => (streaming.value ? assistantStore.chatStatus : null));
 
 const html = computed(() =>
   renderMarkdown(props.message.text, {
@@ -63,18 +70,27 @@ const onClick = (event: MouseEvent) => {
 
   <!-- Assistant -->
   <div v-else class="self-start max-w-[92%] flex flex-col gap-2">
+    <!-- What the assistant did while answering (this session only) -->
+    <ChatActivityLog v-if="activities.length" :activities="activities" :running="streaming" />
+
     <div
       class="px-3 py-2 rounded-[10px_10px_10px_2px] bg-field text-[#222] dark:bg-white/5 dark:text-gray-100 text-[12px] leading-[17px] break-words"
     >
-      <div v-if="message.status === 'streaming' && !message.text" class="flex items-center gap-2 text-efv-muted">
-        <span class="size-4 inline-flex shrink-0"><Loader :size="14" color="#0077cc" :label="$t('chat-thinking')" /></span>
-        <span class="text-[11px]">{{ $t('chat-thinking') }}</span>
+      <div v-if="streaming && !message.text" class="flex items-center gap-2 text-efv-muted">
+        <span class="size-4 inline-flex shrink-0"><Loader :size="14" color="#0077cc" :label="status || $t('chat-thinking')" /></span>
+        <span class="text-[11px] truncate">{{ status || $t('chat-thinking') }}</span>
       </div>
       <p v-else-if="message.status === 'error' && !message.text" class="text-[11px] text-red">
         {{ $t('chat-error') }}
       </p>
       <!-- eslint-disable-next-line vue/no-v-html -- sanitized by renderMarkdown -->
       <div v-else class="efv-md" :class="{ 'text-red': message.status === 'error' }" v-html="html" @click="onClick" />
+    </div>
+
+    <!-- Host progress label after some text already streamed (e.g. another tool call) -->
+    <div v-if="streaming && message.text && status" class="flex items-center gap-1.5 text-[11px] leading-[15px] text-efv-muted" role="status">
+      <span class="size-1.5 shrink-0 rounded-full bg-secondary animate-pulse" aria-hidden="true" />
+      <span class="truncate">{{ status }}</span>
     </div>
 
     <!-- Pages the answer was drawn from -->

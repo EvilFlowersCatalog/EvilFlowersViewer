@@ -44,6 +44,8 @@
 
 ### Added
 
+- **Chat activity log**: two optional stream handlers on `IChatStreamHandlers`. `onStatus(label)` shows a one-line progress label ("Searching the catalog…") under the answer until text streams or the turn ends. `onActivity(activity)` reports each tool call (`done: false` on start, `done: true` with the same `id` when finished). The calls collect above the answer as one muted, collapsed line ("Searched the catalog 2×, read the publication"; while running, the current label with a pulsing dot). It expands to a compact list showing the query, result count, pages and "failed", and found publications expand to their titles. The log lives only in the current session; chats opened from history have none. Hosts that don't call the handlers see no change. New exported type `IChatActivity`.
+
 - **Text-selection menu**: selecting text over the PDF now shows a Kopírovať/Podobné/Zvýrazniť/Vysvetliť menu. Kopírovať copies the selection; Zvýrazniť paints it onto the existing drawing overlay as a translucent highlight (same save/undo path as manual drawing); Podobné and Vysvetliť open new popups anchored beside the page body (falling back to the right edge of the screen at extreme zoom).
 - **Suggestions popup**: the previously-dead bottom-right "Odporúčania" button now opens a tabbed (Podobné/Prerekvizity/Pokročilé) card-grid popup above itself, instead of the unused left sidebar panel.
 - 4 new opt-in host hooks on `options`: `openEntryDetailFunction`, `bookmarkToggleFunction`, `suggestionsFunction`, `explainFunction`. Each new UI piece that depends on one hides itself when the hook isn't supplied.
