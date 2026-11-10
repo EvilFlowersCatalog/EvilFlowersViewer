@@ -13,8 +13,22 @@ export interface ICitationLabels {
   region: (id: string) => string;
 }
 
+/**
+ * Citation tokens as the model actually writes them, made canonical: `[[page:7], [page:13]]`,
+ * `[page:7]` and `[[page:7, 13]]` all become one `[[page:N]]` per page (same for regions).
+ */
+export const normalizeCitations = (text: string): string =>
+  text
+    .replace(/\[+\s*page:\s*(\d+(?:\s*,\s*(?:page:\s*)?\d+)+)\s*\]+/g, (_, list: string) =>
+      list
+        .split(',')
+        .map((page) => `[[page:${page.replace(/\D/g, '')}]]`)
+        .join(', ')
+    )
+    .replace(/\[+\s*(page|region):\s*([\w-]+)\s*\]+/g, '[[$1:$2]]');
+
 const inline = (text: string, labels: ICitationLabels) =>
-  escapeHtml(text)
+  escapeHtml(normalizeCitations(text))
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')

@@ -185,6 +185,8 @@ export interface IChatMessage {
   pages?: number[];
   /** Agent annotations the assistant created with this answer, by id. */
   annotationIds?: string[];
+  /** Tool calls of the turn this answer closed, for chats read back from history (the activity log). */
+  activities?: IChatActivity[];
   status?: 'streaming' | 'done' | 'error';
 }
 

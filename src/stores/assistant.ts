@@ -292,7 +292,12 @@ export const useAssistantStore = defineStore('assistant', () => {
     }
     openingChatId.value = chat.id;
     try {
-      messages.value = (await pkg.getChatFunc(chat.id)).map((m) => ({ ...m, status: m.status ?? 'done' }));
+      const loaded = await pkg.getChatFunc(chat.id);
+      messages.value = loaded.map((m) => ({ ...m, activities: undefined, status: m.status ?? 'done' }));
+      // The stored tool log of each answer (hosts that send it), shown like a live one.
+      activities.value = Object.fromEntries(
+        loaded.filter((m) => m.activities?.length).map((m) => [m.id, m.activities!.map((a) => ({ ...a, done: true }))])
+      );
       currentChatId.value = chat.id;
       isCurrentChatReadOnly.value = !chat.aboutThisBook;
       pendingContexts.value = [];
