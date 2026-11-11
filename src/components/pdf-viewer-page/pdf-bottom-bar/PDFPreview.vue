@@ -1,8 +1,18 @@
 <script setup lang="ts">
 import { DESIRED_HEIGHT, MAX_VISIBLE_PAGE } from '@/assets/utils/constans';
+import { RENDER_STATE } from '@/assets/utils/enums';
 import { useDocumentStore } from '@/stores';
 import { BookmarkIcon } from '@/components/pdf-aids';
-import { computed, inject, onMounted, ref, toRaw, watch, type Ref } from 'vue';
+import {
+  computed,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  toRaw,
+  watch,
+  type Ref,
+} from 'vue';
 
 const isDark = inject<Ref<boolean>>('isDark', ref(false));
 
@@ -25,9 +35,27 @@ const rendered = ref<Record<number, boolean>>({});
 const canvasRefs = new Map<number, HTMLCanvasElement>();
 let pdf = toRaw(docStore.previewPdf);
 
+const stripRef = ref<HTMLDivElement | null>(null);
+// Thumbnails render lazily: only pages scrolled into (or near) the strip, and
+// only after the main page has painted, so the strip never competes with it
+// for the pdf.js worker.
+const visible = new Set<number>();
+const inFlight = new Set<number>();
+const mainPainted = ref<boolean>(false);
+let observer: IntersectionObserver | null = null;
+
+const pageOf = (el: Element) => Number((el as HTMLElement).dataset.page);
+
 const setCanvasRef = (el: unknown, key: number) => {
-  if (el) canvasRefs.set(key, el as HTMLCanvasElement);
-  else canvasRefs.delete(key);
+  const previous = canvasRefs.get(key);
+  if (previous && previous !== el) observer?.unobserve(previous);
+  if (el) {
+    canvasRefs.set(key, el as HTMLCanvasElement);
+    observer?.observe(el as HTMLCanvasElement);
+  } else {
+    canvasRefs.delete(key);
+    visible.delete(key);
+  }
 };
 
 const handleScroll = (event: Event) => {
@@ -49,44 +77,75 @@ const handleScroll = (event: Event) => {
 };
 
 const renderPage = async (numPage: number) => {
-  if (!pdf) return;
+  const source = pdf;
+  if (!source || rendered.value[numPage] || inFlight.has(numPage)) return;
+  inFlight.add(numPage);
 
-  const page = await pdf.getPage(numPage);
+  try {
+    const page = await source.getPage(numPage);
 
-  // Scale the page down to the fixed thumbnail height.
-  let viewport = page.getViewport({ scale: 1 });
-  const desiredScale = DESIRED_HEIGHT / viewport.height;
-  viewport = page.getViewport({ scale: desiredScale });
+    // Scale the page down to the fixed thumbnail height.
+    let viewport = page.getViewport({ scale: 1 });
+    const desiredScale = DESIRED_HEIGHT / viewport.height;
+    viewport = page.getViewport({ scale: desiredScale });
 
-  const canvas = canvasRefs.get(numPage);
-  if (!canvas) return;
+    const canvas = canvasRefs.get(numPage);
+    if (!canvas || source !== pdf) return;
 
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
-  canvas.style.width = `${viewport.width}px`;
-  canvas.style.height = `${viewport.height}px`;
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    canvas.style.width = `${viewport.width}px`;
+    canvas.style.height = `${viewport.height}px`;
 
-  // Render page content to the canvas (pdf.js v6: pass the canvas element).
-  await page.render({ canvas, viewport }).promise;
+    // Render page content to the canvas (pdf.js v6: pass the canvas element).
+    await page.render({ canvas, viewport }).promise;
 
-  rendered.value[numPage] = true;
-};
-
-const renderPreview = () => {
-  for (let i = startPage.value; i <= endPage.value; i++) {
-    renderPage(i);
+    if (source === pdf) rendered.value[numPage] = true;
+  } catch (error) {
+    console.error(`Failed to render the thumbnail of page ${numPage}:`, error);
+  } finally {
+    inFlight.delete(numPage);
   }
 };
 
+const renderVisible = () => {
+  if (!mainPainted.value) return;
+  for (const numPage of visible) renderPage(numPage);
+};
+
 onMounted(() => {
-  renderPreview();
+  observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) visible.add(pageOf(entry.target));
+        else visible.delete(pageOf(entry.target));
+      }
+      renderVisible();
+    },
+    // A little ahead of the edge, so a thumbnail is ready as it scrolls in.
+    { root: stripRef.value, rootMargin: '0px 300px' }
+  );
+  for (const canvas of canvasRefs.values()) observer.observe(canvas);
+
+  // PDFPage mounts before the bottom bar and has started its first render by
+  // now. If the strip is mounted later (bottom bar shown again), the page is
+  // already painted and the gate opens at once.
+  openGateIfPainted(docStore.renderState);
 });
 
-// Re-render when the source or the visible window changes.
-watch(
-  () => [pdf, startPage.value, endPage.value],
-  () => renderPreview()
-);
+onBeforeUnmount(() => {
+  observer?.disconnect();
+  observer = null;
+});
+
+// Open the gate once the main page is on screen (or failed and settled).
+function openGateIfPainted(state: RENDER_STATE) {
+  if (state === RENDER_STATE.RENDERED && !mainPainted.value) {
+    mainPainted.value = true;
+    renderVisible();
+  }
+}
+watch(() => docStore.renderState, openGateIfPainted);
 
 // Keep the visible window in sync with the page count.
 watch(
@@ -112,16 +171,20 @@ watch(
   }
 );
 
+// A new document: forget what was painted and redraw what is in view.
 watch(
   () => docStore.previewPdf,
   () => {
     pdf = toRaw(docStore.previewPdf);
+    rendered.value = {};
+    renderVisible();
   }
 );
 </script>
 
 <template>
   <div
+    ref="stripRef"
     class="relative h-full flex items-start gap-[27px] px-4 py-[2px] overflow-x-auto overflow-y-hidden hide-scrollbar"
     role="group"
     :aria-label="$t('thumbnails')"
@@ -144,6 +207,7 @@ watch(
       <!-- Canvas — acts as a button so it is keyboard reachable -->
       <canvas
         :ref="(el) => setCanvasRef(el, key)"
+        :data-page="key"
         class="w-[92px] cursor-pointer shadow-sm rounded-[2px]"
         :class="[
           docStore.activePage === key

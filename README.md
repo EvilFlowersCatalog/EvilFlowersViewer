@@ -34,7 +34,7 @@ directly in the browser. Developed by a university team, it is reliable, efficie
 - Citation export in BibTeX, BibLaTeX, RIS and bibliography
 - Print the entire document or with selected pages
 - Download document
-- Light / dark themes (honours the host-provided theme, defaults to light)
+- Light / dark themes (honours the host-provided theme, else the reader's saved choice, else the system preference)
 - Fullscreen mode
 - Editing document (freehand, shapes, highlighter, eraser, undo/redo) from a drawing rail docked
   beside the page, so it never covers the document
@@ -83,12 +83,13 @@ The viewer is built to be usable with a keyboard and assistive technologies:
   <kbd>←</kbd>/<kbd>→</kbd> page, <kbd>+</kbd>/<kbd>-</kbd> zoom, <kbd>F</kbd> search,
   <kbd>T</kbd> table of contents, <kbd>I</kbd> info, <kbd>S</kbd> share, <kbd>C</kbd>
   citation, <kbd>Esc</kbd> steps back out (explain popup → modal → panel → tool → zoom → page →
-  close). Typing in the chat or the AI highlights box never triggers these shortcuts.
+  close). Typing in any text field, the host's included, never triggers these shortcuts.
 - **Screen readers**: every icon-only button has an accessible name (localized), toggles
   expose `aria-pressed`/`aria-expanded`, the left rail is a `role="toolbar"`, dialogs are
   `role="dialog"` + `aria-modal` with focus trapping, and loaders announce via
   `role="status"`. The rasterized page canvas is `aria-hidden`; the selectable pdf.js text
-  layer carries the readable content.
+  layer carries the readable content, and the current search match is marked on it
+  (`role="mark"`, `aria-current="true"`).
 - **Focus & motion**: a visible `:focus-visible` ring is shown for keyboard users, and all
   animations respect `prefers-reduced-motion`.
 - The viewer root carries a `lang` attribute matching `options.lang` so pronunciation is
@@ -133,9 +134,13 @@ app.unmount();
 | Input                         | Description                                                                         |
 | -------------------------     | ----------------------------------------------------------------------------------- |
 | rootId                        | ID of your component where you use the `renderViewer` function.                     |
-| data                          | TypedArray (e.g. `Uint8Array`) with the PDF bytes.                                  |
+| data                          | TypedArray (e.g. `Uint8Array`) with the PDF bytes. Pass either `data` or `url`.     |
+| url                           | URL of the PDF. pdf.js fetches it itself and shows a progress bar; when the server answers HTTP Range requests (`Accept-Ranges: bytes`, `206`), page 1 renders before the whole file has downloaded. Without Range support the file is streamed whole. |
+| httpHeaders                   | Optional `Record<string, string>` sent with every `url` request, e.g. `Authorization`. |
+| withCredentials               | Optional boolean. Send cookies with cross-origin `url` requests.                    |
+| rangeChunkSize                | Optional number. Bytes per Range request (pdf.js default 65536).                    |
 | options                       | Optional object consisting of theme, language, citationBib, homeFunction, etc.      |
-| options.theme                 | 'dark' or 'light'. Determines the viewer's theme.                                   |
+| options.theme                 | 'dark' or 'light'. Forces the viewer's theme. Without it the viewer uses the reader's last choice of the sun/moon toggle (saved in `localStorage` as `efv-theme`), else the system preference, which it follows live. |
 | options.lang                  | 'sk' or 'en'. Specifies the language of the viewer.                                 |
 | options.citationBib           | String or null. Contains the citation of the document (e.g., `@article{name, ...}`). |
 | options.homeFunction          | Function (type: `() => void`) or null. Redirects to the home view.                  |
@@ -152,6 +157,7 @@ app.unmount();
 | editPackage.saveLayerFunc     | Function (type: `(svg: string, groupId: string, page: number) => Promise<ILayer | null>`). Saves a new layer to a group on a specific page. |
 | editPackage.updateLayerFunc | Function (type: `(id: string, svg: string, groupId: string, page: number) => Promise<void>`). Updates an existing layer in a group on a specific page. |
 | editPackage.getLayerFunc  | Function (type: `(page: number, groupId: string) => Promise<ILayer | null> | null`). Retrieves a layer from a group on a specific page. |
+| editPackage.getLayersFunc | Optional function (type: `(groupId: string) => Promise<IPageLayer[]>`, `IPageLayer` = `{ id, svg, page }`). Returns every layer of the group in one request; the viewer loads them once on entering edit mode, pages missing from the result have no layer, and page flips no longer fetch. On failure the viewer falls back to `getLayerFunc`. With the catalog: `GET /api/v1/annotation-items?annotation_id=<groupId>&paginate=false`. |
 | options.pageBookmarkPackage | Optional `{ getBookmarksFunc, addBookmarkFunc, removeBookmarkFunc }` persisting page bookmarks. Without it bookmarks still work but last only as long as the viewer. |
 | options.openEntryDetailFunction | Function (type: `(entry: ISuggestedEntry) => void`). Opens the host's detail view for a clicked publication card (recommendations, chat). |
 | options.bookmarkToggleFunction | Function (type: `(entry: ISuggestedEntry) => Promise<{ isOnShelf, shelfRecordId? }>`). Adds or removes a card's publication from the reader's shelf. |

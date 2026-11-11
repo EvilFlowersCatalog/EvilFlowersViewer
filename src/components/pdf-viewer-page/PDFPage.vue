@@ -12,7 +12,9 @@ import RegionLayer from './pdf-regions/RegionLayer.vue';
 import AgentHighlightLayer from './pdf-agent/AgentHighlightLayer.vue';
 import { boxStyle } from './usePageHover';
 import type { IPageBox } from '@/assets/utils/interfaces';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
 const assistantStore = useAssistantStore();
@@ -216,6 +218,11 @@ const drawHighlight = (viewport: PageViewport) => {
   ctx.restore();
 };
 
+// Transforms of the text items behind the current text layer, in the order
+// pdf.js created its spans (textLayer.textDivs), so a search hit can be mapped
+// to its span.
+let textItemTransforms: number[][] = [];
+
 const buildTextLayer = async (page: PDFPageProxy, viewport: PageViewport) => {
   const container = textLayerRef.value;
   if (!container) return;
@@ -224,9 +231,51 @@ const buildTextLayer = async (page: PDFPageProxy, viewport: PageViewport) => {
   container.replaceChildren();
 
   const textContentSource = await page.getTextContent();
+  // TextLayer makes one span per item that has `str`, and skips the rest.
+  textItemTransforms = textContentSource.items
+    .filter((item) => 'str' in item)
+    .map((item) => (item as { transform: number[] }).transform);
   textLayer = new TextLayer({ textContentSource, container, viewport });
   await textLayer.render();
   textLayerPage = docStore.activePage;
+};
+
+const sameTransform = (a: number[], b: number[]) =>
+  a.length === b.length && a.every((v, i) => Math.abs(v - b[i]) < 1e-6);
+
+// The canvas is aria-hidden, so the painted highlight alone is invisible to
+// screen readers. Mark the matching text-layer span as the current match too.
+const markSearchHit = () => {
+  const container = textLayerRef.value;
+  if (!container) return;
+
+  container.querySelectorAll('[data-search-hit]').forEach((el) => {
+    el.removeAttribute('data-search-hit');
+    el.removeAttribute('role');
+    el.removeAttribute('aria-current');
+    el.removeAttribute('aria-roledescription');
+  });
+
+  const hl = docStore.searchHighlight;
+  if (!hl?.transform || !textLayer || hl.page !== textLayerPage) return;
+
+  const index = textItemTransforms.findIndex((tr) =>
+    sameTransform(tr, hl.transform)
+  );
+  const span = index >= 0 ? textLayer.textDivs[index] : undefined;
+  if (!span) return;
+
+  span.setAttribute('data-search-hit', '');
+  span.setAttribute('role', 'mark');
+  span.setAttribute('aria-current', 'true');
+  span.setAttribute('aria-roledescription', t('search-hit'));
+};
+
+// A failed render must not leave the page loader spinning forever. The error
+// still propagates to the viewer's error boundary, which shows a notice.
+const settleOnError = (error: unknown) => {
+  docStore.renderState = RENDER_STATE.RENDERED;
+  throw error;
 };
 
 // Full render: new page (or first paint). Rasterises the canvas and (re)builds
@@ -235,18 +284,23 @@ const renderPage = async () => {
   if (!pdf) return;
   docStore.renderState = RENDER_STATE.RENDERING;
 
-  links.value = [];
-  const page = await pdf.getPage(docStore.activePage);
-  const viewport = page.getViewport({ scale: docStore.scale });
-  docStore.canvasWidth = viewport.width;
-  docStore.canvasHeight = viewport.height;
+  try {
+    links.value = [];
+    const page = await pdf.getPage(docStore.activePage);
+    const viewport = page.getViewport({ scale: docStore.scale });
+    docStore.canvasWidth = viewport.width;
+    docStore.canvasHeight = viewport.height;
 
-  if (!(await paintCanvas(page, viewport))) return; // superseded
-  await buildTextLayer(page, viewport);
-  drawHighlight(viewport);
+    if (!(await paintCanvas(page, viewport))) return; // superseded
+    await buildTextLayer(page, viewport);
+    drawHighlight(viewport);
+    markSearchHit();
 
-  docStore.renderState = RENDER_STATE.RENDERED;
-  collectLinks(page);
+    docStore.renderState = RENDER_STATE.RENDERED;
+    collectLinks(page);
+  } catch (error) {
+    settleOnError(error);
+  }
 };
 
 // Zoom: re-rasterise the canvas for crispness, but only reflow the existing
@@ -255,21 +309,26 @@ const rescale = async () => {
   if (!pdf) return;
   docStore.renderState = RENDER_STATE.RENDERING;
 
-  const page = await pdf.getPage(docStore.activePage);
-  const viewport = page.getViewport({ scale: docStore.scale });
-  docStore.canvasWidth = viewport.width;
-  docStore.canvasHeight = viewport.height;
+  try {
+    const page = await pdf.getPage(docStore.activePage);
+    const viewport = page.getViewport({ scale: docStore.scale });
+    docStore.canvasWidth = viewport.width;
+    docStore.canvasHeight = viewport.height;
 
-  if (!(await paintCanvas(page, viewport))) return;
+    if (!(await paintCanvas(page, viewport))) return;
 
-  if (textLayer && textLayerPage === docStore.activePage) {
-    textLayer.update({ viewport });
-  } else {
-    await buildTextLayer(page, viewport);
+    if (textLayer && textLayerPage === docStore.activePage) {
+      textLayer.update({ viewport });
+    } else {
+      await buildTextLayer(page, viewport);
+    }
+    drawHighlight(viewport);
+    markSearchHit();
+
+    docStore.renderState = RENDER_STATE.RENDERED;
+  } catch (error) {
+    settleOnError(error);
   }
-  drawHighlight(viewport);
-
-  docStore.renderState = RENDER_STATE.RENDERED;
 };
 
 // Cheap repaint used when only the search highlight changes on the current
@@ -280,6 +339,7 @@ const repaint = async () => {
   const page = await pdf.getPage(docStore.activePage);
   const viewport = page.getViewport({ scale: docStore.scale });
   if (await paintCanvas(page, viewport)) drawHighlight(viewport);
+  markSearchHit();
 };
 
 onMounted(renderPage);

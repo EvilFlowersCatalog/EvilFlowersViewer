@@ -1,6 +1,6 @@
 {
   "name": "@evilflowers/evilflowersviewer",
-  "version": "0.7.7",
+  "version": "0.7.8",
   "main": "dist/evilFlowersViewer.umd.js",
   "module": "dist/evilFlowersViewer.es.js",
   "types": "dist/main.d.ts",
@@ -30,8 +30,6 @@
     "print-js": "^1.6.0",
     "qrcode": "^1.5.4",
     "qrcode.vue": "^3.10.0",
-    "vite-plugin-dts": "^5.0.3",
-    "vite-plugin-svgr": "^5.2.0",
     "vue": "^3.5.40",
     "vue-3-slider-component": "^1.0.2",
     "vue-i18n": "^11.4.6"
@@ -51,6 +49,8 @@
     "tailwindcss": "^3.4.19",
     "typescript": "^6.0.3",
     "vite": "^8.1.5",
+    "vite-plugin-dts": "^5.0.3",
+    "vite-plugin-svgr": "^5.2.0",
     "vite-plugin-vue-devtools": "^8.1.5",
     "vue-tsc": "^3.3.7"
   }

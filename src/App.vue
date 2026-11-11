@@ -15,6 +15,7 @@ import {
   exampleShareFunction,
   exampleSuggestionsFunction,
   getLayerFunc,
+  getLayersFunc,
   homeFunction,
   saveLayerFunc,
   updateLayerFunc,
@@ -81,6 +82,7 @@ const options: IViewerOptions = {
     saveLayerFunc,
     updateLayerFunc,
     getLayerFunc,
+    getLayersFunc,
     getGroupsFunc,
     saveGroupFunc,
   },
@@ -92,7 +94,16 @@ const options: IViewerOptions = {
   lang: 'sk',
 };
 
+// `?source=url` exercises the streamed path: pdf.js fetches the sample itself,
+// with HTTP Range requests when the server allows them (small chunks, so the
+// 206s are easy to see). `?url=<pdf>` loads another file the same way; the
+// Vite dev server does not answer Range, a static server that does will.
+const query = new URLSearchParams(window.location.search);
+const sourceUrl = query.get('url') ?? pdf;
+const useUrl = query.get('source') === 'url' || query.has('url');
+
 onMounted(async () => {
+  if (useUrl) return;
   const response = await fetch(pdf);
   const arrayBuffer = await response.arrayBuffer();
 
@@ -101,7 +112,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="!data" class="flex w-screen h-screen justify-center items-center">
+  <PDFViewer
+    v-if="useUrl"
+    :url="sourceUrl"
+    :range-chunk-size="16384"
+    :config="config"
+    :options="options"
+  />
+  <div v-else-if="!data" class="flex w-screen h-screen justify-center items-center">
     <Loader :size="100" color="#4a9cff" />
   </div>
   <PDFViewer v-else :data="data" :config="config" :options="options" />

@@ -158,5 +158,15 @@
   "chat-activity-hide": "Skryť, čo asistent robil",
   "chat-activity-results": "výsledky: {n}",
   "chat-activity-pages": "s. {pages}",
-  "chat-activity-failed": "zlyhalo"
+  "chat-activity-failed": "zlyhalo",
+  "retry": "Skúsiť znova",
+  "load-error-network": "Súbor sa nepodarilo stiahnuť.",
+  "load-error-invalid": "Súbor nie je platné PDF.",
+  "load-error-password": "Dokument je chránený heslom.",
+  "load-error-unknown": "Nastala neočakávaná chyba.",
+  "load-progress": "Načítava sa {percent} %",
+  "load-progress-bytes": "Načítava sa {size}",
+  "render-error": "Časť prehliadača sa nepodarilo zobraziť.",
+  "dismiss": "Zavrieť",
+  "search-hit": "Výsledok hľadania"
 }

@@ -30,6 +30,8 @@ const saveQueue = ref<Map<number, Promise<void>>>(new Map()); // Track ongoing s
 const autoSaveTimeouts = ref<Map<number, number>>(new Map()); // Debounce timeouts for auto-save
 const undoStacks = ref<Map<number, string[]>>(new Map()); // Per-page undo history (SVG innerHTML snapshots)
 const redoStacks = ref<Map<number, string[]>>(new Map()); // Per-page redo history
+// Set once the group is known and the layer cache is warmed (bulk load or not).
+const layersReady = ref<boolean>(false);
 
 const debouncedAutoSave = (immediate: boolean = false) => {
   if (!svgRef.value || !docStore.groupId || currentPageForSvg.value === null) return;
@@ -312,9 +314,8 @@ const draw = ({ clientX, clientY }: MouseEvent) => {
     path.value = path.value + `L${x},${y} `;
     entity.value?.setAttribute('d', path.value);
   }
-  
-  // Use debounced save during drawing for better performance
-  debouncedAutoSave();
+  // No save here: endDrawing saves the finished stroke once. Saving mid-stroke
+  // re-sent the whole page SVG on every pause of the pointer.
 };
 
 // Function for ending the drawing
@@ -416,20 +417,52 @@ watch(
   }
 );
 
+// Fills the layer cache for every page of the group from one bulk request.
+// Pages the response does not mention have no layer, so they are cached as
+// null and a page flip never asks the host again. Returns false when the host
+// has no bulk loader or it failed; the per-page getLayerFunc then takes over.
+const warmLayerCache = async (groupId: string): Promise<boolean> => {
+  const getLayers = viewerStore.editPackage?.getLayersFunc;
+  if (!getLayers) return false;
+
+  docStore.layerState = LAYER_STATE.LOADING;
+  try {
+    const layers = await getLayers(groupId);
+    for (let page = 1; page <= docStore.totalPages; page++) {
+      layerCache.value.set(`${groupId}-${page}`, null);
+    }
+    for (const { page, ...layer } of layers) {
+      layerCache.value.set(`${groupId}-${page}`, layer);
+    }
+    return true;
+  } catch (error) {
+    console.error('Failed to load annotation layers in bulk:', error);
+    return false;
+  }
+};
+
 onMounted(async () => {
   // Get groups
   const groups = await viewerStore.editPackage!.getGroupsFunc();
 
   // If there is no group create one
+  let groupId: string;
   if (groups.length === 0) {
     const { response } = await viewerStore.editPackage!.saveGroupFunc(
       'edit-group'
     );
-    docStore.groupId = response.id;
+    groupId = response.id;
   } else {
     // else assigne existing one
-    docStore.groupId = groups[0].id;
+    groupId = groups[0].id;
   }
+
+  // Warm the cache before the page watcher may load anything, so it finds the
+  // current page already cached. The store's groupId may still be set from an
+  // earlier mount (edit toggled off and on); saves in flight keep using it.
+  await warmLayerCache(groupId);
+  docStore.groupId = groupId;
+  layersReady.value = true;
 
   docStore.undoFn = performUndo;
   docStore.redoFn = performRedo;
@@ -465,9 +498,9 @@ onUnmounted(async () => {
 });
 
 watch(
-  () => [docStore.activePage, svgRef.value, docStore.groupId],
+  () => [docStore.activePage, svgRef.value, docStore.groupId, layersReady.value],
   async () => {
-    if (!docStore.groupId) return;
+    if (!docStore.groupId || !layersReady.value) return;
     
     const pageToLoad = docStore.activePage;
     

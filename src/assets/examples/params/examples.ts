@@ -9,6 +9,7 @@ import type {
   IExplainResult,
   ILayer,
   IPageBookmark,
+  IPageLayer,
   IPageBox,
   IRegion,
   ISuggestedEntry,
@@ -66,6 +67,16 @@ export const getLayerFunc = async (
   
   return layer || null;
 };
+
+// Bulk variant: every layer of the group in one call, keyed by page.
+export const getLayersFunc = async (groupId: string): Promise<IPageLayer[]> => {
+  await delay(2000);
+
+  const prefix = `${groupId}-`;
+  return Array.from(layerStore.entries())
+    .filter(([key]) => key.startsWith(prefix))
+    .map(([key, layer]) => ({ ...layer, page: Number(key.slice(prefix.length)) }));
+};
 export const saveGroupFunc = async (name: string) => {
   await delay(2000);
 
@@ -104,7 +115,10 @@ export const examplePrintFunction = async (pages: string | null) => {
   };
 
   await delay(2000);
-  return 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley';
+  // A real PDF, so the print path can be exercised end to end. The host's
+  // link would be a print copy of the selected pages.
+  console.debug('print', params);
+  return new URL(samplePdf, window.location.href).href;
 };
 
 export const homeFunction = () => {

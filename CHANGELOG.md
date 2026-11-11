@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.7.8 : 2026-11-11
+
+### Added
+
+- **Open a PDF by URL** (#136): `url`, with optional `httpHeaders`, `withCredentials` and `rangeChunkSize`, next to `data` on `renderPDFViewer(...)`. pdf.js fetches the file itself. When the server answers HTTP Range requests, page 1 renders before the rest has downloaded and the host no longer holds the whole file in memory. `data` works as before. The table of contents is read after the first page, so it never holds it back. New exported type `IDocumentSource`.
+- **Load progress**: a progress bar with a percentage while the document loads, or the bytes received when the server sends no length.
+- **Bulk annotation layers** (#137): optional `editPackage.getLayersFunc(groupId)` returns every layer of the group in one request (`IPageLayer` = `{ id, svg, page }`). Edit mode loads them once on entry, and page flips no longer fetch. Without it, or if it fails, `getLayerFunc` is used per page as before. With the catalog it is `GET /api/v1/annotation-items?annotation_id=<groupId>&paginate=false`.
+- **Retry on failure** (#140): the failure screen says why (could not download, not a PDF, password protected) and has a **Try again** button.
+- **Error boundary**: an error in any part of the viewer is logged and shown as a dismissible notice instead of blanking the viewer. A failed page render no longer leaves the page loader spinning.
+
+### Changed
+
+- **Theme** (#140): `options.theme` still wins. Without it the viewer uses the reader's last sun/moon choice (saved in `localStorage` as `efv-theme`), else the system `prefers-color-scheme`, which it follows live until the reader picks one.
+- **Printing** (#139): the print copy from `printFunction` goes to print-js by URL. pdf.js no longer parses it again and it is no longer base64-encoded on the main thread, so large documents no longer freeze the UI. A failed print shows the error instead of a loader that never stops.
+- **Thumbnails** (#140): each thumbnail renders once, when it scrolls into view, and only after the main page has painted. Before, a whole window of them rendered at once on mount.
+- **Drawing autosave** (#140): a stroke is saved once when it ends, instead of re-sending the whole page SVG during the stroke.
+- **Shortcuts** (#140): keys typed into any text field, the host's included, never trigger viewer shortcuts. Escape still closes the top layer.
+- **Screen readers** (#140): the current search match is marked on its text-layer span (`role="mark"`, `aria-current`), not only painted on the hidden canvas.
+
+### Build
+
+- **Publish workflow** (#147): the release job runs `npm ci` against the lockfile. Before, the `Setup` step deleted the lockfile, never ran `npm ci`, and resolved every dependency fresh.
+- `vite-plugin-dts` and `vite-plugin-svgr` moved to `devDependencies`, so hosts no longer install them.
+
 ## 0.7.6 : 2026-11-04
 
 ### Added

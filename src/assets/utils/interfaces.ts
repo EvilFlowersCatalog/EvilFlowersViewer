@@ -292,6 +292,18 @@ export interface IEditPackage {
     page: number
   ) => Promise<void>;
   getLayerFunc: (page: number, groupId: string) => Promise<ILayer | null> | null;
+  /**
+   * Optional bulk loader: every layer of the group in one request. When given,
+   * the viewer warms its layer cache once on entering edit mode and page flips
+   * no longer fetch; pages missing from the result have no layer. If it fails,
+   * the viewer falls back to `getLayerFunc` per page.
+   */
+  getLayersFunc?: ((groupId: string) => Promise<IPageLayer[]>) | null;
+}
+
+/** A layer together with the 1-based page it belongs to (`getLayersFunc`). */
+export interface IPageLayer extends ILayer {
+  page: number;
 }
 
 /**
@@ -375,8 +387,23 @@ export interface IViewerOptions {
   readerHighlightPackage?: IReaderHighlightPackage | null;
 }
 
-export interface IViewerProps {
-  data: TypedArray;
+/**
+ * Where the PDF comes from. Pass either `data` (the bytes, already in memory)
+ * or `url`. With `url`, pdf.js fetches the file itself and, when the server
+ * answers HTTP Range requests, renders page 1 before the rest has downloaded.
+ */
+export interface IDocumentSource {
+  data?: TypedArray | null;
+  url?: string | null;
+  /** Extra request headers for `url`, e.g. `Authorization`. */
+  httpHeaders?: Record<string, string> | null;
+  /** Send cookies with cross-origin `url` requests. */
+  withCredentials?: boolean;
+  /** Bytes per Range request (pdf.js default 65536). */
+  rangeChunkSize?: number | null;
+}
+
+export interface IViewerProps extends IDocumentSource {
   options?: IViewerOptions;
   config?: IViewerConfig;
 }
@@ -388,9 +415,8 @@ export interface IViewerConfig {
   edit?: boolean;
 }
 
-export interface IRenderViewerProps {
+export interface IRenderViewerProps extends IDocumentSource {
   rootId: string;
-  data: TypedArray;
   options?: IViewerOptions | null;
   config?: IViewerConfig | null;
 }

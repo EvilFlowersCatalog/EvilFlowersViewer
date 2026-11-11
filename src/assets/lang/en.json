@@ -159,5 +159,15 @@
   "chat-activity-hide": "Hide what the assistant did",
   "chat-activity-results": "{n} results",
   "chat-activity-pages": "pages {pages}",
-  "chat-activity-failed": "failed"
+  "chat-activity-failed": "failed",
+  "retry": "Try again",
+  "load-error-network": "The file could not be downloaded.",
+  "load-error-invalid": "The file is not a valid PDF.",
+  "load-error-password": "The document is password protected.",
+  "load-error-unknown": "An unexpected error occurred.",
+  "load-progress": "Loading {percent} %",
+  "load-progress-bytes": "Loading {size}",
+  "render-error": "Part of the viewer failed to display.",
+  "dismiss": "Dismiss",
+  "search-hit": "Search match"
 }
