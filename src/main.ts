@@ -18,6 +18,8 @@ export type {
   IViewerOptions,
   IViewerConfig,
   IRenderViewerProps,
+  IDocumentSource,
+  IPageLayer,
   ISuggestedEntry,
   IExplainResult,
   IExplainContext,
@@ -34,7 +36,9 @@ export type {
   IReaderHighlightPackage,
   IChatContext,
   IChatMessage,
+  IChatCitation,
   IChatStreamHandlers,
+  IChatActivity,
   IChatPackage,
   IChatSummary,
 } from './assets/utils/interfaces';
@@ -47,11 +51,11 @@ export type { SUGGESTION_KIND } from './assets/utils/enums';
  */
 const renderPDFViewer = ({
   rootId,
-  data,
   options = null,
   config = null,
+  ...source
 }: IRenderViewerProps): App => {
-  const app = createApp(PDFViewer, { data, options, config });
+  const app = createApp(PDFViewer, { ...source, options, config });
 
   app.use(i18n);
   app.use(createPinia());

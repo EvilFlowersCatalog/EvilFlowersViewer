@@ -9,6 +9,7 @@ import type {
   IExplainResult,
   ILayer,
   IPageBookmark,
+  IPageLayer,
   IPageBox,
   IRegion,
   ISuggestedEntry,
@@ -66,6 +67,16 @@ export const getLayerFunc = async (
   
   return layer || null;
 };
+
+// Bulk variant: every layer of the group in one call, keyed by page.
+export const getLayersFunc = async (groupId: string): Promise<IPageLayer[]> => {
+  await delay(2000);
+
+  const prefix = `${groupId}-`;
+  return Array.from(layerStore.entries())
+    .filter(([key]) => key.startsWith(prefix))
+    .map(([key, layer]) => ({ ...layer, page: Number(key.slice(prefix.length)) }));
+};
 export const saveGroupFunc = async (name: string) => {
   await delay(2000);
 
@@ -104,7 +115,10 @@ export const examplePrintFunction = async (pages: string | null) => {
   };
 
   await delay(2000);
-  return 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley';
+  // A real PDF, so the print path can be exercised end to end. The host's
+  // link would be a print copy of the selected pages.
+  console.debug('print', params);
+  return new URL(samplePdf, window.location.href).href;
 };
 
 export const homeFunction = () => {
@@ -597,6 +611,8 @@ export const exampleChatSendFunction = async (
       pages = list;
       handlers.onPages?.(list);
     },
+    onStatus: handlers.onStatus,
+    onActivity: handlers.onActivity,
     onError: handlers.onError,
   };
 
@@ -614,8 +630,28 @@ const answerChat = async (
   handlers: IChatStreamHandlers,
   meta: { page: number }
 ) => {
-  await delay(500);
   const wantsBooks = /knih|book|odporu|recommend|podobn|similar/i.test(message);
+
+  // Progress label + activity log, like the portal's assistant SSE.
+  handlers.onStatus?.('Premýšľam…');
+  await delay(400);
+  handlers.onStatus?.('Čítam publikáciu…');
+  const read = { id: 'call-1', tool: 'read_pages', label: 'Prečítal publikáciu', query: 'kapitola o téme otázky' };
+  handlers.onActivity?.({ ...read, done: false });
+  await delay(500);
+  handlers.onActivity?.({ ...read, pages: [meta.page, meta.page + 1, meta.page + 2], done: true });
+  if (wantsBooks) {
+    handlers.onStatus?.('Prehľadávam katalóg…');
+    const search = { id: 'call-2', tool: 'search_catalog', label: 'Prehľadal katalóg', query: message.slice(0, 60) };
+    handlers.onActivity?.({ ...search, done: false });
+    await delay(500);
+    handlers.onActivity?.({
+      ...search,
+      count: 3,
+      entries: exampleEntries.slice(0, 3).map((e) => ({ id: e.id, title: e.title })),
+      done: true,
+    });
+  }
 
   const paragraphs = [
     ...contexts.map(describeContext),

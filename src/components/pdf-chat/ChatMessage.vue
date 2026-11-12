@@ -3,16 +3,31 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { IChatMessage } from '@/assets/utils/interfaces';
 import { renderMarkdown } from '@/assets/utils/markdown';
-import { useAssistantStore, useDocumentStore } from '@/stores';
+import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import { Loader } from '@/components/pdf-aids';
 import SuggestionEntryItem from '@/components/pdf-viewer-page/pdf-suggestions/SuggestionEntryItem.vue';
 import ContextChip from './ContextChip.vue';
+import ChatActivityLog from './ChatActivityLog.vue';
 
 const props = defineProps<{ message: IChatMessage }>();
 
 const { t } = useI18n();
 const docStore = useDocumentStore();
 const assistantStore = useAssistantStore();
+const viewerStore = useViewerStore();
+
+const streaming = computed(() => props.message.status === 'streaming');
+// Tool calls of this answer (current session only; history has none).
+const activities = computed(() => assistantStore.activities[props.message.id] ?? []);
+// Host progress label; only one answer streams at a time.
+const status = computed(() => (streaming.value ? assistantStore.chatStatus : null));
+
+const findCitation = (label: string) => props.message.citations?.find((c) => c.label.toUpperCase() === label);
+
+// What each evidence chip points to, listed under the answer in label order.
+const sortedCitations = computed(() =>
+  [...(props.message.citations ?? [])].sort((a, b) => Number(a.label.slice(1)) - Number(b.label.slice(1)))
+);
 
 const html = computed(() =>
   renderMarkdown(props.message.text, {
@@ -21,8 +36,25 @@ const html = computed(() =>
       const region = assistantStore.findRegion(id);
       return region ? t(`region-${region.kind}`) : t('region-figure');
     },
+    // Evidence labels: tooltip "Title, p. N"; a label the answer's citations lack stays plain text.
+    evidence: (label) => {
+      const citation = findCitation(label);
+      // Streaming: citations arrive with the complete answer, so the label is an inert chip until then.
+      if (!citation) return streaming.value ? '' : null;
+      const page = citation.page ? t('page-short', { page: citation.page }) : '';
+      return [citation.title, page].filter(Boolean).join(', ') || label;
+    },
   })
 );
+
+// Open publication at that page; another publication goes to the host.
+const openCitation = (label: string) => {
+  const citation = findCitation(label);
+  if (!citation) return;
+  const pkg = viewerStore.chatPackage;
+  if (citation.page && pkg?.entryId && citation.entryId === pkg.entryId) goToPage(citation.page);
+  else pkg?.openCitationFunc?.(citation);
+};
 
 // Citations are rendered as plain buttons inside v-html; one delegated handler.
 const goToPage = (page: number) => {
@@ -41,7 +73,10 @@ const onClick = (event: MouseEvent) => {
   if (!cite) return;
   const page = cite.dataset.page;
   const regionId = cite.dataset.region;
-  if (page) {
+  const evidence = cite.dataset.evidence;
+  if (evidence) {
+    openCitation(evidence);
+  } else if (page) {
     goToPage(Number(page));
   } else if (regionId) {
     const region = assistantStore.findRegion(regionId);
@@ -63,18 +98,45 @@ const onClick = (event: MouseEvent) => {
 
   <!-- Assistant -->
   <div v-else class="self-start max-w-[92%] flex flex-col gap-2">
+    <!-- What the assistant did while answering (this session only) -->
+    <ChatActivityLog v-if="activities.length" :activities="activities" :running="streaming" />
+
     <div
       class="px-3 py-2 rounded-[10px_10px_10px_2px] bg-field text-[#222] dark:bg-white/5 dark:text-gray-100 text-[12px] leading-[17px] break-words"
     >
-      <div v-if="message.status === 'streaming' && !message.text" class="flex items-center gap-2 text-efv-muted">
-        <span class="size-4 inline-flex shrink-0"><Loader :size="14" color="#0077cc" :label="$t('chat-thinking')" /></span>
-        <span class="text-[11px]">{{ $t('chat-thinking') }}</span>
+      <div v-if="streaming && !message.text" class="flex items-center gap-2 text-efv-muted">
+        <span class="size-4 inline-flex shrink-0"><Loader :size="14" color="#0077cc" :label="status || $t('chat-thinking')" /></span>
+        <span class="text-[11px] truncate">{{ status || $t('chat-thinking') }}</span>
       </div>
       <p v-else-if="message.status === 'error' && !message.text" class="text-[11px] text-red">
         {{ $t('chat-error') }}
       </p>
       <!-- eslint-disable-next-line vue/no-v-html -- sanitized by renderMarkdown -->
       <div v-else class="efv-md" :class="{ 'text-red': message.status === 'error' }" v-html="html" @click="onClick" />
+    </div>
+
+    <!-- Host progress label after some text already streamed (e.g. another tool call) -->
+    <div v-if="streaming && message.text && status" class="flex items-center gap-1.5 text-[11px] leading-[15px] text-efv-muted" role="status">
+      <span class="size-1.5 shrink-0 rounded-full bg-secondary animate-pulse" aria-hidden="true" />
+      <span class="truncate">{{ status }}</span>
+    </div>
+
+    <!-- What each evidence chip in the answer points to -->
+    <div v-if="sortedCitations.length && !streaming" class="flex flex-col gap-1 text-[10px] text-efv-muted">
+      <span>{{ $t('chat-sources') }}:</span>
+      <button
+        v-for="citation in sortedCitations"
+        :key="citation.label"
+        type="button"
+        class="group flex items-baseline gap-1.5 text-left min-w-0"
+        @click="openCitation(citation.label.toUpperCase())"
+      >
+        <span class="efv-cite">{{ citation.label.slice(1) }}</span>
+        <span class="min-w-0 text-[#333] dark:text-gray-200 group-hover:underline">
+          {{ citation.title || citation.entryId }}<template v-if="citation.page">, {{ $t('page-short', { page: citation.page }) }}</template>
+          <span v-if="citation.section" class="text-efv-muted"> · {{ citation.section }}</span>
+        </span>
+      </button>
     </div>
 
     <!-- Pages the answer was drawn from -->

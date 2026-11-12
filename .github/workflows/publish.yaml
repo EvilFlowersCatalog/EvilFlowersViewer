@@ -18,11 +18,10 @@ jobs:
         with:
           node-version: '24.x' 
           registry-url: 'https://registry.npmjs.org'
-      - name: Setup
-        run: rm -rf node_modules pnpm-lock.yaml package-lock.json .npm/_cacache
-          npm ci
-      - name: Install Node types
-        run: npm install --save-dev @types/node
+      # Installs exactly what package-lock.json pins (@types/node included, it
+      # is a devDependency), so a release ships what was tested.
+      - name: Install
+        run: npm ci
       - name: Build
         run: npm run build
       - name: Publish

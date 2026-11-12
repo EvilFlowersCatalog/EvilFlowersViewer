@@ -170,6 +170,20 @@ export type IChatContext =
   | { kind: 'region'; region: IRegion }
   | { kind: 'highlight'; annotationId: string; highlight: IAgentHighlight };
 
+/**
+ * A passage the answer cites with an evidence label (`[E3]`), resolved by the
+ * host to a publication and page (catalog IP-024, the assistant `citations` event).
+ */
+export interface IChatCitation {
+  /** Normalised label, e.g. `E3`. */
+  label: string;
+  entryId: string;
+  title?: string;
+  /** 1-based page in the cited publication. */
+  page?: number;
+  section?: string;
+}
+
 export interface IChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -183,8 +197,12 @@ export interface IChatMessage {
   entries?: ISuggestedEntry[];
   /** Pages the answer was drawn from, shown as links under it. */
   pages?: number[];
+  /** Evidence labels the answer cites (`[E3]`). A label missing here renders as plain text, not a link. */
+  citations?: IChatCitation[];
   /** Agent annotations the assistant created with this answer, by id. */
   annotationIds?: string[];
+  /** Tool calls of the turn this answer closed, for chats read back from history (the activity log). */
+  activities?: IChatActivity[];
   status?: 'streaming' | 'done' | 'error';
 }
 
@@ -198,9 +216,46 @@ export interface IChatStreamHandlers {
   onEntries: (entries: ISuggestedEntry[]) => void;
   /** Pages the answer was drawn from (the assistant `pages` event). */
   onPages?: (pages: number[]) => void;
+  /** Evidence labels of the answer resolved to publication and page (the assistant `citations` event). */
+  onCitations?: (citations: IChatCitation[]) => void;
   /** An agent annotation the assistant started (the assistant `annotation` event), usually pending. */
   onAnnotation?: (annotation: IAgentAnnotation) => void;
+  /**
+   * One-line progress label ("Thinking…", "Searching the catalog…"), already
+   * translated by the host. Shown under the last message until text streams or
+   * the turn ends.
+   */
+  onStatus?: (label: string) => void;
+  /**
+   * A tool call of this turn, for the activity log. Sent twice per call:
+   * `done: false` when it starts, `done: true` (same `id`) when it finished.
+   */
+  onActivity?: (activity: IChatActivity) => void;
   onError: (detail: string) => void;
+}
+
+/**
+ * One tool call the assistant made while answering, shown in the collapsible
+ * activity log above the answer. Only kept for the current session; chats
+ * loaded from history show no log.
+ */
+export interface IChatActivity {
+  /** Stable per call within the turn; the `done: true` update replaces the start. */
+  id: string;
+  /** Raw tool name, never shown. */
+  tool: string;
+  /** Translated past-tense verb phrase, e.g. "Searched the catalog", "Read the publication". */
+  label: string;
+  /** Readable query/request the model used. */
+  query?: string;
+  /** Pages read or matched. */
+  pages?: number[];
+  /** Number of results. */
+  count?: number;
+  /** Publications found; only the titles are shown. */
+  entries?: { id?: string; title: string }[];
+  error?: boolean;
+  done: boolean;
 }
 
 /** One past conversation in the chat history list. */
@@ -237,6 +292,13 @@ export interface IChatPackage {
   getChatFunc?: ((chatId: string) => Promise<IChatMessage[]>) | null;
   /** Deletes a past chat. Omitting it hides the delete buttons. */
   deleteChatFunc?: ((chatId: string) => Promise<void>) | null;
+  /** Id of the publication open in the viewer: an evidence citation of it jumps to its page here. */
+  entryId?: string | null;
+  /**
+   * Opens an evidence citation of another publication (the viewer at that page,
+   * or its detail). Without it such citations are chips with a tooltip only.
+   */
+  openCitationFunc?: ((citation: IChatCitation) => void) | null;
 }
 
 /** Host hooks for the annotation/edit layer (create + persist SVG layers). */
@@ -255,6 +317,18 @@ export interface IEditPackage {
     page: number
   ) => Promise<void>;
   getLayerFunc: (page: number, groupId: string) => Promise<ILayer | null> | null;
+  /**
+   * Optional bulk loader: every layer of the group in one request. When given,
+   * the viewer warms its layer cache once on entering edit mode and page flips
+   * no longer fetch; pages missing from the result have no layer. If it fails,
+   * the viewer falls back to `getLayerFunc` per page.
+   */
+  getLayersFunc?: ((groupId: string) => Promise<IPageLayer[]>) | null;
+}
+
+/** A layer together with the 1-based page it belongs to (`getLayersFunc`). */
+export interface IPageLayer extends ILayer {
+  page: number;
 }
 
 /**
@@ -338,8 +412,23 @@ export interface IViewerOptions {
   readerHighlightPackage?: IReaderHighlightPackage | null;
 }
 
-export interface IViewerProps {
-  data: TypedArray;
+/**
+ * Where the PDF comes from. Pass either `data` (the bytes, already in memory)
+ * or `url`. With `url`, pdf.js fetches the file itself and, when the server
+ * answers HTTP Range requests, renders page 1 before the rest has downloaded.
+ */
+export interface IDocumentSource {
+  data?: TypedArray | null;
+  url?: string | null;
+  /** Extra request headers for `url`, e.g. `Authorization`. */
+  httpHeaders?: Record<string, string> | null;
+  /** Send cookies with cross-origin `url` requests. */
+  withCredentials?: boolean;
+  /** Bytes per Range request (pdf.js default 65536). */
+  rangeChunkSize?: number | null;
+}
+
+export interface IViewerProps extends IDocumentSource {
   options?: IViewerOptions;
   config?: IViewerConfig;
 }
@@ -351,9 +440,8 @@ export interface IViewerConfig {
   edit?: boolean;
 }
 
-export interface IRenderViewerProps {
+export interface IRenderViewerProps extends IDocumentSource {
   rootId: string;
-  data: TypedArray;
   options?: IViewerOptions | null;
   config?: IViewerConfig | null;
 }

@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { ERROR_LINK, KB } from '@/assets/utils/constans';
+import { ERROR_LINK } from '@/assets/utils/constans';
 import { debounce } from '@/assets/utils/functions';
-import { useDocumentStore, useViewerStore } from '@/stores';
+import { useViewerStore } from '@/stores';
 import printJS from 'print-js';
 import { ref } from 'vue';
 import Loader from '@/components/pdf-aids/Loader.vue';
-import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
-const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
 const showLoading = ref<boolean>(false);
 const inputValue = ref<string>('');
@@ -30,43 +28,38 @@ const handlePagesInput = (event: Event) => {
   }
 };
 
+const fail = (reason: unknown) => {
+  console.error('Print failed:\n', reason);
+  error.value = true;
+  showLoading.value = false;
+};
+
+// The host renders the print copy (page range, optional annotations), so it is
+// fetched as is and handed to print-js by URL: no pdf.js parse and no base64
+// encoding on the main thread.
 const convert = debounce(async () => {
   error.value = false;
 
-  const pages: string | null = inputValue.value ? inputValue.value : null;
-  let link: string = await viewerStore.printFunction!(pages);
-  link = link ? link : ERROR_LINK;
+  try {
+    const pages: string | null = inputValue.value ? inputValue.value : null;
+    const link = (await viewerStore.printFunction!(pages)) || ERROR_LINK;
+    if (link === ERROR_LINK) {
+      fail('The host returned no print link.');
+      return;
+    }
 
-  if (link !== ERROR_LINK) {
     const url = new URL(link);
     url.searchParams.set('annotations', `${useEdit.value}`);
 
-    const doc = await getDocument(url).promise;
-
-    if (doc) {
-      const data = await doc.getData();
-
-      try {
-        const chunkSize = 64 * KB;
-        let binaryString = '';
-
-        showLoading.value = true;
-
-        for (let i = 0; i < data.length; i += chunkSize) {
-          const chunk: any = data.slice(i, i + chunkSize);
-          binaryString += String.fromCharCode.apply(null, chunk);
-        }
-
-        const base64 = btoa(binaryString);
-        printJS({ printable: base64, type: 'pdf', base64: true });
-      } catch {
-        error.value = true;
-      } finally {
-        setTimeout(() => (showLoading.value = false), 500);
-      }
-    } else {
-      error.value = true;
-    }
+    printJS({
+      printable: url.toString(),
+      type: 'pdf',
+      showModal: false,
+      onLoadingEnd: () => (showLoading.value = false),
+      onError: fail,
+    });
+  } catch (reason) {
+    fail(reason);
   }
 });
 

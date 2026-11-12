@@ -54,7 +54,10 @@ const onScroll = () => {
 };
 
 watch(
-  () => assistantStore.messages.map((m) => m.text.length + (m.entries?.length ?? 0)).join(),
+  () =>
+    assistantStore.messages
+      .map((m) => m.text.length + (m.entries?.length ?? 0) + (assistantStore.activities[m.id]?.length ?? 0))
+      .join() + (assistantStore.chatStatus ?? ''),
   scrollToBottom
 );
 

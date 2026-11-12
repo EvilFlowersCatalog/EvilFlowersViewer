@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, computed, watch, provide } from 'vue';
+import {
+  onBeforeUnmount,
+  onErrorCaptured,
+  onMounted,
+  ref,
+  computed,
+  watch,
+  provide,
+} from 'vue';
 import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import { ExplainPopup } from './pdf-viewer-page/pdf-selection';
 import ChatPanel from './pdf-chat/ChatPanel.vue';
@@ -14,7 +22,11 @@ import type {
   IViewerProps,
 } from '@/assets/utils/interfaces';
 import { PDFPage } from './pdf-viewer-page';
-import type { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api';
+import type {
+  DocumentInitParameters,
+  PDFDocumentLoadingTask,
+  PDFDocumentProxy,
+} from 'pdfjs-dist/types/src/display/api';
 import { Loader } from './pdf-aids';
 import {
   EDIT_TOOL,
@@ -32,13 +44,48 @@ import i18n from '@/assets/lang/i18n';
 import { closeTopLayer, useEscapeLayer } from './pdf-aids/useEscapeLayer';
 GlobalWorkerOptions.workerSrc = PDFWorker;
 
-const { data, options, config } = defineProps<IViewerProps>();
+const {
+  data,
+  url,
+  httpHeaders,
+  withCredentials,
+  rangeChunkSize,
+  options,
+  config,
+} = defineProps<IViewerProps>();
 const viewerStore = useViewerStore();
 const docStore = useDocumentStore();
 const assistantStore = useAssistantStore();
 const failed = ref<boolean>(false);
-// Honor the host-provided theme; default to light (the Figma source of truth).
-const isDark = ref<boolean>(options?.theme === 'dark');
+// i18n key of the reason the document failed to load.
+const failReason = ref<string>('load-error-unknown');
+// Bytes received so far while the document loads (pdf.js onProgress).
+const progress = ref<{ loaded: number; total: number } | null>(null);
+// Set when a child component throws; the viewer keeps running and shows a notice.
+const renderError = ref<boolean>(false);
+
+// Theme precedence: the host's `options.theme`, else the reader's last manual
+// choice (localStorage), else the system preference.
+const THEME_KEY = 'efv-theme';
+const readStoredTheme = (): 'dark' | 'light' | null => {
+  try {
+    const value = window.localStorage.getItem(THEME_KEY);
+    return value === 'dark' || value === 'light' ? value : null;
+  } catch {
+    return null;
+  }
+};
+const systemDark =
+  typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia('(prefers-color-scheme: dark)')
+    : null;
+const initialDark = () => {
+  if (options?.theme) return options.theme === 'dark';
+  const stored = readStoredTheme();
+  if (stored) return stored === 'dark';
+  return systemDark?.matches ?? false;
+};
+const isDark = ref<boolean>(initialDark());
 // Kept in sync with the CSS design tokens in main.css (--efv-viewer-bg /
 // --efv-topbar-bg) so the JS-provided values and the token theme never drift.
 const viewerBg = computed(() => (isDark.value ? '#1A1A1A' : '#EDEDED'));
@@ -46,6 +93,16 @@ const topbarBg = computed(() => (isDark.value ? '#111111' : '#FFFFFF'));
 
 const toggleDark = () => {
   isDark.value = !isDark.value;
+  try {
+    window.localStorage.setItem(THEME_KEY, isDark.value ? 'dark' : 'light');
+  } catch {
+    // Storage blocked (private mode, sandboxed iframe): the toggle still works.
+  }
+};
+
+// Follow the system theme live, until the host or the reader picked one.
+const handleSystemTheme = (event: MediaQueryListEvent) => {
+  if (!options?.theme && !readStoredTheme()) isDark.value = event.matches;
 };
 
 provide('topbarBg', topbarBg);
@@ -107,26 +164,84 @@ const applyLocale = (lang: string) => {
   }
 };
 
+const describeLoadError = (error: unknown): string => {
+  const { name, message, details } = (error ?? {}) as {
+    name?: string;
+    message?: string;
+    details?: string;
+  };
+  if (name === 'PasswordException') return 'load-error-password';
+  if (name === 'InvalidPDFException') return 'load-error-invalid';
+  if (name === 'ResponseException') return 'load-error-network';
+  // A failed fetch reaches us as a TypeError, or wrapped by the pdf.js worker
+  // in an UnknownErrorException that keeps the original message.
+  if (
+    (name === 'TypeError' || name === 'UnknownErrorException') &&
+    /fetch|network|load failed/i.test(`${message ?? ''} ${details ?? ''}`)
+  )
+    return 'load-error-network';
+  return 'load-error-unknown';
+};
+
+// The loading task of the document on screen, destroyed when another replaces it.
+let loadingTask: PDFDocumentLoadingTask | null = null;
+// Guards against a slow earlier load finishing after a newer one.
+let loadSeq = 0;
+
+const documentParams = (): DocumentInitParameters | null => {
+  if (url) {
+    return {
+      url,
+      httpHeaders: httpHeaders ?? undefined,
+      withCredentials: withCredentials ?? false,
+      ...(rangeChunkSize ? { rangeChunkSize } : {}),
+    };
+  }
+  // Copy: pdf.js transfers the buffer to its worker, the host keeps its bytes.
+  if (data) return { data: new Uint8Array(data) };
+  return null;
+};
+
 const loadDocument = async () => {
+  const seq = ++loadSeq;
+  const previousTask = loadingTask;
+  failed.value = false;
+  progress.value = null;
+
   try {
+    const params = documentParams();
+    if (!params) throw new Error('Neither `data` nor `url` was given.');
+
+    const task = getDocument(params);
+    loadingTask = task;
+    task.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
+      if (seq === loadSeq) progress.value = { loaded, total };
+    };
+
     // Parse the document once and share the single PDFDocumentProxy between the
     // main page view and the thumbnail strip. pdf.js serialises render tasks per
     // page internally, so concurrent main + preview renders are safe — this
     // halves both the parse work and the in-memory footprint vs. loading twice.
-    const pdf = await getDocument({ data: new Uint8Array(data) }).promise;
+    const pdf = await task.promise;
+    if (seq !== loadSeq) return;
 
-    docStore.previewPdf = pdf;
-
-    const outline = await pdf.getOutline();
-    if (outline) {
-      docStore.toc = await getTOC(outline, 0, pdf);
-    }
-
-    docStore.pdf = pdf;
-    docStore.totalPages = pdf.numPages;
     // The host can open the document at a page, e.g. one a chat citation pointed to.
     const initialPage = Math.trunc(Number(options?.initialPage) || 1);
+    docStore.totalPages = pdf.numPages;
     docStore.activePage = Math.min(Math.max(1, initialPage), pdf.numPages);
+    docStore.toc = [];
+    docStore.previewPdf = pdf;
+    docStore.pdf = pdf;
+
+    // The outline resolves a destination per entry; with a streamed `url` that
+    // can mean extra range requests, so it never holds back the first page.
+    pdf
+      .getOutline()
+      .then((outline) => (outline ? getTOC(outline, 0, pdf) : []))
+      .then((toc) => {
+        if (seq === loadSeq) docStore.toc = toc;
+      })
+      .catch((error) => console.error('Failed to read the outline:\n', error));
 
     // Bookmarks belong to the document, so they are (re)loaded with it. Not
     // awaited above: a slow/failing host must not delay the first paint.
@@ -134,10 +249,39 @@ const loadDocument = async () => {
     assistantStore.reset();
     assistantStore.loadAgentAnnotations();
   } catch (error) {
+    if (seq !== loadSeq) return;
+    failReason.value = describeLoadError(error);
     failed.value = true;
+    docStore.pdf = null;
+    docStore.previewPdf = null;
     console.error('Failed to load PDF docStore:\n', error);
+  } finally {
+    if (seq === loadSeq && previousTask && previousTask !== loadingTask) {
+      previousTask.destroy();
+    }
   }
 };
+
+const retry = () => loadDocument();
+
+const progressPercent = computed(() => {
+  const p = progress.value;
+  if (!p || !p.total) return null;
+  return Math.min(100, Math.round((p.loaded / p.total) * 100));
+});
+
+const formatBytes = (bytes: number) =>
+  bytes >= 1024 * 1024
+    ? `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+    : `${Math.max(1, Math.round(bytes / 1024))} kB`;
+
+// Error boundary: a throw in any child (a page render, a popup) is logged and
+// shown as a dismissible notice instead of blanking the whole viewer.
+onErrorCaptured((error, _instance, info) => {
+  console.error(`Viewer component error (${info}):\n`, error);
+  renderError.value = true;
+  return false;
+});
 
 // Escape closes the top layer only (cards, popups, modal, sidebar panel, in
 // the order they opened), then drops a drawing tool. It never zooms, changes
@@ -154,6 +298,19 @@ useEscapeLayer(
 const handleEscape = () => {
   if (closeTopLayer()) return;
   if (docStore.editTool !== EDIT_TOOL.MOUSE) docStore.editTool = EDIT_TOOL.MOUSE;
+};
+
+// Keys typed into a text field belong to the field, whatever it is and wherever
+// it lives (host page included). Escape still reaches the viewer.
+const isTypingTarget = (target: EventTarget | null) => {
+  const el = target as HTMLElement | null;
+  if (!el || typeof el.tagName !== 'string') return false;
+  return (
+    el.isContentEditable ||
+    el.tagName === 'INPUT' ||
+    el.tagName === 'TEXTAREA' ||
+    el.tagName === 'SELECT'
+  );
 };
 
 onMounted(() => {
@@ -187,6 +344,9 @@ onMounted(() => {
   loadDocument();
 
   const handleKeydown = async (event: KeyboardEvent) => {
+    const key = event.key.toLocaleLowerCase();
+    if (key !== 'escape' && isTypingTarget(event.target)) return;
+
     const keyActions: { [key: string]: (...props: any) => any } = {
       ['arrowleft']: () => docStore.previousPage(),
       ['arrowright']: () => docStore.nextPage(),
@@ -199,7 +359,7 @@ onMounted(() => {
       ['t']: () => docStore.setSidebarState(SIDEBAR_STATE.TOC),
     };
 
-    const action = keyActions[event.key.toLocaleLowerCase()];
+    const action = keyActions[key];
     if (action) {
       event.preventDefault();
       action();
@@ -218,15 +378,19 @@ onMounted(() => {
   window.addEventListener('keydown', handleKeydown);
   window.addEventListener('resize', handleResize);
   document.addEventListener('fullscreenchange', handleFullscreenChange);
+  systemDark?.addEventListener('change', handleSystemTheme);
 
   onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleKeydown);
     window.removeEventListener('resize', handleResize);
     document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    systemDark?.removeEventListener('change', handleSystemTheme);
+    loadingTask?.destroy();
+    loadingTask = null;
   });
 
   watch(
-    () => data,
+    () => [data, url],
     () => loadDocument()
   );
 });
@@ -241,20 +405,64 @@ onMounted(() => {
   <!-- Failed container -->
   <div
     v-if="failed"
-    class="flex flex-col h-screen w-full justify-center items-center text-4xl uppercase font-extrabold text-white font-serif"
+    class="flex flex-col gap-4 h-screen w-full justify-center items-center text-white"
     :style="{ backgroundColor: viewerBg }"
     role="alert"
   >
-    {{ $t('failed-load-pdf') }}
+    <span class="text-4xl uppercase font-extrabold font-serif text-center px-4">
+      {{ $t('failed-load-pdf') }}
+    </span>
+    <span class="text-sm" :class="isDark ? 'text-white/70' : 'text-[#333]'">
+      {{ $t(failReason) }}
+    </span>
+    <button
+      type="button"
+      class="bg-[#0077cc] hover:bg-[#0066b3] text-[#f5f7fa] text-sm font-semibold rounded-[7px] px-4 py-1.5 shadow-[0px_4px_6px_rgba(0,0,0,0.1)] transition-colors"
+      @click="retry"
+    >
+      {{ $t('retry') }}
+    </button>
   </div>
 
   <!-- Loading -->
   <div
     v-else-if="!failed && !docStore.pdf"
-    class="flex w-full h-screen justify-center items-center text-white"
+    class="flex flex-col gap-6 w-full h-screen justify-center items-center text-white"
     :style="{ backgroundColor: viewerBg }"
   >
-    <Loader :size="100" color="#0077CC" :label="$t('load')" />
+    <div class="h-[100px] w-[100px]">
+      <Loader :size="100" color="#0077CC" :label="$t('load')" />
+    </div>
+    <div
+      v-if="progress && progress.loaded > 0"
+      class="flex flex-col items-center gap-2 w-[240px]"
+    >
+      <div
+        v-if="progressPercent !== null"
+        class="w-full h-[6px] rounded-full overflow-hidden"
+        :class="isDark ? 'bg-white/10' : 'bg-black/10'"
+        role="progressbar"
+        :aria-valuenow="progressPercent"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        :aria-label="$t('load')"
+      >
+        <div
+          class="h-full bg-[#0077CC] transition-[width] duration-150"
+          :style="{ width: `${progressPercent}%` }"
+        ></div>
+      </div>
+      <span
+        class="text-xs tabular-nums"
+        :class="isDark ? 'text-white/70' : 'text-[#333]'"
+      >
+        {{
+          progressPercent !== null
+            ? $t('load-progress', { percent: progressPercent })
+            : $t('load-progress-bytes', { size: formatBytes(progress.loaded) })
+        }}
+      </span>
+    </div>
   </div>
 
   <!-- Success container -->
@@ -267,6 +475,24 @@ onMounted(() => {
   >
     <!-- Modal -->
     <PDFModal v-if="docStore.modalContent !== MODAL_CONTENT.NULL" />
+
+    <!-- Error boundary notice -->
+    <div
+      v-if="renderError"
+      class="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-3 py-2 rounded-md shadow-lg text-xs"
+      :class="isDark ? 'text-white/90' : 'text-[#333]'"
+      :style="{ backgroundColor: topbarBg }"
+      role="alert"
+    >
+      <span>{{ $t('render-error') }}</span>
+      <button
+        type="button"
+        class="font-semibold text-[#0077cc] hover:underline"
+        @click="renderError = false"
+      >
+        {{ $t('dismiss') }}
+      </button>
+    </div>
 
     <!-- Layer state indicator -->
     <div

@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.7.9 : 2026-11-12
+
+### Added
+
+- **Evidence citations** (IP-024, elvira-portal#37): answers cite library passages as `[E3]`, `[E3, E5]`, `[E3; E5]` or `[E3][E5]`. A label the host resolved (`onCitations` stream handler, `IChatMessage.citations` from history) renders as a numbered chip with a "Title, p. N" tooltip, and a source list under the answer says what each number is. While the answer streams the labels are inert chips; once it is complete an unresolved label stays plain text. A citation of the open publication (`chatPackage.entryId`) jumps to its page, any other goes to `chatPackage.openCitationFunc`. New exported type `IChatCitation`.
+
+## 0.7.8 : 2026-11-11
+
+### Added
+
+- **Open a PDF by URL** (#136): `url`, with optional `httpHeaders`, `withCredentials` and `rangeChunkSize`, next to `data` on `renderPDFViewer(...)`. pdf.js fetches the file itself. When the server answers HTTP Range requests, page 1 renders before the rest has downloaded and the host no longer holds the whole file in memory. `data` works as before. The table of contents is read after the first page, so it never holds it back. New exported type `IDocumentSource`.
+- **Load progress**: a progress bar with a percentage while the document loads, or the bytes received when the server sends no length.
+- **Bulk annotation layers** (#137): optional `editPackage.getLayersFunc(groupId)` returns every layer of the group in one request (`IPageLayer` = `{ id, svg, page }`). Edit mode loads them once on entry, and page flips no longer fetch. Without it, or if it fails, `getLayerFunc` is used per page as before. With the catalog it is `GET /api/v1/annotation-items?annotation_id=<groupId>&paginate=false`.
+- **Retry on failure** (#140): the failure screen says why (could not download, not a PDF, password protected) and has a **Try again** button.
+- **Error boundary**: an error in any part of the viewer is logged and shown as a dismissible notice instead of blanking the viewer. A failed page render no longer leaves the page loader spinning.
+
+### Changed
+
+- **Theme** (#140): `options.theme` still wins. Without it the viewer uses the reader's last sun/moon choice (saved in `localStorage` as `efv-theme`), else the system `prefers-color-scheme`, which it follows live until the reader picks one.
+- **Printing** (#139): the print copy from `printFunction` goes to print-js by URL. pdf.js no longer parses it again and it is no longer base64-encoded on the main thread, so large documents no longer freeze the UI. A failed print shows the error instead of a loader that never stops.
+- **Thumbnails** (#140): each thumbnail renders once, when it scrolls into view, and only after the main page has painted. Before, a whole window of them rendered at once on mount.
+- **Drawing autosave** (#140): a stroke is saved once when it ends, instead of re-sending the whole page SVG during the stroke.
+- **Shortcuts** (#140): keys typed into any text field, the host's included, never trigger viewer shortcuts. Escape still closes the top layer.
+- **Screen readers** (#140): the current search match is marked on its text-layer span (`role="mark"`, `aria-current`), not only painted on the hidden canvas.
+
+### Build
+
+- **Publish workflow** (#147): the release job runs `npm ci` against the lockfile. Before, the `Setup` step deleted the lockfile, never ran `npm ci`, and resolved every dependency fresh.
+- `vite-plugin-dts` and `vite-plugin-svgr` moved to `devDependencies`, so hosts no longer install them.
+
 ## 0.7.6 : 2026-11-04
 
 ### Added
@@ -43,6 +73,10 @@
 ## Unreleased
 
 ### Added
+
+- **Chat activity log**: two optional stream handlers on `IChatStreamHandlers`. `onStatus(label)` shows a one-line progress label ("Searching the catalog…") under the answer until text streams or the turn ends. `onActivity(activity)` reports each tool call (`done: false` on start, `done: true` with the same `id` when finished). The calls collect above the answer as one muted, collapsed line ("Searched the catalog 2×, read the publication"; while running, the current label with a pulsing dot). It expands to a compact list showing the query, result count, pages and "failed", and found publications expand to their titles. Chats opened from history show their stored log when the host passes `IChatMessage.activities`. Hosts that don't call the handlers see no change. New exported type `IChatActivity`.
+
+- **Lenient citations**: `[[page:7], [page:13]]`, `[page:7]` and `[[page:7, 13]]`, as models sometimes write them, render as page links like `[[page:7]]`.
 
 - **Text-selection menu**: selecting text over the PDF now shows a Kopírovať/Podobné/Zvýrazniť/Vysvetliť menu. Kopírovať copies the selection; Zvýrazniť paints it onto the existing drawing overlay as a translucent highlight (same save/undo path as manual drawing); Podobné and Vysvetliť open new popups anchored beside the page body (falling back to the right edge of the screen at extreme zoom).
 - **Suggestions popup**: the previously-dead bottom-right "Odporúčania" button now opens a tabbed (Podobné/Prerekvizity/Pokročilé) card-grid popup above itself, instead of the unused left sidebar panel.
