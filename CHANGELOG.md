@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.9 : 2026-11-12
+
+### Added
+
+- **Evidence citations** (IP-024, elvira-portal#37): answers cite library passages as `[E3]`, `[E3, E5]`, `[E3; E5]` or `[E3][E5]`. A label the host resolved (`onCitations` stream handler, `IChatMessage.citations` from history) renders as a numbered chip with a "Title, p. N" tooltip, and a source list under the answer says what each number is. While the answer streams the labels are inert chips; once it is complete an unresolved label stays plain text. A citation of the open publication (`chatPackage.entryId`) jumps to its page, any other goes to `chatPackage.openCitationFunc`. New exported type `IChatCitation`.
+
 ## 0.7.8 : 2026-11-11
 
 ### Added

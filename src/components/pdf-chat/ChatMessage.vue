@@ -24,6 +24,11 @@ const status = computed(() => (streaming.value ? assistantStore.chatStatus : nul
 
 const findCitation = (label: string) => props.message.citations?.find((c) => c.label.toUpperCase() === label);
 
+// What each evidence chip points to, listed under the answer in label order.
+const sortedCitations = computed(() =>
+  [...(props.message.citations ?? [])].sort((a, b) => Number(a.label.slice(1)) - Number(b.label.slice(1)))
+);
+
 const html = computed(() =>
   renderMarkdown(props.message.text, {
     page: (page) => t('page-short', { page }),
@@ -34,7 +39,8 @@ const html = computed(() =>
     // Evidence labels: tooltip "Title, p. N"; a label the answer's citations lack stays plain text.
     evidence: (label) => {
       const citation = findCitation(label);
-      if (!citation) return null;
+      // Streaming: citations arrive with the complete answer, so the label is an inert chip until then.
+      if (!citation) return streaming.value ? '' : null;
       const page = citation.page ? t('page-short', { page: citation.page }) : '';
       return [citation.title, page].filter(Boolean).join(', ') || label;
     },
@@ -113,6 +119,24 @@ const onClick = (event: MouseEvent) => {
     <div v-if="streaming && message.text && status" class="flex items-center gap-1.5 text-[11px] leading-[15px] text-efv-muted" role="status">
       <span class="size-1.5 shrink-0 rounded-full bg-secondary animate-pulse" aria-hidden="true" />
       <span class="truncate">{{ status }}</span>
+    </div>
+
+    <!-- What each evidence chip in the answer points to -->
+    <div v-if="sortedCitations.length && !streaming" class="flex flex-col gap-1 text-[10px] text-efv-muted">
+      <span>{{ $t('chat-sources') }}:</span>
+      <button
+        v-for="citation in sortedCitations"
+        :key="citation.label"
+        type="button"
+        class="group flex items-baseline gap-1.5 text-left min-w-0"
+        @click="openCitation(citation.label.toUpperCase())"
+      >
+        <span class="efv-cite">{{ citation.label.slice(1) }}</span>
+        <span class="min-w-0 text-[#333] dark:text-gray-200 group-hover:underline">
+          {{ citation.title || citation.entryId }}<template v-if="citation.page">, {{ $t('page-short', { page: citation.page }) }}</template>
+          <span v-if="citation.section" class="text-efv-muted"> · {{ citation.section }}</span>
+        </span>
+      </button>
     </div>
 
     <!-- Pages the answer was drawn from -->
