@@ -170,6 +170,20 @@ export type IChatContext =
   | { kind: 'region'; region: IRegion }
   | { kind: 'highlight'; annotationId: string; highlight: IAgentHighlight };
 
+/**
+ * A passage the answer cites with an evidence label (`[E3]`), resolved by the
+ * host to a publication and page (catalog IP-024, the assistant `citations` event).
+ */
+export interface IChatCitation {
+  /** Normalised label, e.g. `E3`. */
+  label: string;
+  entryId: string;
+  title?: string;
+  /** 1-based page in the cited publication. */
+  page?: number;
+  section?: string;
+}
+
 export interface IChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -183,6 +197,8 @@ export interface IChatMessage {
   entries?: ISuggestedEntry[];
   /** Pages the answer was drawn from, shown as links under it. */
   pages?: number[];
+  /** Evidence labels the answer cites (`[E3]`). A label missing here renders as plain text, not a link. */
+  citations?: IChatCitation[];
   /** Agent annotations the assistant created with this answer, by id. */
   annotationIds?: string[];
   /** Tool calls of the turn this answer closed, for chats read back from history (the activity log). */
@@ -200,6 +216,8 @@ export interface IChatStreamHandlers {
   onEntries: (entries: ISuggestedEntry[]) => void;
   /** Pages the answer was drawn from (the assistant `pages` event). */
   onPages?: (pages: number[]) => void;
+  /** Evidence labels of the answer resolved to publication and page (the assistant `citations` event). */
+  onCitations?: (citations: IChatCitation[]) => void;
   /** An agent annotation the assistant started (the assistant `annotation` event), usually pending. */
   onAnnotation?: (annotation: IAgentAnnotation) => void;
   /**
@@ -274,6 +292,13 @@ export interface IChatPackage {
   getChatFunc?: ((chatId: string) => Promise<IChatMessage[]>) | null;
   /** Deletes a past chat. Omitting it hides the delete buttons. */
   deleteChatFunc?: ((chatId: string) => Promise<void>) | null;
+  /** Id of the publication open in the viewer: an evidence citation of it jumps to its page here. */
+  entryId?: string | null;
+  /**
+   * Opens an evidence citation of another publication (the viewer at that page,
+   * or its detail). Without it such citations are chips with a tooltip only.
+   */
+  openCitationFunc?: ((citation: IChatCitation) => void) | null;
 }
 
 /** Host hooks for the annotation/edit layer (create + persist SVG layers). */

@@ -211,6 +211,7 @@ export const useAssistantStore = defineStore('assistant', () => {
           },
           onEntries: (entries) => (answer.entries = entries),
           onPages: (pages) => (answer.pages = pages),
+          onCitations: (citations) => (answer.citations = citations),
           onAnnotation: (annotation) => {
             answer.annotationIds = [...(answer.annotationIds ?? []), annotation.id];
             trackAnnotation(annotation);

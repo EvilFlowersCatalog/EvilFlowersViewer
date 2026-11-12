@@ -36,6 +36,7 @@ export type {
   IReaderHighlightPackage,
   IChatContext,
   IChatMessage,
+  IChatCitation,
   IChatStreamHandlers,
   IChatActivity,
   IChatPackage,

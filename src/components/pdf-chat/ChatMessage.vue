@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { IChatMessage } from '@/assets/utils/interfaces';
 import { renderMarkdown } from '@/assets/utils/markdown';
-import { useAssistantStore, useDocumentStore } from '@/stores';
+import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import { Loader } from '@/components/pdf-aids';
 import SuggestionEntryItem from '@/components/pdf-viewer-page/pdf-suggestions/SuggestionEntryItem.vue';
 import ContextChip from './ContextChip.vue';
@@ -14,12 +14,15 @@ const props = defineProps<{ message: IChatMessage }>();
 const { t } = useI18n();
 const docStore = useDocumentStore();
 const assistantStore = useAssistantStore();
+const viewerStore = useViewerStore();
 
 const streaming = computed(() => props.message.status === 'streaming');
 // Tool calls of this answer (current session only; history has none).
 const activities = computed(() => assistantStore.activities[props.message.id] ?? []);
 // Host progress label; only one answer streams at a time.
 const status = computed(() => (streaming.value ? assistantStore.chatStatus : null));
+
+const findCitation = (label: string) => props.message.citations?.find((c) => c.label.toUpperCase() === label);
 
 const html = computed(() =>
   renderMarkdown(props.message.text, {
@@ -28,8 +31,24 @@ const html = computed(() =>
       const region = assistantStore.findRegion(id);
       return region ? t(`region-${region.kind}`) : t('region-figure');
     },
+    // Evidence labels: tooltip "Title, p. N"; a label the answer's citations lack stays plain text.
+    evidence: (label) => {
+      const citation = findCitation(label);
+      if (!citation) return null;
+      const page = citation.page ? t('page-short', { page: citation.page }) : '';
+      return [citation.title, page].filter(Boolean).join(', ') || label;
+    },
   })
 );
+
+// Open publication at that page; another publication goes to the host.
+const openCitation = (label: string) => {
+  const citation = findCitation(label);
+  if (!citation) return;
+  const pkg = viewerStore.chatPackage;
+  if (citation.page && pkg?.entryId && citation.entryId === pkg.entryId) goToPage(citation.page);
+  else pkg?.openCitationFunc?.(citation);
+};
 
 // Citations are rendered as plain buttons inside v-html; one delegated handler.
 const goToPage = (page: number) => {
@@ -48,7 +67,10 @@ const onClick = (event: MouseEvent) => {
   if (!cite) return;
   const page = cite.dataset.page;
   const regionId = cite.dataset.region;
-  if (page) {
+  const evidence = cite.dataset.evidence;
+  if (evidence) {
+    openCitation(evidence);
+  } else if (page) {
     goToPage(Number(page));
   } else if (regionId) {
     const region = assistantStore.findRegion(regionId);

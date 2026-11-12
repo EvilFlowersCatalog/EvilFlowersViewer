@@ -2,7 +2,8 @@ import DOMPurify from 'dompurify';
 
 // A small markdown renderer for assistant answers: paragraphs, headings, lists,
 // GFM tables, bold/italic/code, plus the viewer's citation tokens
-// `[[page:N]]` and `[[region:ID]]`, which become buttons with data attributes.
+// `[[page:N]]` and `[[region:ID]]` and the evidence labels `[E3]`, which become
+// buttons with data attributes.
 // Output is sanitized, so answer text can never inject markup.
 
 const escapeHtml = (text: string) =>
@@ -11,7 +12,27 @@ const escapeHtml = (text: string) =>
 export interface ICitationLabels {
   page: (page: string) => string;
   region: (id: string) => string;
+  /** Tooltip of a known evidence label (`E3`), or null when the answer's citations lack it. */
+  evidence?: (label: string) => string | null;
 }
+
+// Evidence labels as the model writes them: `[E3]`, `[E3, E5]`, `[E3; E5]`; `[E3][E5]` is two groups.
+const EVIDENCE_GROUP = /\[\s*(E\d+(?:\s*[,;]\s*E\d+)*)\s*\]/gi;
+
+/** `[E3, E9]` → a chip per known label; an unknown label stays plain text. */
+const evidenceChips = (text: string, tooltip: (label: string) => string | null) =>
+  text.replace(EVIDENCE_GROUP, (group, list: string) => {
+    const labels = list.split(/\s*[,;]\s*/).map((raw) => `E${Number(raw.slice(1))}`);
+    if (labels.every((label) => tooltip(label) === null)) return group;
+    return labels
+      .map((label) => {
+        const title = tooltip(label);
+        return title === null
+          ? `[${label}]`
+          : `<button type="button" class="efv-cite" data-evidence="${label}" title="${escapeHtml(title)}">${label.slice(1)}</button>`;
+      })
+      .join('');
+  });
 
 /**
  * Citation tokens as the model actually writes them, made canonical: `[[page:7], [page:13]]`,
@@ -27,8 +48,8 @@ export const normalizeCitations = (text: string): string =>
     )
     .replace(/\[+\s*(page|region):\s*([\w-]+)\s*\]+/g, '[[$1:$2]]');
 
-const inline = (text: string, labels: ICitationLabels) =>
-  escapeHtml(normalizeCitations(text))
+const inline = (text: string, labels: ICitationLabels) => {
+  const html = escapeHtml(normalizeCitations(text))
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
@@ -40,6 +61,8 @@ const inline = (text: string, labels: ICitationLabels) =>
       /\[\[region:([\w-]+)\]\]/g,
       (_, id) => `<button type="button" class="efv-cite" data-region="${id}">${escapeHtml(labels.region(id))}</button>`
     );
+  return labels.evidence ? evidenceChips(html, labels.evidence) : html;
+};
 
 const isTableRow = (line: string) => /^\s*\|.*\|\s*$/.test(line);
 const cells = (line: string) =>
