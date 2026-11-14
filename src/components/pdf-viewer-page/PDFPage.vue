@@ -10,6 +10,7 @@ import { EditCanvas } from './pdf-edit';
 import { SelectionLayer } from './pdf-selection';
 import RegionLayer from './pdf-regions/RegionLayer.vue';
 import AgentHighlightLayer from './pdf-agent/AgentHighlightLayer.vue';
+import FocusLayer from './pdf-agent/FocusLayer.vue';
 import { boxStyle } from './usePageHover';
 import type { IPageBox } from '@/assets/utils/interfaces';
 import { useI18n } from 'vue-i18n';
@@ -457,6 +458,9 @@ watch(
         <AgentHighlightLayer :page-body-ref="pageBodyRef" />
         <RegionLayer :page-body-ref="pageBodyRef" :canvas-ref="canvasRef" />
       </template>
+
+      <!-- A cited paragraph/figure: outlined, its sentence flashed, then faded -->
+      <FocusLayer :page-body-ref="pageBodyRef" />
 
       <!-- Bookmark toggle — top-right corner of the page itself. Revealed on
            hover (or keyboard focus), and pinned visible once the page is

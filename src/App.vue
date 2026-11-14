@@ -34,7 +34,10 @@ import {
   requestAgentAnnotationFunc,
   deleteAgentHighlightFunc,
   deleteAgentAnnotationFunc,
+  exampleEntryId,
 } from './assets/examples/params/examples';
+
+const focusPage = Number(new URLSearchParams(window.location.search).get('focus')) || null;
 
 const data = ref<TypedArray | null>(null);
 const config: IViewerConfig = {
@@ -70,7 +73,22 @@ const options: IViewerOptions = {
     getChatsFunc,
     getChatFunc,
     deleteChatFunc,
+    // Evidence citations: this book's open in place, others go to the host.
+    entryId: exampleEntryId,
+    openCitationFunc: (citation) => console.info('open citation in the host', citation),
   },
+  // `?focus=N` opens at a cited paragraph low on page N (outline + flashed sentence).
+  initialFocus: focusPage
+    ? {
+        page: focusPage,
+        paragraphId: 'p-demo',
+        bbox: { x0: 0.12, y0: 0.7, x1: 0.88, y1: 0.84 },
+        quads: [
+          { x0: 0.12, y0: 0.74, x1: 0.88, y1: 0.765 },
+          { x0: 0.12, y0: 0.765, x1: 0.6, y1: 0.79 },
+        ],
+      }
+    : null,
   regionPackage: { getRegionsFunc, getAllRegionsFunc },
   agentAnnotationPackage: {
     getAnnotationsFunc: getAgentAnnotationsFunc,

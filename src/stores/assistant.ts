@@ -4,11 +4,13 @@ import type {
   IAgentAnnotation,
   IAgentHighlight,
   IChatActivity,
+  IChatCitation,
   IChatContext,
   IChatMessage,
   IChatSummary,
   INewReaderHighlight,
   IRegion,
+  IViewerFocus,
 } from '@/assets/utils/interfaces';
 import { SIDEBAR_STATE } from '@/assets/utils/enums';
 import { useDocumentStore } from './document';
@@ -28,6 +30,13 @@ export const READER_ANNOTATION_ID = 'reader';
 
 let sequence = 0;
 const nextId = (prefix: string) => `${prefix}-${++sequence}`;
+
+/** Merges citations by label (any case); a later one replaces an earlier one. */
+const mergeCitations = (current: IChatCitation[] | undefined, incoming: IChatCitation[]) => {
+  const byLabel = new Map((current ?? []).map((c) => [c.label.toUpperCase(), c]));
+  for (const c of incoming) byLabel.set(c.label.toUpperCase(), { ...byLabel.get(c.label.toUpperCase()), ...c });
+  return [...byLabel.values()];
+};
 
 /** Two contexts are the same attachment when they point at the same thing. */
 const contextKey = (ctx: IChatContext) => {
@@ -121,6 +130,60 @@ export const useAssistantStore = defineStore('assistant', () => {
     focusedRegionId.value = region.id;
   };
 
+  // --- Focus (a cited paragraph or figure) -----------------------------------
+  // Transient: the focus layer scrolls to it, outlines it and fades it out. It
+  // is never added to a highlight layer or list. `id` changes per request, so
+  // the same citation clicked twice flashes twice.
+  const focus = ref<(IViewerFocus & { id: number; page: number }) | null>(null);
+
+  /** Brings a paragraph/region box into view and flashes its sentence. */
+  const focusOn = (target: IViewerFocus) => {
+    const docStore = useDocumentStore();
+    const region = target.regionId ? findRegion(target.regionId) : null;
+    const page = target.page ?? region?.page ?? target.quadsPage;
+    if (!page) return;
+    const clamped = Math.min(Math.max(1, page), docStore.totalPages || page);
+    // A region without a box of its own: its card flashes like a [[region:]] citation.
+    if (target.regionId && !target.bbox && !target.quads?.length) focusedRegionId.value = target.regionId;
+    focus.value = {
+      ...target,
+      bbox: target.bbox ?? region?.bbox,
+      page: clamped,
+      quadsPage: target.quadsPage && target.quadsPage !== clamped ? target.quadsPage : undefined,
+      id: ++sequence,
+    };
+    docStore.activePage = clamped;
+  };
+
+  const clearFocus = (id?: number) => {
+    if (id === undefined || focus.value?.id === id) focus.value = null;
+  };
+
+  /** A cited spot of the open book in place; another publication goes to the host. */
+  const openCitation = (citation: IChatCitation) => {
+    const pkg = useViewerStore().chatPackage;
+    if (!isCitationOpenable(citation)) return;
+    if (pkg?.entryId && citation.entryId !== pkg.entryId) {
+      pkg.openCitationFunc?.(citation);
+      return;
+    }
+    focusOn({
+      page: citation.page,
+      paragraphId: citation.paragraphId,
+      regionId: citation.regionId,
+      bbox: citation.bbox,
+      quads: citation.quads,
+      quadsPage: citation.sentencePage,
+    });
+  };
+
+  /** Without the open book's id every citation is taken to be of it, as before `entryId` existed. */
+  const isCitationOpenable = (citation: IChatCitation) => {
+    const pkg = useViewerStore().chatPackage;
+    if (pkg?.entryId && citation.entryId !== pkg.entryId) return !!pkg.openCitationFunc;
+    return !!(citation.page || citation.regionId);
+  };
+
   // --- Explain popup ---------------------------------------------------------
   const explainRequest = ref<IExplainRequest | null>(null);
   // Where the reader last dragged the popup; the next one opens there.
@@ -209,6 +272,7 @@ export const useAssistantStore = defineStore('assistant', () => {
             else next.push({ ...activity });
             activities.value = { ...activities.value, [answer.id]: next };
           },
+          onCitations: (citations) => (answer.citations = mergeCitations(answer.citations, citations)),
           onEntries: (entries) => (answer.entries = entries),
           onPages: (pages) => (answer.pages = pages),
           onAnnotation: (annotation) => {
@@ -564,6 +628,7 @@ export const useAssistantStore = defineStore('assistant', () => {
     regionsRequested.clear();
     allRegions.value = null;
     focusedRegionId.value = null;
+    focus.value = null;
     explainRequest.value = null;
     messages.value = [];
     pendingContexts.value = [];
@@ -588,6 +653,12 @@ export const useAssistantStore = defineStore('assistant', () => {
     loadRegions,
     findRegion,
     goToRegion,
+    // focus
+    focus,
+    focusOn,
+    clearFocus,
+    openCitation,
+    isCitationOpenable,
     // explain
     explainRequest,
     explainPosition,

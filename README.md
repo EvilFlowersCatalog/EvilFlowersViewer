@@ -163,6 +163,7 @@ app.unmount();
 | options.bookmarkToggleFunction | Function (type: `(entry: ISuggestedEntry) => Promise<{ isOnShelf, shelfRecordId? }>`). Adds or removes a card's publication from the reader's shelf. |
 | options.suggestionsFunction | Function (type: `(kind: SUGGESTION_KIND, context?: { selectedText?, page? }) => Promise<ISuggestedEntry[]>`). Enables recommendations and the selection menu's "Similar". |
 | options.explainFunction   | Function (type: `(text: string, context?: IExplainContext) => Promise<IExplainResult>`). Enables "Explain"; `context` carries `page` and, for a figure/table/equation, `regionId`. |
+| options.initialFocus      | Optional `IViewerFocus` `{ page?, paragraphId?, regionId?, bbox?, quads?, quadsPage? }` (page fractions, top-left origin). Opens at `page` (wins over `initialPage`), scrolls `bbox` into view, outlines it and flashes the sentence `quads` on `quadsPage ?? page`, then fades after a few seconds. Nothing is added to the highlight layers. A `regionId` without a box flashes that region of `regionPackage`; a `paragraphId` alone only opens the page. |
 | options.chatPackage       | Optional `IChatPackage`. Enables the reading chat — see [Intelligent viewer](#intelligent-viewer). |
 | options.regionPackage     | Optional `IRegionPackage`. Enables figure/table/equation hover.                      |
 | options.agentAnnotationPackage | Optional `IAgentAnnotationPackage`. Enables the AI highlight layer and its sidebar. |
@@ -200,6 +201,8 @@ chatPackage: {
   getChatsFunc: async () => [...],     // optional, with getChatFunc: enables chat history
   getChatFunc: async (chatId) => [...],
   deleteChatFunc: async (chatId) => {}, // optional: delete buttons in history
+  entryId: 'abc',                       // optional: id of the open publication
+  openCitationFunc: (citation) => {},   // optional: opens a citation of another publication
 }
 ```
 
@@ -208,6 +211,13 @@ chatPackage: {
   (`IChatContext`).
 - Answer text is markdown. `[[page:12]]` and `[[region:<id>]]` render as links that jump into the
   book. `onEntries` shows publications as cards (the assistant's recommendation tool).
+- Evidence labels `[E3]` (a passage) and `[F2]` (a figure, table or equation), also grouped as
+  `[E3, F2]` or `[E3; E5]`, become chips once `onCitations` (or `IChatMessage.citations` from
+  history) resolves them (`IChatCitation`). Hovering a chip shows its title, page, section and
+  `quote`, or a figure's `imageUrl` and `caption`. Clicking a chip of the open publication
+  (`entryId` matches the package's `entryId`, or the package has no `entryId`) jumps to it like
+  `initialFocus`. Clicking a chip of any other publication calls `openCitationFunc`; without that
+  function such chips are inert.
 - History lists `IChatSummary` items; `aboutThisBook: false` chats open read-only.
 
 ### Regions — `options.regionPackage`

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { IChatMessage } from '@/assets/utils/interfaces';
+import type { IChatCitation, IChatMessage } from '@/assets/utils/interfaces';
 import { renderMarkdown } from '@/assets/utils/markdown';
-import { useAssistantStore, useDocumentStore } from '@/stores';
+import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import { Loader } from '@/components/pdf-aids';
 import SuggestionEntryItem from '@/components/pdf-viewer-page/pdf-suggestions/SuggestionEntryItem.vue';
 import ContextChip from './ContextChip.vue';
@@ -21,6 +21,9 @@ const activities = computed(() => assistantStore.activities[props.message.id] ??
 // Host progress label; only one answer streams at a time.
 const status = computed(() => (streaming.value ? assistantStore.chatStatus : null));
 
+const findCitation = (label: string) =>
+  props.message.citations?.find((c) => c.label.toUpperCase() === label.toUpperCase()) ?? null;
+
 const html = computed(() =>
   renderMarkdown(props.message.text, {
     page: (page) => t('page-short', { page }),
@@ -28,8 +31,62 @@ const html = computed(() =>
       const region = assistantStore.findRegion(id);
       return region ? t(`region-${region.kind}`) : t('region-figure');
     },
+    // A passage reads by its number ("3"), a figure with its series ("F2"). While
+    // streaming every label is a chip (its citation may still come); after that
+    // only the labels the citations resolve.
+    evidence: (label) => {
+      const citation = findCitation(label);
+      if (!citation && !streaming.value) return null;
+      const text = label.startsWith('E') ? label.slice(1) : label;
+      return { text, inert: !citation || !assistantStore.isCitationOpenable(citation) };
+    },
   })
 );
+
+// Hover card of an evidence chip: title, page and section, quote or figure crop.
+const CARD_WIDTH = 280;
+const card = ref<{ citation: IChatCitation; left: number; top: number; above: boolean } | null>(null);
+const imageFailed = ref(false);
+let hideTimer: ReturnType<typeof setTimeout> | null = null;
+
+const chipOf = (target: EventTarget | null) => (target as HTMLElement | null)?.closest?.<HTMLElement>('.efv-cite[data-evidence]') ?? null;
+
+const showCard = (chip: HTMLElement) => {
+  if (hideTimer) clearTimeout(hideTimer);
+  const citation = findCitation(chip.dataset.evidence ?? '');
+  if (!citation) return;
+  const rect = chip.getBoundingClientRect();
+  const above = rect.top > 240; // the input sits below, so above when there is room
+  if (card.value?.citation !== citation) imageFailed.value = false;
+  card.value = {
+    citation,
+    left: Math.min(Math.max(8, rect.left), window.innerWidth - CARD_WIDTH - 8),
+    top: above ? rect.top - 6 : rect.bottom + 6,
+    above,
+  };
+};
+const hideCard = () => {
+  if (hideTimer) clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => (card.value = null), 150);
+};
+const keepCard = () => hideTimer && clearTimeout(hideTimer);
+
+const onOver = (event: Event) => {
+  const chip = chipOf(event.target);
+  if (chip) showCard(chip);
+};
+const onOut = (event: Event) => {
+  if (chipOf(event.target)) hideCard();
+};
+onBeforeUnmount(() => hideTimer && clearTimeout(hideTimer));
+
+const isFigure = (c: IChatCitation) => c.label.toUpperCase().startsWith('F') || !!c.regionId;
+const cardWhere = (c: IChatCitation) =>
+  [c.page ? t('page-short', { page: c.page }) : '', c.section ?? ''].filter(Boolean).join(' · ');
+const isOtherBook = (c: IChatCitation) => {
+  const entryId = useViewerStore().chatPackage?.entryId;
+  return !!entryId && c.entryId !== entryId;
+};
 
 // Citations are rendered as plain buttons inside v-html; one delegated handler.
 const goToPage = (page: number) => {
@@ -48,7 +105,12 @@ const onClick = (event: MouseEvent) => {
   if (!cite) return;
   const page = cite.dataset.page;
   const regionId = cite.dataset.region;
-  if (page) {
+  const evidence = cite.dataset.evidence;
+  if (evidence) {
+    const citation = findCitation(evidence);
+    card.value = null;
+    if (citation) assistantStore.openCitation(citation);
+  } else if (page) {
     goToPage(Number(page));
   } else if (regionId) {
     const region = assistantStore.findRegion(regionId);
@@ -84,7 +146,56 @@ const onClick = (event: MouseEvent) => {
         {{ $t('chat-error') }}
       </p>
       <!-- eslint-disable-next-line vue/no-v-html -- sanitized by renderMarkdown -->
-      <div v-else class="efv-md" :class="{ 'text-red': message.status === 'error' }" v-html="html" @click="onClick" />
+      <div
+        v-else
+        class="efv-md"
+        :class="{ 'text-red': message.status === 'error' }"
+        @click="onClick"
+        @mouseover="onOver"
+        @mouseout="onOut"
+        @focusin="onOver"
+        @focusout="onOut"
+        v-html="html"
+      />
+    </div>
+
+    <!-- Hover card of an evidence chip -->
+    <div
+      v-if="card"
+      role="tooltip"
+      class="fixed z-[1000] rounded-[8px] bg-white dark:bg-[#1e1e1e] shadow-[0px_6px_18px_rgba(0,0,0,0.25)] border border-gray-200 dark:border-white/10 overflow-hidden text-left"
+      :style="{
+        left: `${card.left}px`,
+        top: `${card.top}px`,
+        width: `${CARD_WIDTH}px`,
+        transform: card.above ? 'translateY(-100%)' : undefined,
+      }"
+      @mouseenter="keepCard"
+      @mouseleave="hideCard"
+    >
+      <img
+        v-if="isFigure(card.citation) && card.citation.imageUrl && !imageFailed"
+        :src="card.citation.imageUrl"
+        :alt="card.citation.caption ?? ''"
+        class="w-full max-h-40 object-contain bg-white"
+        @error="imageFailed = true"
+      />
+      <div class="px-3 py-2 flex flex-col gap-1">
+        <p class="text-[11px] font-semibold leading-[15px] text-[#222] dark:text-gray-100 line-clamp-2">
+          {{ card.citation.title || card.citation.label }}
+        </p>
+        <p v-if="cardWhere(card.citation)" class="text-[10px] text-efv-muted">{{ cardWhere(card.citation) }}</p>
+        <p v-if="isFigure(card.citation) && card.citation.caption" class="text-[11px] leading-[15px] text-[#333] dark:text-gray-200 line-clamp-3">
+          {{ card.citation.caption }}
+        </p>
+        <p v-else-if="!isFigure(card.citation) && card.citation.quote" class="text-[11px] leading-[15px] text-[#333] dark:text-gray-200 italic line-clamp-3">
+          „{{ card.citation.quote }}“
+        </p>
+        <p v-else-if="card.citation.readable === false" class="text-[10px] text-efv-muted">{{ $t('cite-borrow') }}</p>
+        <p v-if="assistantStore.isCitationOpenable(card.citation)" class="text-[10px] text-accent-ink dark:text-sky-300">
+          {{ isOtherBook(card.citation) ? $t('cite-open-other') : $t('cite-open') }}
+        </p>
+      </div>
     </div>
 
     <!-- Host progress label after some text already streamed (e.g. another tool call) -->

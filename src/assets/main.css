@@ -332,6 +332,12 @@
   filter: none;
   background: rgba(56, 189, 248, 0.25);
 }
+/* Evidence label whose source is still streaming or cannot be opened here */
+.efv-viewer .efv-cite[aria-disabled='true'] {
+  opacity: 0.6;
+  cursor: default;
+  text-decoration: none;
+}
 
 /* Region focused from a chat citation */
 @keyframes efv-region-flash {
@@ -341,6 +347,20 @@
 .efv-viewer .efv-region-flash {
   animation: efv-region-flash 1.6s ease-out;
   box-shadow: 0 0 0 2px var(--efv-primary);
+}
+
+/* Cited paragraph/figure (initialFocus, chat evidence): box outlined, sentence flashed */
+.efv-viewer .efv-focus-box {
+  box-shadow: 0 0 0 2px var(--efv-primary);
+  background-color: rgba(0, 119, 204, 0.05);
+}
+@keyframes efv-focus-flash {
+  0%, 100% { background-color: rgba(255, 196, 0, 0.45); }
+  50% { background-color: rgba(255, 196, 0, 0.75); }
+}
+.efv-viewer .efv-focus-quad {
+  background-color: rgba(255, 196, 0, 0.45);
+  animation: efv-focus-flash 0.9s ease-in-out 3;
 }
 
 /* Agent highlight navigated to from the list */

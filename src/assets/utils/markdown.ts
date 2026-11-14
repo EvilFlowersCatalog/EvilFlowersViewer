@@ -11,7 +11,35 @@ const escapeHtml = (text: string) =>
 export interface ICitationLabels {
   page: (page: string) => string;
   region: (id: string) => string;
+  /**
+   * Chip of an evidence label (`E3`, `F2`), or null to leave it as text. An
+   * `inert` chip is shown but cannot be clicked. Without it labels are not touched.
+   */
+  evidence?: (label: string) => { text: string; inert?: boolean } | null;
 }
+
+// Evidence labels as the model writes them: `[E3]`, `[E3, F2]`, `[E3; E5]`; `[E3][E5]` is two groups.
+const EVIDENCE_GROUP = /\[\s*([EF]\d+(?:\s*[,;]\s*[EF]\d+)*)\s*\]/gi;
+
+/** `e03` → `E3`. */
+export const normalizeEvidenceLabel = (raw: string): string => `${raw.charAt(0).toUpperCase()}${Number(raw.slice(1))}`;
+
+const evidenceChips = (html: string, evidence: NonNullable<ICitationLabels['evidence']>) =>
+  html.replace(EVIDENCE_GROUP, (group, list: string) => {
+    const chips = list
+      .split(/\s*[,;]\s*/)
+      .map(normalizeEvidenceLabel)
+      .map((label) => ({ label, chip: evidence(label) }));
+    // A group none of whose labels resolve stays as the model wrote it.
+    if (chips.every(({ chip }) => chip === null)) return group;
+    return chips
+      .map(({ label, chip }) =>
+        chip === null
+          ? `[${label}]`
+          : `<button type="button" class="efv-cite" data-evidence="${label}"${chip.inert ? ' aria-disabled="true"' : ''}>${escapeHtml(chip.text)}</button>`
+      )
+      .join('');
+  });
 
 /**
  * Citation tokens as the model actually writes them, made canonical: `[[page:7], [page:13]]`,
@@ -27,7 +55,12 @@ export const normalizeCitations = (text: string): string =>
     )
     .replace(/\[+\s*(page|region):\s*([\w-]+)\s*\]+/g, '[[$1:$2]]');
 
-const inline = (text: string, labels: ICitationLabels) =>
+const inline = (text: string, labels: ICitationLabels) => {
+  const html = inlineMarkup(text, labels);
+  return labels.evidence ? evidenceChips(html, labels.evidence) : html;
+};
+
+const inlineMarkup = (text: string, labels: ICitationLabels) =>
   escapeHtml(normalizeCitations(text))
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')

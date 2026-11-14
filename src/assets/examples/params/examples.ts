@@ -1,6 +1,7 @@
 import type {
   IAgentAnnotation,
   IAgentHighlight,
+  IChatCitation,
   IChatContext,
   IChatMessage,
   IChatStreamHandlers,
@@ -461,6 +462,88 @@ export const getAllRegionsFunc = async (): Promise<IRegion[]> => {
 };
 
 // Chat: streams a canned answer word by word, like the assistant SSE.
+/** The sample copy's entry id, so the chat knows which citations are of the open book. */
+export const exampleEntryId = 'sample-entry';
+
+// Evidence citations built from the sample PDF's real text lines: E1 a
+// paragraph lower on the asked page (so it needs scrolling when zoomed), E2 a
+// sentence running from the end of the next page onto the one after, F1 the
+// next mock figure, E3 a passage of another publication.
+const exampleCitations = async (page: number): Promise<IChatCitation[]> => {
+  const total = (await getSampleDoc()).numPages;
+  const citations: IChatCitation[] = [];
+  const title = 'SampleTOC (mock)';
+
+  const here = await getLines(page);
+  const start = Math.max(0, Math.floor(here.length * 0.6));
+  const paragraph = here.slice(start, start + 4);
+  if (paragraph.length >= 2) {
+    citations.push({
+      label: 'E1',
+      entryId: exampleEntryId,
+      title,
+      page,
+      section: 'Kapitola (mock)',
+      paragraphId: `p-${page}-${start}`,
+      bbox: unionBoxes(paragraph.map((l) => l.box)),
+      quads: paragraph.slice(1, 3).map((l) => l.box),
+      quote: paragraph.slice(1, 3).map((l) => l.text).join(' '),
+    });
+  }
+
+  const next = page + 1 <= total ? await getLines(page + 1) : [];
+  const after = page + 2 <= total ? await getLines(page + 2) : [];
+  const tail = next.slice(-3);
+  if (tail.length && after.length) {
+    citations.push({
+      label: 'E2',
+      entryId: exampleEntryId,
+      title,
+      page: page + 1,
+      paragraphId: `p-${page + 1}-tail`,
+      bbox: unionBoxes(tail.map((l) => l.box)),
+      quads: after.slice(0, 1).map((l) => l.box),
+      sentencePage: page + 2,
+      quote: `${tail[tail.length - 1].text} ${after[0].text}`,
+    });
+  }
+
+  const figurePage = Array.from({ length: 3 }, (_, i) => page + i).find((p) => p % 3 === 1 && p <= total);
+  if (figurePage) {
+    const [figure] = (await getRegionsFunc(figurePage)).filter((r) => r.kind === 'figure');
+    if (figure) {
+      citations.push({
+        label: 'F1',
+        entryId: exampleEntryId,
+        title,
+        page: figurePage,
+        kind: 'figure',
+        regionId: figure.id,
+        bbox: figure.bbox,
+        caption: figure.caption ?? undefined,
+        imageUrl: 'https://example.invalid/crop.png', // fails to load: the card hides it
+      });
+    }
+  }
+
+  citations.push({
+    label: 'E3',
+    entryId: 'other-entry',
+    title: 'Iná publikácia (mock)',
+    page: 12,
+    section: 'Úvod',
+    quote: 'Pasáž z inej knihy, ktorú otvorí hostiteľ.',
+  });
+  return citations;
+};
+
+const unionBoxes = (boxes: IPageBox[]): IPageBox => ({
+  x0: Math.min(...boxes.map((b) => b.x0)),
+  y0: Math.min(...boxes.map((b) => b.y0)),
+  x1: Math.max(...boxes.map((b) => b.x1)),
+  y1: Math.max(...boxes.map((b) => b.y1)),
+});
+
 const streamText = async (text: string, handlers: IChatStreamHandlers) => {
   for (const part of text.split(/(\s+)/)) {
     handlers.onChunk(part);
@@ -594,7 +677,12 @@ export const exampleChatSendFunction = async (
   let answer = '';
   let entries: ISuggestedEntry[] | undefined;
   let pages: number[] | undefined;
+  let citations: IChatCitation[] | undefined;
   const recording: IChatStreamHandlers = {
+    onCitations: (list) => {
+      citations = [...(citations ?? []), ...list];
+      handlers.onCitations?.(list);
+    },
     onChunk: (text) => {
       answer += text;
       handlers.onChunk(text);
@@ -618,7 +706,7 @@ export const exampleChatSendFunction = async (
 
   await answerChat(message, contexts, recording, meta);
 
-  chat.messages.push(mockMessage('user', message, { contexts }), mockMessage('assistant', answer, { entries, pages }));
+  chat.messages.push(mockMessage('user', message, { contexts }), mockMessage('assistant', answer, { entries, pages, citations }));
   chat.summary.updatedAt = daysAgo(0);
   chat.summary.messageCount = chat.messages.length;
   return { chatId };
@@ -653,15 +741,19 @@ const answerChat = async (
     });
   }
 
+  const citations = await exampleCitations(meta.page);
   const paragraphs = [
     ...contexts.map(describeContext),
     contexts.length
-      ? `K otázke „${message}“: **v skratke** áno — kniha to rozoberá podrobnejšie na stranách [[page:${meta.page}]] a [[page:${meta.page + 2}]].`
-      : `K otázke „${message}“ v tejto knihe:\n\n- hlavná myšlienka je na strane [[page:${meta.page}]],\n- príklad nájdeš na strane [[page:${meta.page + 1}]],\n- *mock odpoveď*, backend zatiaľ nebeží.`,
+      ? `K otázke „${message}“: **v skratke** áno — kniha to rozoberá podrobnejšie na stranách [[page:${meta.page}]] a [[page:${meta.page + 2}]] [E1].`
+      : `K otázke „${message}“ v tejto knihe:\n\n- hlavná myšlienka je v tejto pasáži [E1],\n- príklad nájdeš ďalej [E2; F1],\n- inde to vysvetľuje aj iná publikácia [E3],\n- *mock odpoveď*, backend zatiaľ nebeží.`,
   ];
   if (wantsBooks) paragraphs.push('Tu je zopár kníh, ktoré na to nadväzujú:');
 
+  // Like the portal: the evidence arrives before the text, the authoritative frame after it.
+  handlers.onCitations?.(citations.map(({ label, entryId, page }) => ({ label, entryId, page })));
   await streamText(paragraphs.join('\n\n'), handlers);
+  handlers.onCitations?.(citations);
   handlers.onPages?.([meta.page, meta.page + 1]);
   if (wantsBooks) handlers.onEntries(exampleEntries.slice(0, 3));
 };

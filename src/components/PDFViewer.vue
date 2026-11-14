@@ -226,7 +226,8 @@ const loadDocument = async () => {
     if (seq !== loadSeq) return;
 
     // The host can open the document at a page, e.g. one a chat citation pointed to.
-    const initialPage = Math.trunc(Number(options?.initialPage) || 1);
+    const focus = options?.initialFocus;
+    const initialPage = Math.trunc(Number(focus?.page || options?.initialPage) || 1);
     docStore.totalPages = pdf.numPages;
     docStore.activePage = Math.min(Math.max(1, initialPage), pdf.numPages);
     docStore.toc = [];
@@ -248,6 +249,10 @@ const loadDocument = async () => {
     docStore.loadBookmarks();
     assistantStore.reset();
     assistantStore.loadAgentAnnotations();
+    // ...and at a cited paragraph or figure: scrolled to, outlined, then faded.
+    if (focus && (focus.bbox || focus.quads?.length || focus.regionId)) {
+      assistantStore.focusOn({ ...focus, page: docStore.activePage });
+    }
   } catch (error) {
     if (seq !== loadSeq) return;
     failReason.value = describeLoadError(error);

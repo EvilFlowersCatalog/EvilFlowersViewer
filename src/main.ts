@@ -40,6 +40,8 @@ export type {
   IChatActivity,
   IChatPackage,
   IChatSummary,
+  IChatCitation,
+  IViewerFocus,
 } from './assets/utils/interfaces';
 export type { SUGGESTION_KIND } from './assets/utils/enums';
 

@@ -187,7 +187,58 @@ export interface IChatMessage {
   annotationIds?: string[];
   /** Tool calls of the turn this answer closed, for chats read back from history (the activity log). */
   activities?: IChatActivity[];
+  /** What the evidence labels `[E3]` / `[F2]` in `text` point to. Labels without one stay plain text. */
+  citations?: IChatCitation[];
   status?: 'streaming' | 'done' | 'error';
+}
+
+/**
+ * The passage or figure behind an evidence label of an answer (`[E3]` a passage,
+ * `[F2]` a figure, table or equation). Boxes are page fractions, top-left origin.
+ */
+export interface IChatCitation {
+  /** `E3`, `F2`, as the answer text writes it. */
+  label: string;
+  /** Publication cited. The open one (`IChatPackage.entryId`) is jumped to in place. */
+  entryId: string;
+  title?: string;
+  /** 1-based page in the reader's numbering. */
+  page?: number;
+  section?: string;
+  /** `passage`, or `figure` / `table` / `equation` for an `F#` label. */
+  kind?: string;
+  paragraphId?: string;
+  regionId?: string;
+  /** The paragraph's or region's box on `page`. */
+  bbox?: IPageBox;
+  /** One box per line of the cited sentence. */
+  quads?: IPageBox[];
+  /** The page `quads` are on, when the sentence runs onto the next page. */
+  sentencePage?: number;
+  /** The cited sentence, shown in the chip's hover card. */
+  quote?: string;
+  /** A figure's caption, shown in the hover card. */
+  caption?: string;
+  /** A figure's crop, shown in the hover card. */
+  imageUrl?: string;
+  /** False when the reader cannot open the publication here (it has to be borrowed). */
+  readable?: boolean;
+}
+
+/**
+ * A spot to bring into view and point out: the paragraph or region box is
+ * outlined and the sentence flashed, then both fade. Nothing is stored.
+ */
+export interface IViewerFocus {
+  /** 1-based page of `bbox` (and of `quads`, unless `quadsPage` says otherwise). */
+  page?: number;
+  paragraphId?: string;
+  /** A region of `regionPackage`; without `bbox` its own box is used. */
+  regionId?: string;
+  bbox?: IPageBox;
+  quads?: IPageBox[];
+  /** The page the `quads` are on, when it is not `page`. */
+  quadsPage?: number;
 }
 
 /** Stream callbacks, the same events the portal reads from the assistant SSE. */
@@ -213,6 +264,11 @@ export interface IChatStreamHandlers {
    * `done: false` when it starts, `done: true` (same `id`) when it finished.
    */
   onActivity?: (activity: IChatActivity) => void;
+  /**
+   * What the answer's evidence labels point to. May come more than once; a
+   * later citation replaces an earlier one with the same label.
+   */
+  onCitations?: (citations: IChatCitation[]) => void;
   onError: (detail: string) => void;
 }
 
@@ -274,6 +330,10 @@ export interface IChatPackage {
   getChatFunc?: ((chatId: string) => Promise<IChatMessage[]>) | null;
   /** Deletes a past chat. Omitting it hides the delete buttons. */
   deleteChatFunc?: ((chatId: string) => Promise<void>) | null;
+  /** Id of the open publication. Citations of it are opened in place, the rest go to `openCitationFunc`. */
+  entryId?: string | null;
+  /** Opens a citation of another publication. Without it such citations are not clickable. */
+  openCitationFunc?: ((citation: IChatCitation) => void) | null;
 }
 
 /** Host hooks for the annotation/edit layer (create + persist SVG layers). */
@@ -337,6 +397,11 @@ export interface IViewerOptions {
   lang?: 'sk' | 'en';
   /** 1-based page to open the document at, e.g. a page a chat citation pointed to. */
   initialPage?: number | null;
+  /**
+   * Opens at a cited paragraph or figure: scrolls its box into view, outlines it
+   * and flashes the sentence's `quads`, then fades. `page` wins over `initialPage`.
+   */
+  initialFocus?: IViewerFocus | null;
   citationBib?: string | null;
   homeFunction?: (() => void) | null;
   closeFunction?: (() => void) | null;
