@@ -104,8 +104,20 @@ To get started with EvilFlowersViewer, follow these steps:
 1. Install EvilFLowersViewerPackage:
 
 ```bash
+# a release tag
+npm install "github:EvilFlowersCatalog/EvilFlowersViewer#v0.8.0"   # or #semver:^0.8.0
+# the latest of a branch (develop = dev, main = prod)
+npm install "github:EvilFlowersCatalog/EvilFlowersViewer#develop"
+# or from npm (tagged versions only)
 npm install @evilflowers/evilflowersviewer
 ```
+
+Installed from git, the package builds its own `dist/` (the `prepare` script). Only tags
+after `v0.7.9` can be installed this way.
+
+**Releasing:** bump `version` in `package.json`, then push a matching tag
+(`git tag v0.8.0 && git push origin v0.8.0`). The Publish workflow checks the tag matches
+`package.json`, type-checks, and publishes the version to npm. No GitHub Release is needed.
 
 2. Import the default `renderPDFViewer` function and the stylesheet:
 

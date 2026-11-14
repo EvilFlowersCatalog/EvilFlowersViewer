@@ -4,6 +4,10 @@
   "main": "dist/evilFlowersViewer.umd.js",
   "module": "dist/evilFlowersViewer.es.js",
   "types": "dist/main.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/EvilFlowersCatalog/EvilFlowersViewer.git"
@@ -17,7 +21,8 @@
     "build": "run-p type-check \"build-only {@}\"",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --noEmit --skipLibCheck"
+    "type-check": "vue-tsc --noEmit --skipLibCheck",
+    "prepare": "npm run build-only"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

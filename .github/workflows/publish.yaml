@@ -1,14 +1,20 @@
 name: Publish
+
+# Releases are tags, not GitHub Releases: `git tag v0.8.0 && git push origin v0.8.0`.
+# Consumers install straight from git (`github:EvilFlowersCatalog/EvilFlowersViewer#v0.8.0`,
+# or `#develop` for dev); `prepare` builds dist/ on install. This job also puts the
+# tagged version on npm for anyone still using the registry.
 on:
-  release:
-    types: [published]
+  push:
+    tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - name: Code checkout
@@ -16,15 +22,22 @@ jobs:
       - name: Node setup
         uses: actions/setup-node@v4
         with:
-          node-version: '24.x' 
+          node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
-      # Installs exactly what package-lock.json pins (@types/node included, it
-      # is a devDependency), so a release ships what was tested.
-      - name: Install
+      - name: Tag matches package.json
+        if: github.ref_type == 'tag'
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $version"
+            exit 1
+          fi
+      # Installs exactly what package-lock.json pins, so a release ships what was
+      # tested. `prepare` builds dist/ here.
+      - name: Install & build
         run: npm ci
-      - name: Build
-        run: npm run build
+      - name: Type check
+        run: npm run type-check
+      # dist/ is already built by `prepare` above; don't build it twice.
       - name: Publish
-        run: npm publish
-
-
+        run: npm publish --ignore-scripts

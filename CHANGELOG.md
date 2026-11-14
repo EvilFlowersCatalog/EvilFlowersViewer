@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Build
+
+- **Release by tag, install from git** (#149): a release is a pushed `v*` tag, no GitHub Release. The Publish workflow fails if the tag does not match `package.json`, type-checks, and still publishes to npm. A `prepare` script builds `dist/`, so consumers can install a tag or a branch straight from git (`github:EvilFlowersCatalog/EvilFlowersViewer#develop`). `files` limits the package to `dist/` and `CHANGELOG.md`; `src/`, configs and `index.html` are no longer shipped.
+
 ## 0.7.9 : 2026-11-12
 
 ### Added
