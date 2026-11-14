@@ -2,7 +2,8 @@ import DOMPurify from 'dompurify';
 
 // A small markdown renderer for assistant answers: paragraphs, headings, lists,
 // GFM tables, bold/italic/code, plus the viewer's citation tokens
-// `[[page:N]]` and `[[region:ID]]`, which become buttons with data attributes.
+// `[[page:N]]` and `[[region:ID]]` and the evidence labels `[E3]`/`[F2]`, which
+// become buttons with data attributes.
 // Output is sanitized, so answer text can never inject markup.
 
 const escapeHtml = (text: string) =>

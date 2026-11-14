@@ -14,6 +14,7 @@ const props = defineProps<{ message: IChatMessage }>();
 const { t } = useI18n();
 const docStore = useDocumentStore();
 const assistantStore = useAssistantStore();
+const viewerStore = useViewerStore();
 
 const streaming = computed(() => props.message.status === 'streaming');
 // Tool calls of this answer (current session only; history has none).
@@ -24,6 +25,21 @@ const status = computed(() => (streaming.value ? assistantStore.chatStatus : nul
 const findCitation = (label: string) =>
   props.message.citations?.find((c) => c.label.toUpperCase() === label.toUpperCase()) ?? null;
 
+// Chip text of a label: a passage by its number ("3"), a figure with its series ("F2").
+const chipText = (label: string) => {
+  const upper = label.toUpperCase();
+  return upper.startsWith('E') ? upper.slice(1) : upper;
+};
+
+// What each evidence chip points to, listed under the answer: passages, then figures, by number.
+const sortedCitations = computed(() =>
+  [...(props.message.citations ?? [])].sort(
+    (a, b) =>
+      a.label.toUpperCase().charCodeAt(0) - b.label.toUpperCase().charCodeAt(0) ||
+      Number(a.label.slice(1)) - Number(b.label.slice(1))
+  )
+);
+
 const html = computed(() =>
   renderMarkdown(props.message.text, {
     page: (page) => t('page-short', { page }),
@@ -31,14 +47,12 @@ const html = computed(() =>
       const region = assistantStore.findRegion(id);
       return region ? t(`region-${region.kind}`) : t('region-figure');
     },
-    // A passage reads by its number ("3"), a figure with its series ("F2"). While
-    // streaming every label is a chip (its citation may still come); after that
-    // only the labels the citations resolve.
+    // While streaming every label is a chip (its citation may still come); after
+    // that only the labels the citations resolve.
     evidence: (label) => {
       const citation = findCitation(label);
       if (!citation && !streaming.value) return null;
-      const text = label.startsWith('E') ? label.slice(1) : label;
-      return { text, inert: !citation || !assistantStore.isCitationOpenable(citation) };
+      return { text: chipText(label), inert: !citation || !assistantStore.isCitationOpenable(citation) };
     },
   })
 );
@@ -84,7 +98,7 @@ const isFigure = (c: IChatCitation) => c.label.toUpperCase().startsWith('F') || 
 const cardWhere = (c: IChatCitation) =>
   [c.page ? t('page-short', { page: c.page }) : '', c.section ?? ''].filter(Boolean).join(' · ');
 const isOtherBook = (c: IChatCitation) => {
-  const entryId = useViewerStore().chatPackage?.entryId;
+  const entryId = viewerStore.chatPackage?.entryId;
   return !!entryId && c.entryId !== entryId;
 };
 
@@ -202,6 +216,25 @@ const onClick = (event: MouseEvent) => {
     <div v-if="streaming && message.text && status" class="flex items-center gap-1.5 text-[11px] leading-[15px] text-efv-muted" role="status">
       <span class="size-1.5 shrink-0 rounded-full bg-secondary animate-pulse" aria-hidden="true" />
       <span class="truncate">{{ status }}</span>
+    </div>
+
+    <!-- What each evidence chip in the answer points to -->
+    <div v-if="sortedCitations.length && !streaming" class="flex flex-col gap-1 text-[10px] text-efv-muted">
+      <span>{{ $t('chat-sources') }}:</span>
+      <button
+        v-for="citation in sortedCitations"
+        :key="citation.label"
+        type="button"
+        class="group flex items-baseline gap-1.5 text-left min-w-0 disabled:cursor-default"
+        :disabled="!assistantStore.isCitationOpenable(citation)"
+        @click="assistantStore.openCitation(citation)"
+      >
+        <span class="efv-cite">{{ chipText(citation.label) }}</span>
+        <span class="min-w-0 text-[#333] dark:text-gray-200 group-hover:underline">
+          {{ citation.title || citation.entryId }}<template v-if="citation.page">, {{ $t('page-short', { page: citation.page }) }}</template>
+          <span v-if="citation.section" class="text-efv-muted"> · {{ citation.section }}</span>
+        </span>
+      </button>
     </div>
 
     <!-- Pages the answer was drawn from -->
