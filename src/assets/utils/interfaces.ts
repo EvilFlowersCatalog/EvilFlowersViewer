@@ -450,6 +450,28 @@ export interface IViewerOptions {
   agentAnnotationPackage?: IAgentAnnotationPackage | null;
   /** Opt-in list of the reader's own text highlights (shares the agent layer). */
   readerHighlightPackage?: IReaderHighlightPackage | null;
+  /**
+   * Called once per opened document, when its first page has been painted.
+   * `durationMs` runs from the start of the load inside the viewer to the paint.
+   * Carries no document content, so it is safe to send to telemetry.
+   */
+  onFirstPageRendered?: ((info: IFirstPageRenderedInfo) => void) | null;
+  /**
+   * Called at most once per opened document, when it fails before its first
+   * page is painted. Carries the failing stage only.
+   */
+  onDocumentError?: ((info: IDocumentErrorInfo) => void) | null;
+}
+
+export interface IFirstPageRenderedInfo {
+  /** 1-based page that was painted first (the initial page). */
+  page: number;
+  durationMs: number;
+}
+
+export interface IDocumentErrorInfo {
+  /** `download`: the file could not be fetched; `parse`: not a readable PDF; `render`: the first page failed to paint. */
+  stage: 'download' | 'parse' | 'render';
 }
 
 /**

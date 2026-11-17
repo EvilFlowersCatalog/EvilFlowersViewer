@@ -207,6 +207,7 @@ const loadDocument = async () => {
   const previousTask = loadingTask;
   failed.value = false;
   progress.value = null;
+  docStore.startDocumentOpen();
 
   try {
     const params = documentParams();
@@ -256,6 +257,11 @@ const loadDocument = async () => {
   } catch (error) {
     if (seq !== loadSeq) return;
     failReason.value = describeLoadError(error);
+    docStore.reportDocumentError(
+      failReason.value === 'load-error-network' || !documentParams()
+        ? 'download'
+        : 'parse'
+    );
     failed.value = true;
     docStore.pdf = null;
     docStore.previewPdf = null;
@@ -338,6 +344,8 @@ onMounted(() => {
   viewerStore.regionPackage = options?.regionPackage ?? null;
   viewerStore.agentAnnotationPackage = options?.agentAnnotationPackage ?? null;
   viewerStore.readerHighlightPackage = options?.readerHighlightPackage ?? null;
+  viewerStore.onFirstPageRendered = options?.onFirstPageRendered ?? null;
+  viewerStore.onDocumentError = options?.onDocumentError ?? null;
   viewerStore.config = {
     download: false,
     share: false,

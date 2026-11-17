@@ -3,7 +3,9 @@ import type {
   IAgentAnnotationPackage,
   IReaderHighlightPackage,
   IChatPackage,
+  IDocumentErrorInfo,
   IEditPackage,
+  IFirstPageRenderedInfo,
   IExplainContext,
   IExplainResult,
   IRegionPackage,
@@ -63,6 +65,12 @@ export const useViewerStore = defineStore('viewer', () => {
   const regionPackage = ref<IRegionPackage | null>(null);
   const agentAnnotationPackage = ref<IAgentAnnotationPackage | null>(null);
   const readerHighlightPackage = ref<IReaderHighlightPackage | null>(null);
+  const onFirstPageRendered = ref<
+    ((info: IFirstPageRenderedInfo) => void) | null
+  >(null);
+  const onDocumentError = ref<((info: IDocumentErrorInfo) => void) | null>(
+    null
+  );
   const config = ref<IViewerConfig>({
     download: false,
     share: false,
@@ -92,6 +100,8 @@ export const useViewerStore = defineStore('viewer', () => {
     regionPackage,
     agentAnnotationPackage,
     readerHighlightPackage,
+    onFirstPageRendered,
+    onDocumentError,
     config,
   };
 });

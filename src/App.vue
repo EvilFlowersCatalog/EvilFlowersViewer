@@ -110,6 +110,9 @@ const options: IViewerOptions = {
     removeBookmarkFunc: removePageBookmarkFunc,
   },
   lang: 'sk',
+  // Host timing hooks (the portal sends these to Faro).
+  onFirstPageRendered: (info) => console.info('[viewer] first page rendered', info),
+  onDocumentError: (info) => console.warn('[viewer] document error', info),
 };
 
 // `?source=url` exercises the streamed path: pdf.js fetches the sample itself,

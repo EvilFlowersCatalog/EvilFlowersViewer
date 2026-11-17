@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- **Open timing for the host** (#150, elvira-portal#59): new optional `options.onFirstPageRendered({ page, durationMs })`, called once per opened document when its first page is painted, with `durationMs` measured from the start of the load inside the viewer. New optional `options.onDocumentError({ stage })`, called at most once per document when it fails before that paint (`download`, `parse` or `render`). Neither carries document content, and a throwing callback is logged without breaking the viewer. New exported types `IFirstPageRenderedInfo` and `IDocumentErrorInfo`.
+
 ### Build
 
 - **Release by tag, install from git** (#149): a release is a pushed `v*` tag, no GitHub Release. The Publish workflow fails if the tag does not match `package.json`, type-checks, and still publishes to npm. A `prepare` script builds `dist/`, so consumers can install a tag or a branch straight from git (`github:EvilFlowersCatalog/EvilFlowersViewer#develop`). `files` limits the package to `dist/` and `CHANGELOG.md`; `src/`, configs and `index.html` are no longer shipped.

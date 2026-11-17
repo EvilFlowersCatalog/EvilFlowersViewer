@@ -179,6 +179,8 @@ app.unmount();
 | options.chatPackage       | Optional `IChatPackage`. Enables the reading chat — see [Intelligent viewer](#intelligent-viewer). |
 | options.regionPackage     | Optional `IRegionPackage`. Enables figure/table/equation hover.                      |
 | options.agentAnnotationPackage | Optional `IAgentAnnotationPackage`. Enables the AI highlight layer and its sidebar. |
+| options.onFirstPageRendered | Optional `(info: { page, durationMs }) => void`. Called once per opened document when its first page is painted; `durationMs` runs from the start of the load inside the viewer. Page number and timing only, no document content, so it can go to telemetry. A swapped document reports again. |
+| options.onDocumentError   | Optional `(info: { stage: 'download' \| 'parse' \| 'render' }) => void`. Called at most once per opened document when it fails before its first page is painted. Failures after that are not reported. |
 | config                    | Optional configuration object controlling viewer features.                          |
 | config.download           | Boolean. Enables or disables the download feature.                                  |
 | config.share              | Boolean. Enables or disables the share feature.                                     |

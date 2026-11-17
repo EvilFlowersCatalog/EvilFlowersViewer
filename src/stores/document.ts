@@ -9,6 +9,7 @@ import {
   SIDEBAR_STATE,
 } from '@/assets/utils/enums';
 import type {
+  IDocumentErrorInfo,
   ILayer,
   ISearchHighlight,
   ITOCItem,
@@ -156,6 +157,39 @@ export const useDocumentStore = defineStore('document', () => {
     }
   };
 
+  // Host timing of one document open: started by the load, ended by the first
+  // painted page or the first failure, whichever comes first. Each is reported
+  // once; later page renders and errors are not.
+  let openStartedAt: number | null = null;
+
+  // Host callbacks are fire-and-forget: a throwing host never breaks the viewer.
+  const callHost = (fn: () => void) => {
+    try {
+      fn();
+    } catch (error) {
+      console.error('Host viewer callback failed:\n', error);
+    }
+  };
+
+  const startDocumentOpen = () => {
+    openStartedAt = performance.now();
+  };
+
+  const reportFirstPaint = (page: number) => {
+    if (openStartedAt === null) return;
+    const durationMs = Math.round(performance.now() - openStartedAt);
+    openStartedAt = null;
+    const cb = useViewerStore().onFirstPageRendered;
+    if (cb) callHost(() => cb({ page, durationMs }));
+  };
+
+  const reportDocumentError = (stage: IDocumentErrorInfo['stage']) => {
+    if (openStartedAt === null) return;
+    openStartedAt = null;
+    const cb = useViewerStore().onDocumentError;
+    if (cb) callHost(() => cb({ stage }));
+  };
+
   const undo = () => {
     if (canUndo.value) undoFn.value?.();
   };
@@ -205,6 +239,9 @@ export const useDocumentStore = defineStore('document', () => {
     isBookmarked,
     loadBookmarks,
     toggleBookmark,
+    startDocumentOpen,
+    reportFirstPaint,
+    reportDocumentError,
     undo,
     redo,
   };

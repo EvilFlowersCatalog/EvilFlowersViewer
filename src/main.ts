@@ -42,6 +42,8 @@ export type {
   IChatSummary,
   IChatCitation,
   IViewerFocus,
+  IFirstPageRenderedInfo,
+  IDocumentErrorInfo,
 } from './assets/utils/interfaces';
 export type { SUGGESTION_KIND } from './assets/utils/enums';
 

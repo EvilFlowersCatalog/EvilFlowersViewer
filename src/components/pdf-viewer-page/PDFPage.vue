@@ -276,6 +276,7 @@ const markSearchHit = () => {
 // still propagates to the viewer's error boundary, which shows a notice.
 const settleOnError = (error: unknown) => {
   docStore.renderState = RENDER_STATE.RENDERED;
+  docStore.reportDocumentError('render'); // no-op once the first page painted
   throw error;
 };
 
@@ -293,6 +294,9 @@ const renderPage = async () => {
     docStore.canvasHeight = viewport.height;
 
     if (!(await paintCanvas(page, viewport))) return; // superseded
+    // The bitmap is what the reader sees; the text layer follows. No-op after
+    // the first page of the document.
+    docStore.reportFirstPaint(page.pageNumber);
     await buildTextLayer(page, viewport);
     drawHighlight(viewport);
     markSearchHit();
@@ -317,6 +321,8 @@ const rescale = async () => {
     docStore.canvasHeight = viewport.height;
 
     if (!(await paintCanvas(page, viewport))) return;
+    // A zoom during the first render supersedes it, so this may be the first paint.
+    docStore.reportFirstPaint(page.pageNumber);
 
     if (textLayer && textLayerPage === docStore.activePage) {
       textLayer.update({ viewport });
