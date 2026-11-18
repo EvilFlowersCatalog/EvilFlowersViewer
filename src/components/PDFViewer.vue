@@ -7,21 +7,42 @@ import {
   computed,
   watch,
   provide,
+  nextTick,
 } from 'vue';
-import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
+import {
+  useAssistantStore,
+  useDocumentStore,
+  useSearchStore,
+  useViewerStore,
+} from '@/stores';
 import { ExplainPopup } from './pdf-viewer-page/pdf-selection';
 import ChatPanel from './pdf-chat/ChatPanel.vue';
 import {
   GlobalWorkerOptions,
   getDocument,
 } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import PDFWorker from 'pdfjs-dist/legacy/build/pdf.worker.mjs?url';
+// The minified worker: the library inlines it, so every consumer downloads it.
+import PDFWorker from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
 import type {
+  DOCUMENT_SOURCE_KIND,
+  IDocumentSource,
+  IOutlineEntry,
   IPDFOutlineItem,
   ITOCItem,
+  IViewerController,
+  IViewerFocus,
   IViewerProps,
+  IViewerState,
+  LOAD_ERROR_REASON,
+  VIEWER_PANEL,
 } from '@/assets/utils/interfaces';
-import { PDFPage } from './pdf-viewer-page';
+import {
+  HttpStatusError,
+  openRangeSource,
+  type RefreshableRangeTransport,
+} from '@/assets/utils/rangeTransport';
+import { PageStream } from './pdf-viewer-page';
+import FindBar from './pdf-viewer-page/pdf-search/FindBar.vue';
 import type {
   DocumentInitParameters,
   PDFDocumentLoadingTask,
@@ -35,11 +56,10 @@ import {
   LAYER_STATE,
 } from '@/assets/utils/enums';
 import { MOBILE_SIZE } from '@/assets/utils/constans';
-import { PDFBottomBar } from './pdf-viewer-page/pdf-bottom-bar';
+import ReaderTopBar from './pdf-viewer-page/ReaderTopBar.vue';
+import Navigator from './pdf-viewer-page/pdf-navigator/Navigator.vue';
+import { useEditRail } from './pdf-viewer-page/pdf-edit/pdf-edit-menu/useEditRail';
 import { PDFEditMenu } from './pdf-viewer-page/pdf-edit/pdf-edit-menu';
-import { PDFModal } from './pdf-viewer-page/pdf-modal';
-import { PDFMenuSidebar } from './pdf-viewer-page/pdf-menu/pdf-menu-sidebar';
-import { PDFMenu } from './pdf-viewer-page/pdf-menu';
 import i18n from '@/assets/lang/i18n';
 import { closeTopLayer, useEscapeLayer } from './pdf-aids/useEscapeLayer';
 GlobalWorkerOptions.workerSrc = PDFWorker;
@@ -50,12 +70,35 @@ const {
   httpHeaders,
   withCredentials,
   rangeChunkSize,
+  length,
+  streaming,
   options,
   config,
 } = defineProps<IViewerProps>();
+
+// The document on screen. Starts as the mount props; `controller.open()`
+// replaces it without remounting (callbacks and config stay).
+const source = ref<IDocumentSource>({
+  data,
+  url,
+  httpHeaders,
+  withCredentials,
+  rangeChunkSize,
+  length,
+  streaming,
+});
+// Where to open the next load; the mount options for the first one.
+let openAt: { initialPage?: number | null; initialFocus?: IViewerFocus | null } = {
+  initialPage: options?.initialPage,
+  initialFocus: options?.initialFocus,
+};
+
+// 512 KiB: a 7 MB book in ~14 Range requests instead of ~100 at pdf.js' 64 KiB.
+const DEFAULT_RANGE_CHUNK = 512 * 1024;
 const viewerStore = useViewerStore();
 const docStore = useDocumentStore();
 const assistantStore = useAssistantStore();
+const searchStore = useSearchStore();
 const failed = ref<boolean>(false);
 // i18n key of the reason the document failed to load.
 const failReason = ref<string>('load-error-unknown');
@@ -79,13 +122,15 @@ const systemDark =
   typeof window !== 'undefined' && typeof window.matchMedia === 'function'
     ? window.matchMedia('(prefers-color-scheme: dark)')
     : null;
-const initialDark = () => {
-  if (options?.theme) return options.theme === 'dark';
+// The host's theme, `options.theme` at mount and `controller.setTheme` after.
+let hostTheme: 'dark' | 'light' | null = options?.theme ?? null;
+const resolveDark = () => {
+  if (hostTheme) return hostTheme === 'dark';
   const stored = readStoredTheme();
   if (stored) return stored === 'dark';
   return systemDark?.matches ?? false;
 };
-const isDark = ref<boolean>(initialDark());
+const isDark = ref<boolean>(resolveDark());
 // Kept in sync with the CSS design tokens in main.css (--efv-viewer-bg /
 // --efv-topbar-bg) so the JS-provided values and the token theme never drift.
 const viewerBg = computed(() => (isDark.value ? '#1A1A1A' : '#EDEDED'));
@@ -102,7 +147,7 @@ const toggleDark = () => {
 
 // Follow the system theme live, until the host or the reader picked one.
 const handleSystemTheme = (event: MediaQueryListEvent) => {
-  if (!options?.theme && !readStoredTheme()) isDark.value = event.matches;
+  if (!hostTheme && !readStoredTheme()) isDark.value = event.matches;
 };
 
 provide('topbarBg', topbarBg);
@@ -164,59 +209,191 @@ const applyLocale = (lang: string) => {
   }
 };
 
-const describeLoadError = (error: unknown): string => {
-  const { name, message, details } = (error ?? {}) as {
+const describeLoadError = (
+  error: unknown
+): { reason: LOAD_ERROR_REASON; status: number | null } => {
+  const { name, message, details, status } = (error ?? {}) as {
     name?: string;
     message?: string;
     details?: string;
+    status?: number;
   };
-  if (name === 'PasswordException') return 'load-error-password';
-  if (name === 'InvalidPDFException') return 'load-error-invalid';
-  if (name === 'ResponseException') return 'load-error-network';
+  const httpStatus = typeof status === 'number' && status > 0 ? status : null;
+  if (name === 'PasswordException') return { reason: 'load-error-password', status: null };
+  if (name === 'InvalidPDFException') return { reason: 'load-error-invalid', status: null };
+  if (name === 'ResponseException' || name === 'HttpStatusError') {
+    if (httpStatus === 401 || httpStatus === 403)
+      return { reason: 'load-error-auth', status: httpStatus };
+    if (httpStatus === 404 || httpStatus === 410)
+      return { reason: 'load-error-not-found', status: httpStatus };
+    return { reason: 'load-error-network', status: httpStatus };
+  }
   // A failed fetch reaches us as a TypeError, or wrapped by the pdf.js worker
   // in an UnknownErrorException that keeps the original message.
   if (
     (name === 'TypeError' || name === 'UnknownErrorException') &&
     /fetch|network|load failed/i.test(`${message ?? ''} ${details ?? ''}`)
   )
-    return 'load-error-network';
-  return 'load-error-unknown';
+    return { reason: 'load-error-network', status: null };
+  return { reason: 'load-error-unknown', status: null };
 };
 
-// The loading task of the document on screen, destroyed when another replaces it.
-let loadingTask: PDFDocumentLoadingTask | null = null;
+// The task whose document is on screen, and the one still loading (if any).
+// A load that is replaced before it opened is destroyed at once, so a quick
+// book switch never leaves two downloads running.
+let shownTask: PDFDocumentLoadingTask | null = null;
+let pendingTask: PDFDocumentLoadingTask | null = null;
+// Our own range transport of the loading/shown document (function headers).
+let rangeTransport: RefreshableRangeTransport | null = null;
 // Guards against a slow earlier load finishing after a newer one.
 let loadSeq = 0;
+// Streaming: the outline loads when the TOC panel first opens.
+let stopOutlineWatch: (() => void) | null = null;
+// The open document's outline, loaded once (by the TOC or `getOutline`).
+let outlinePromise: Promise<ITOCItem[]> | null = null;
+let ensureOutline: (() => Promise<ITOCItem[]>) | null = null;
 
-const documentParams = (): DocumentInitParameters | null => {
-  if (url) {
+const sourceKind = (src: IDocumentSource): DOCUMENT_SOURCE_KIND =>
+  src.url
+    ? typeof src.httpHeaders === 'function'
+      ? 'range-transport'
+      : 'url'
+    : 'data';
+
+// pdf.js resource folders the host serves (see IViewerOptions.pdfAssetsUrl).
+const assetParams = (): Partial<DocumentInitParameters> => {
+  const base = options?.pdfAssetsUrl;
+  if (!base) return {};
+  const root = base.endsWith('/') ? base : `${base}/`;
+  return {
+    wasmUrl: `${root}wasm/`,
+    cMapUrl: `${root}cmaps/`,
+    standardFontDataUrl: `${root}standard_fonts/`,
+    iccUrl: `${root}iccs/`,
+  };
+};
+
+// Pages are drawn in the renderer worker only when the host opts in. The
+// worker script is a lazily imported chunk, so hosts that don't opt in never
+// download it.
+let rendererReady: Promise<boolean> | null = null;
+const ensureRenderer = () =>
+  (rendererReady ??= import('pdfjs-dist/legacy/build/pdf.renderer.min.mjs?url')
+    .then(({ default: src }) => {
+      GlobalWorkerOptions.rendererSrc = src;
+      return true;
+    })
+    .catch((error) => {
+      console.warn('Renderer worker unavailable, drawing on the main thread:\n', error);
+      return false;
+    }));
+
+const commonParams = async (
+  src: IDocumentSource
+): Promise<Partial<DocumentInitParameters>> => {
+  const useWorker = options?.workerRendering === true && (await ensureRenderer());
+  return {
+    ...assetParams(),
+    // The viewer renders no forms or AnnotationLayer, so PDF JavaScript has no
+    // way in (CVE-2026-16633 needs `enableScripting` in the AnnotationLayer);
+    // XFA stays off as well.
+    enableXfa: false,
+    disableWorkerRendering: !useWorker,
+    ...(src.url && src.streaming
+      ? { disableAutoFetch: true, disableStream: true }
+      : {}),
+  };
+};
+
+const documentParams = async (
+  src: IDocumentSource,
+  seq: number
+): Promise<{
+  params: DocumentInitParameters | null;
+  transport: RefreshableRangeTransport | null;
+}> => {
+  const common = await commonParams(src);
+  const chunk = src.rangeChunkSize || DEFAULT_RANGE_CHUNK;
+  if (src.url && typeof src.httpHeaders === 'function') {
+    const opened = await openRangeSource({
+      url: src.url,
+      headers: src.httpHeaders,
+      withCredentials: src.withCredentials ?? false,
+      chunkSize: chunk,
+      length: src.length,
+      onError: (status) => {
+        if (seq === loadSeq) docStore.reportStreamError(status);
+      },
+    });
+    if (opened.kind === 'data')
+      return { params: { ...common, data: opened.data }, transport: null };
     return {
-      url,
-      httpHeaders: httpHeaders ?? undefined,
-      withCredentials: withCredentials ?? false,
-      ...(rangeChunkSize ? { rangeChunkSize } : {}),
+      params: { ...common, range: opened.transport, rangeChunkSize: chunk },
+      transport: opened.transport,
+    };
+  }
+  if (src.url) {
+    return {
+      params: {
+        ...common,
+        url: src.url,
+        httpHeaders: (src.httpHeaders as Record<string, string>) ?? undefined,
+        withCredentials: src.withCredentials ?? false,
+        rangeChunkSize: chunk,
+      },
+      transport: null,
     };
   }
   // Copy: pdf.js transfers the buffer to its worker, the host keeps its bytes.
-  if (data) return { data: new Uint8Array(data) };
-  return null;
+  if (src.data)
+    return { params: { ...common, data: new Uint8Array(src.data) }, transport: null };
+  return { params: null, transport: null };
+};
+
+// One host progress call per frame at most.
+let progressFrame = 0;
+const reportProgress = (loaded: number, total: number) => {
+  progress.value = { loaded, total };
+  docStore.downloadProgress = { loaded, total };
+  const cb = viewerStore.onLoadProgress;
+  if (!cb || progressFrame) return;
+  progressFrame = requestAnimationFrame(() => {
+    progressFrame = 0;
+    const p = docStore.downloadProgress;
+    if (p) docStore.callHost(() => cb({ ...p }));
+  });
 };
 
 const loadDocument = async () => {
   const seq = ++loadSeq;
-  const previousTask = loadingTask;
+  const src = source.value;
   failed.value = false;
   progress.value = null;
-  docStore.startDocumentOpen();
+  docStore.startDocumentOpen({
+    source: sourceKind(src),
+    streaming: !!(src.url && src.streaming),
+  });
+
+  // A load that never opened is dropped right away (book switch mid-load).
+  pendingTask?.destroy();
+  pendingTask = null;
 
   try {
-    const params = documentParams();
+    const { params, transport } = await documentParams(src, seq);
+    if (seq !== loadSeq) {
+      transport?.abort(); // superseded while probing
+      return;
+    }
     if (!params) throw new Error('Neither `data` nor `url` was given.');
 
     const task = getDocument(params);
-    loadingTask = task;
+    pendingTask = task;
+    // The latest load's transport; `retry` re-requests its failed ranges. The
+    // previous document's transport is aborted by its task's destroy().
+    rangeTransport = transport;
+    if (transport) reportProgress(transport.initialData?.length ?? 0, transport.length);
     task.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
-      if (seq === loadSeq) progress.value = { loaded, total };
+      if (seq === loadSeq) reportProgress(loaded, total);
     };
 
     // Parse the document once and share the single PDFDocumentProxy between the
@@ -226,24 +403,80 @@ const loadDocument = async () => {
     const pdf = await task.promise;
     if (seq !== loadSeq) return;
 
-    // The host can open the document at a page, e.g. one a chat citation pointed to.
-    const focus = options?.initialFocus;
-    const initialPage = Math.trunc(Number(focus?.page || options?.initialPage) || 1);
+    // The new document replaces the one on screen: only now is it safe to
+    // destroy the old one (its pages were visible until this point).
+    const previous = shownTask;
+    shownTask = task;
+    pendingTask = null;
+    previous?.destroy();
+
+    const totalBytes = docStore.downloadProgress?.total || null;
+    const cbLoaded = viewerStore.onDocumentLoaded;
+    if (cbLoaded)
+      docStore.callHost(() =>
+        cbLoaded({
+          totalPages: pdf.numPages,
+          ...docStore.loadInfo,
+          totalBytes,
+        })
+      );
+
+    // The host can open the document at a page, e.g. one a chat citation
+    // pointed to. Read now, not at the start: `goToPage`/`focus` called while
+    // the document loaded update it. Used once; a later reload starts at 1.
+    const at = openAt;
+    openAt = {};
+    const focus = at.initialFocus;
+    const initialPage = Math.trunc(Number(focus?.page || at.initialPage) || 1);
+    searchStore.clear(); // results belong to the previous document
     docStore.totalPages = pdf.numPages;
-    docStore.activePage = Math.min(Math.max(1, initialPage), pdf.numPages);
+    docStore.pageLabels = null;
+    docStore.openAtPage(initialPage);
     docStore.toc = [];
+    pdf
+      .getPageLabels()
+      .then((labels) => {
+        // Labels that only repeat the physical numbers add nothing.
+        const useful = labels?.some((label, i) => label !== String(i + 1));
+        if (seq === loadSeq) docStore.pageLabels = useful ? labels : null;
+      })
+      .catch(() => undefined);
     docStore.previewPdf = pdf;
     docStore.pdf = pdf;
 
     // The outline resolves a destination per entry; with a streamed `url` that
     // can mean extra range requests, so it never holds back the first page.
-    pdf
-      .getOutline()
-      .then((outline) => (outline ? getTOC(outline, 0, pdf) : []))
-      .then((toc) => {
-        if (seq === loadSeq) docStore.toc = toc;
-      })
-      .catch((error) => console.error('Failed to read the outline:\n', error));
+    // With `streaming` it waits until the reader opens the table of contents:
+    // resolving every entry walks most of the page tree.
+    outlinePromise = null;
+    const loadOutline = () =>
+      (outlinePromise ??= pdf
+        .getOutline()
+        .then((outline) => (outline ? getTOC(outline, 0, pdf) : []))
+        .then((toc) => {
+          if (seq === loadSeq) docStore.toc = toc;
+          return toc;
+        })
+        .catch((error) => {
+          console.error('Failed to read the outline:\n', error);
+          return [] as ITOCItem[];
+        }));
+    ensureOutline = loadOutline;
+    if (docStore.loadInfo.streaming) {
+      stopOutlineWatch?.();
+      stopOutlineWatch = watch(
+        () => docStore.sidebarState,
+        (state) => {
+          if (state !== SIDEBAR_STATE.TOC) return;
+          stopOutlineWatch?.();
+          stopOutlineWatch = null;
+          if (seq === loadSeq) loadOutline();
+        },
+        { immediate: true }
+      );
+    } else {
+      loadOutline();
+    }
 
     // Bookmarks belong to the document, so they are (re)loaded with it. Not
     // awaited above: a slow/failing host must not delay the first paint.
@@ -251,34 +484,72 @@ const loadDocument = async () => {
     assistantStore.reset();
     assistantStore.loadAgentAnnotations();
     // ...and at a cited paragraph or figure: scrolled to, outlined, then faded.
+    // Same page as the open, so this records no history.
     if (focus && (focus.bbox || focus.quads?.length || focus.regionId)) {
-      assistantStore.focusOn({ ...focus, page: docStore.activePage });
+      assistantStore.focusOn({ ...focus, page: docStore.activePage }, 'initial');
     }
   } catch (error) {
     if (seq !== loadSeq) return;
-    failReason.value = describeLoadError(error);
-    docStore.reportDocumentError(
-      failReason.value === 'load-error-network' || !documentParams()
-        ? 'download'
-        : 'parse'
-    );
+    const { reason, status } = describeLoadError(error);
+    failReason.value = reason;
+    const fetchFailed =
+      reason === 'load-error-network' ||
+      reason === 'load-error-auth' ||
+      reason === 'load-error-not-found' ||
+      (!src.url && !src.data);
+    docStore.reportDocumentError(fetchFailed ? 'download' : 'parse', reason, status);
     failed.value = true;
+    pendingTask?.destroy();
+    pendingTask = null;
+    shownTask?.destroy();
+    shownTask = null;
     docStore.pdf = null;
     docStore.previewPdf = null;
-    console.error('Failed to load PDF docStore:\n', error);
-  } finally {
-    if (seq === loadSeq && previousTask && previousTask !== loadingTask) {
-      previousTask.destroy();
-    }
+    console.error('Failed to load the PDF:\n', error);
   }
 };
 
-const retry = () => loadDocument();
+// After a failed open: load again. After a stream error: re-request the
+// ranges that failed (pdf.js is still waiting for them); a `url` load without
+// our transport cannot resume, so it reopens at the current page.
+const retry = () => {
+  if (docStore.streamError && rangeTransport && !failed.value) {
+    docStore.streamError = null;
+    rangeTransport.retryFailed();
+    return;
+  }
+  if (docStore.streamError && docStore.pdf) {
+    // pdf.js' own loader cannot resume a failed range: reopen where we were.
+    openAt = { initialPage: docStore.activePage };
+  }
+  loadDocument();
+};
 
 const progressPercent = computed(() => {
   const p = progress.value;
   if (!p || !p.total) return null;
   return Math.min(100, Math.round((p.loaded / p.total) * 100));
+});
+
+// The Navigator sits beside the pages on wide screens (they reflow, so what
+// it points to is never under it) and over them on narrow ones.
+const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1280);
+const navigatorDocked = computed(() => !docStore.isMobile && viewportWidth.value >= 900);
+const topBarRef = ref<InstanceType<typeof ReaderTopBar> | null>(null);
+const editRail = useEditRail();
+
+// The page "Back" returns to, shown as its printed label when the PDF has one.
+const backTarget = computed(() => {
+  const page = docStore.backStack[docStore.backStack.length - 1];
+  return page === undefined ? null : docStore.pageLabel(page) ?? String(page);
+});
+
+// After the first paint, while pdf.js still fetches the rest (not with
+// `streaming`, where nothing is prefetched by design).
+const backgroundPercent = computed(() => {
+  if (docStore.openStatus !== 'ready' || docStore.loadInfo.streaming) return null;
+  const percent = progressPercent.value;
+  return percent !== null && percent < 100 ? percent : null;
 });
 
 const formatBytes = (bytes: number) =>
@@ -305,6 +576,20 @@ useEscapeLayer(
   () => docStore.sidebarState !== SIDEBAR_STATE.NULL,
   () => docStore.setSidebarState(SIDEBAR_STATE.NULL)
 );
+
+// Opens the search panel with its field focused and selected, so a new query
+// can be typed straight away (Ctrl/Cmd+F twice re-selects).
+const rootRef = ref<HTMLElement | null>(null);
+const openSearchPanel = () => {
+  docStore.sidebarState = SIDEBAR_STATE.SEARCH;
+  nextTick(() => {
+    const field = rootRef.value?.querySelector<HTMLInputElement>(
+      'input[name="search-pattern"]'
+    );
+    field?.focus();
+    field?.select();
+  });
+};
 
 const handleEscape = () => {
   if (closeTopLayer()) return;
@@ -345,7 +630,14 @@ onMounted(() => {
   viewerStore.agentAnnotationPackage = options?.agentAnnotationPackage ?? null;
   viewerStore.readerHighlightPackage = options?.readerHighlightPackage ?? null;
   viewerStore.onFirstPageRendered = options?.onFirstPageRendered ?? null;
+  viewerStore.title = options?.title ?? null;
   viewerStore.onDocumentError = options?.onDocumentError ?? null;
+  viewerStore.onDocumentLoaded = options?.onDocumentLoaded ?? null;
+  viewerStore.onLoadProgress = options?.onLoadProgress ?? null;
+  viewerStore.onPageChange = options?.onPageChange ?? null;
+  viewerStore.onStreamError = options?.onStreamError ?? null;
+  viewerStore.onSearch = options?.onSearch ?? null;
+  viewerStore.onSearchResultSelect = options?.onSearchResultSelect ?? null;
   viewerStore.config = {
     download: false,
     share: false,
@@ -360,16 +652,66 @@ onMounted(() => {
     const key = event.key.toLocaleLowerCase();
     if (key !== 'escape' && isTypingTarget(event.target)) return;
 
+    // Alt+←/→ walk the jump history (as in a browser), not the pages.
+    if (event.altKey && (key === 'arrowleft' || key === 'arrowright')) {
+      event.preventDefault();
+      if (key === 'arrowleft') docStore.goBack();
+      else docStore.goForward();
+      return;
+    }
+    // Find, as in every PDF viewer: Ctrl/Cmd+F opens the search, F3 and
+    // Ctrl/Cmd+G step through the hits (with Shift: backwards).
+    const mod = event.ctrlKey || event.metaKey;
+    if (mod && key === 'f') {
+      event.preventDefault();
+      openSearchPanel();
+      return;
+    }
+    if (key === 'f3' || (mod && key === 'g')) {
+      event.preventDefault();
+      searchStore.step(event.shiftKey ? -1 : 1);
+      return;
+    }
+    // Ctrl/Cmd + / - / 0 zoom the document, not the browser (as pdf.js does).
+    if (mod && (key === '+' || key === '=' || key === '-' || key === '0')) {
+      event.preventDefault();
+      if (key === '-') docStore.zoomOut();
+      else if (key === '0') docStore.setScale(1);
+      else docStore.zoomIn();
+      return;
+    }
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+
     const keyActions: { [key: string]: (...props: any) => any } = {
       ['arrowleft']: () => docStore.previousPage(),
       ['arrowright']: () => docStore.nextPage(),
+      // PageUp/PageDown and ↑/↓ scroll the page stream natively.
+      ['home']: () => docStore.goTo(1, 'step'),
+      ['end']: () => docStore.goTo(docStore.totalPages, 'step'),
       ['-']: () => docStore.zoomOut(),
       ['+']: () => docStore.zoomIn(),
       ['escape']: () => handleEscape(),
-      ['f']: () => docStore.setSidebarState(SIDEBAR_STATE.SEARCH),
-      ['s']: () => docStore.setSidebarState(SIDEBAR_STATE.SHARE),
-      ['i']: () => docStore.setSidebarState(SIDEBAR_STATE.INFO),
-      ['t']: () => docStore.setSidebarState(SIDEBAR_STATE.TOC),
+      // One key per action, shown in each button's tooltip.
+      ['f']: () => openSearchPanel(),
+      ['t']: () =>
+        docStore.setSidebarState(docStore.toc.length ? SIDEBAR_STATE.TOC : SIDEBAR_STATE.PAGES),
+      ['c']: () => viewerStore.citation && docStore.toggleAction('cite'),
+      ['s']: () =>
+        viewerStore.shareFunction && viewerStore.config.share && docStore.toggleAction('share'),
+      ['p']: () =>
+        viewerStore.printFunction && viewerStore.config.print && docStore.toggleAction('print'),
+      ['i']: () => docStore.toggleAction('info'),
+      ['d']: () => viewerStore.config.download && topBarRef.value?.download(),
+      ['r']: () => topBarRef.value?.toggleSuggestions(),
+      ['a']: () => {
+        if (!viewerStore.chatPackage) return;
+        if (assistantStore.isChatOpen) assistantStore.isChatOpen = false;
+        else assistantStore.openChat();
+      },
+      ['e']: () =>
+        viewerStore.config.edit &&
+        viewerStore.editPackage &&
+        docStore.setDrawMode(!docStore.drawMode),
     };
 
     const action = keyActions[key];
@@ -384,6 +726,7 @@ onMounted(() => {
   };
 
   const handleResize = () => {
+    viewportWidth.value = window.innerWidth;
     docStore.isMobile =
       window.innerWidth <= MOBILE_SIZE || window.innerHeight <= MOBILE_SIZE;
   };
@@ -398,15 +741,190 @@ onMounted(() => {
     window.removeEventListener('resize', handleResize);
     document.removeEventListener('fullscreenchange', handleFullscreenChange);
     systemDark?.removeEventListener('change', handleSystemTheme);
-    loadingTask?.destroy();
-    loadingTask = null;
+    if (progressFrame) cancelAnimationFrame(progressFrame);
+    loadSeq++; // late results of an in-flight load are dropped
+    pendingTask?.destroy();
+    pendingTask = null;
+    shownTask?.destroy();
+    shownTask = null;
+    rangeTransport = null;
+    // The store may outlive this component (hot reload, a host remounting it):
+    // never leave it pointing at a destroyed document.
+    docStore.pdf = null;
+    docStore.previewPdf = null;
+    searchStore.clear();
   });
 
+  // Props changed by a host that renders <PDFViewer> as a component.
   watch(
     () => [data, url],
-    () => loadDocument()
+    () => {
+      source.value = {
+        data,
+        url,
+        httpHeaders,
+        withCredentials,
+        rangeChunkSize,
+        length,
+        streaming,
+      };
+      openAt = {};
+      loadDocument();
+    }
   );
 });
+
+// Page changes for the host (reading position sync, deep links, analytics),
+// with why the page changed. A new document reports its opening page as
+// `initial` with no previous page.
+watch(
+  () => [docStore.activePage, docStore.pdf] as const,
+  ([page, pdf], [oldPage, oldPdf]) => {
+    if (!pdf) return;
+    const cause = docStore.takeNavigationCause();
+    const cb = viewerStore.onPageChange;
+    if (!cb) return;
+    const opened = pdf !== oldPdf;
+    docStore.callHost(() =>
+      cb({
+        page,
+        totalPages: docStore.totalPages,
+        pageLabel: docStore.pageLabel(page),
+        previousPage: opened ? null : oldPage,
+        cause: opened ? 'initial' : cause,
+        canGoBack: docStore.backStack.length > 0,
+        canGoForward: docStore.forwardStack.length > 0,
+      })
+    );
+  }
+);
+
+const PANELS: Record<VIEWER_PANEL, SIDEBAR_STATE> = {
+  search: SIDEBAR_STATE.SEARCH,
+  share: SIDEBAR_STATE.SHARE,
+  info: SIDEBAR_STATE.INFO,
+  print: SIDEBAR_STATE.PRINT,
+  toc: SIDEBAR_STATE.TOC,
+  pages: SIDEBAR_STATE.PAGES,
+  highlights: SIDEBAR_STATE.HIGHLIGHTS,
+};
+
+// Outline items as the host sees them (no UI state).
+const toOutline = (items: ITOCItem[]): IOutlineEntry[] =>
+  items.map((item) => ({
+    title: item.title,
+    page: item.pageNumber > 0 ? item.pageNumber : null,
+    level: item.level,
+    children: toOutline(item.children),
+  }));
+
+const resolveDestination = async (name: string): Promise<number | null> => {
+  const pdf = docStore.pdf;
+  if (!pdf) return null;
+  try {
+    const dest = await pdf.getDestination(name);
+    const target = dest?.[0];
+    if (target == null) return null;
+    const index =
+      typeof target === 'number' ? target : await pdf.getPageIndex(target);
+    return index + 1;
+  } catch {
+    return null;
+  }
+};
+
+// The host's handle on the mounted viewer; `renderViewer` returns it as
+// `app.viewer`. See IViewerController.
+const controller: IViewerController = {
+  open: (next, at = {}) => {
+    source.value = { ...next };
+    openAt = at;
+    loadDocument();
+  },
+  retry,
+  goToPage: (page) => {
+    if (docStore.pdf) docStore.goTo(page, 'host');
+    else openAt = { ...openAt, initialPage: page };
+  },
+  goToLabel: async (label) => {
+    const page = docStore.pdf ? docStore.pageForLabel(label) : null;
+    if (page) docStore.goTo(page, 'host');
+    return page;
+  },
+  goToDestination: async (name) => {
+    const page = await resolveDestination(name);
+    if (page) docStore.goTo(page, 'host');
+    return page;
+  },
+  nextPage: () => docStore.nextPage(),
+  previousPage: () => docStore.previousPage(),
+  back: () => docStore.goBack(),
+  forward: () => docStore.goForward(),
+  getOutline: async () => toOutline((await ensureOutline?.()) ?? []),
+  focus: (target) => {
+    if (!docStore.pdf) {
+      openAt = { ...openAt, initialFocus: target };
+      return;
+    }
+    assistantStore.focusOn(
+      { ...target, page: target.page ?? docStore.activePage },
+      'host'
+    );
+  },
+  setScale: (scale) => docStore.setScale(scale),
+  setTheme: (theme) => {
+    hostTheme = theme;
+    isDark.value = resolveDark();
+  },
+  setLang: (lang) => {
+    viewerStore.lang = lang;
+    applyLocale(lang);
+  },
+  // Share, Info and Print are cards under their buttons; the rest live in
+  // the Navigator.
+  openPanel: (panel) => {
+    if (panel === 'share' || panel === 'info' || panel === 'print') {
+      docStore.actionPopover = panel;
+      return;
+    }
+    docStore.actionPopover = null;
+    docStore.sidebarState = panel ? PANELS[panel] : SIDEBAR_STATE.NULL;
+  },
+  search: async (query, { openPanel = true, ...searchOptions } = {}) => {
+    if (openPanel) docStore.sidebarState = SIDEBAR_STATE.SEARCH;
+    // Related passages arrive on their own; the promise is the text search.
+    if (viewerStore.semanticSearchFunction && query.trim().length >= 3)
+      void searchStore.runSemantic(query);
+    return searchStore.run(query, searchOptions);
+  },
+  searchNext: () => searchStore.step(1),
+  searchPrevious: () => searchStore.step(-1),
+  clearSearch: () => searchStore.clear(),
+  showResults: async (results, { label = null, select = 0, openPanel = true } = {}) => {
+    if (openPanel) docStore.sidebarState = SIDEBAR_STATE.SEARCH;
+    return searchStore.showHostResults(results, label, select);
+  },
+  getState: (): IViewerState => ({
+    page: docStore.activePage,
+    totalPages: docStore.totalPages,
+    pageLabel: docStore.pageLabel(docStore.activePage),
+    canGoBack: docStore.backStack.length > 0,
+    canGoForward: docStore.forwardStack.length > 0,
+    scale: docStore.scale,
+    theme: isDark.value ? 'dark' : 'light',
+    lang: viewerStore.lang,
+    status: failed.value ? 'failed' : docStore.openStatus,
+    progress: docStore.downloadProgress ? { ...docStore.downloadProgress } : null,
+    search: {
+      query: searchStore.query,
+      source: searchStore.source,
+      total: searchStore.hits.length,
+      active: searchStore.active,
+    },
+  }),
+};
+
+defineExpose({ controller });
 </script>
 
 <template>
@@ -414,27 +932,42 @@ onMounted(() => {
        (tailwind.config.js) all hang off this element, so every utility below
        is `.efv-viewer .x` and can't be overridden by a host's same-named
        classes (e.g. the host's own `text-primary`). -->
-  <div class="efv-viewer" :class="{ dark: isDark }" :lang="viewerStore.lang">
+  <div ref="rootRef" class="efv-viewer" :class="{ dark: isDark }" :lang="viewerStore.lang">
   <!-- Failed container -->
   <div
     v-if="failed"
-    class="flex flex-col gap-4 h-screen w-full justify-center items-center text-white"
+    class="flex flex-col gap-4 h-screen w-full justify-center items-center"
+    :class="isDark ? 'text-white' : 'text-[#1A1A1A]'"
     :style="{ backgroundColor: viewerBg }"
     role="alert"
   >
     <span class="text-4xl uppercase font-extrabold font-serif text-center px-4">
       {{ $t('failed-load-pdf') }}
     </span>
-    <span class="text-sm" :class="isDark ? 'text-white/70' : 'text-[#333]'">
+    <span
+      class="text-sm text-center max-w-[420px] px-4"
+      :class="isDark ? 'text-white/70' : 'text-[#333]'"
+    >
       {{ $t(failReason) }}
     </span>
-    <button
-      type="button"
-      class="bg-[#0077cc] hover:bg-[#0066b3] text-[#f5f7fa] text-sm font-semibold rounded-[7px] px-4 py-1.5 shadow-[0px_4px_6px_rgba(0,0,0,0.1)] transition-colors"
-      @click="retry"
-    >
-      {{ $t('retry') }}
-    </button>
+    <div class="flex flex-row gap-3">
+      <button
+        type="button"
+        class="bg-[#0077cc] hover:bg-[#0066b3] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0077cc] text-[#f5f7fa] text-sm font-semibold rounded-[7px] px-4 py-1.5 shadow-[0px_4px_6px_rgba(0,0,0,0.1)] transition-colors"
+        @click="retry"
+      >
+        {{ $t('retry') }}
+      </button>
+      <button
+        v-if="viewerStore.closeFunction"
+        type="button"
+        class="text-sm font-semibold rounded-[7px] px-4 py-1.5 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0077cc]"
+        :class="isDark ? 'text-white/80 hover:bg-white/10' : 'text-[#333] hover:bg-black/5'"
+        @click="viewerStore.closeFunction?.()"
+      >
+        {{ $t('close') }}
+      </button>
+    </div>
   </div>
 
   <!-- Loading -->
@@ -476,6 +1009,27 @@ onMounted(() => {
         }}
       </span>
     </div>
+    <div
+      v-if="docStore.streamError"
+      class="flex flex-col items-center gap-3 text-sm text-center px-4"
+      :class="isDark ? 'text-white/80' : 'text-[#333]'"
+      role="alert"
+    >
+      <span>{{
+        $t(
+          docStore.streamError.status === 401 || docStore.streamError.status === 403
+            ? 'stream-error-auth'
+            : 'stream-error'
+        )
+      }}</span>
+      <button
+        type="button"
+        class="bg-[#0077cc] hover:bg-[#0066b3] text-[#f5f7fa] text-sm font-semibold rounded-[7px] px-4 py-1.5 transition-colors"
+        @click="retry"
+      >
+        {{ $t('reconnect') }}
+      </button>
+    </div>
   </div>
 
   <!-- Success container -->
@@ -487,7 +1041,6 @@ onMounted(() => {
     :aria-label="$t('pdf-viewer')"
   >
     <!-- Modal -->
-    <PDFModal v-if="docStore.modalContent !== MODAL_CONTENT.NULL" />
 
     <!-- Error boundary notice -->
     <div
@@ -507,10 +1060,51 @@ onMounted(() => {
       </button>
     </div>
 
+    <!-- A Range request failed after the document opened -->
+    <div
+      v-if="docStore.streamError"
+      class="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-3 py-2 rounded-md shadow-lg text-xs max-w-[calc(100%-32px)]"
+      :class="isDark ? 'text-white/90' : 'text-[#333]'"
+      :style="{ backgroundColor: topbarBg }"
+      role="alert"
+    >
+      <span>{{
+        $t(
+          docStore.streamError.status === 401 || docStore.streamError.status === 403
+            ? 'stream-error-auth'
+            : 'stream-error'
+        )
+      }}</span>
+      <button
+        type="button"
+        class="font-semibold text-[#0077cc] hover:underline whitespace-nowrap"
+        @click="retry"
+      >
+        {{ $t('reconnect') }}
+      </button>
+    </div>
+
+    <!-- Rest of the document still arriving in the background -->
+    <div
+      v-if="backgroundPercent !== null"
+      class="absolute top-0 left-0 right-0 h-[2px] z-40 pointer-events-none"
+      role="progressbar"
+      :aria-valuenow="backgroundPercent"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      :aria-label="$t('background-download', { percent: backgroundPercent })"
+      :title="$t('background-download', { percent: backgroundPercent })"
+    >
+      <div
+        class="h-full bg-[#0077CC]/70 transition-[width] duration-300"
+        :style="{ width: `${backgroundPercent}%` }"
+      ></div>
+    </div>
+
     <!-- Layer state indicator -->
     <div
-      v-if="docStore.layerState !== LAYER_STATE.READY && docStore.layerState !== LAYER_STATE.NOT_READY && docStore.edit"
-      class="fixed top-4 left-14 w-full flex justify-center z-20 pointer-events-none select-none transition-opacity hover:opacity-30"
+      v-if="docStore.layerState !== LAYER_STATE.READY && docStore.layerState !== LAYER_STATE.NOT_READY && docStore.drawMode"
+      class="absolute top-16 left-0 right-0 flex justify-center z-20 pointer-events-none select-none transition-opacity hover:opacity-30"
       role="status"
       aria-live="polite"
     >
@@ -520,34 +1114,56 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Left nav -->
-    <PDFMenu :is-dark="isDark" :topbar-bg="topbarBg" @toggle-dark="toggleDark" />
+    <!-- Reading column: the bar, then the Navigator beside the pages -->
+    <div class="relative flex flex-col flex-1 min-w-0 overflow-hidden" :style="{ backgroundColor: viewerBg }">
+      <ReaderTopBar ref="topBarRef" :is-dark="isDark" @toggle-dark="toggleDark" @open-search="openSearchPanel" />
 
-    <!-- Content column -->
-    <div class="relative flex flex-col flex-1 overflow-hidden" :style="{ backgroundColor: viewerBg }">
-      <!-- Page area: floating sidebar panel is scoped to here so it never reaches the bottom bar -->
-      <div class="relative flex flex-1 overflow-hidden">
-        <div class="relative flex-1 overflow-hidden">
-          <!-- PDF page -->
-          <PDFPage v-if="docStore.pdf" />
+      <div class="relative flex flex-1 min-h-0 overflow-hidden">
+        <!-- Contents · Pages · Search · Notes (docked on wide screens) -->
+        <Navigator :docked="navigatorDocked" />
 
-          <!-- Floating sidebar panel (Search, Share, Info, Print, TOC, ...) -->
-          <PDFMenuSidebar />
+        <div class="relative flex-1 min-w-0 overflow-hidden">
+          <!-- Every page, one scroll -->
+          <PageStream v-if="docStore.pdf" />
+
+          <!-- Find pill: step through search hits while the list is closed -->
+          <FindBar />
+
+          <!-- Return after a jump (link, contents, search, citation) -->
+          <div
+            v-if="backTarget !== null"
+            class="absolute bottom-4 left-4 z-30 flex items-center rounded-full shadow-lg text-xs overflow-hidden"
+            :class="isDark ? 'text-white/90' : 'text-[#333]'"
+            :style="{ backgroundColor: topbarBg }"
+          >
+            <button
+              type="button"
+              class="flex items-center gap-1.5 pl-2.5 pr-2 py-1.5 hover:bg-[#0077cc]/10 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0077cc]"
+              :title="$t('back-shortcut')"
+              @click="docStore.goBack()"
+            >
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 20 20" fill="none">
+                <path d="M8 5L3 10L8 15M3 10H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              {{ $t('back-to-page', { page: backTarget }) }}
+            </button>
+            <button
+              type="button"
+              class="px-2 py-1.5 border-l hover:bg-[#0077cc]/10 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0077cc]"
+              :class="isDark ? 'border-white/10' : 'border-black/10'"
+              :aria-label="$t('dismiss')"
+              @click="docStore.clearHistory()"
+            >
+              <svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <!-- Drawing tools: docked rail, takes its own column -->
-        <PDFEditMenu
-          v-if="
-            viewerStore.config.edit &&
-            viewerStore.editPackage &&
-            !docStore.isMobile &&
-            docStore.edit
-          "
-        />
+        <!-- Drawing tools: only in drawing mode, in their own column -->
+        <PDFEditMenu v-if="editRail.visible.value" />
       </div>
-
-      <!-- Bottom bar -->
-      <PDFBottomBar />
     </div>
 
     <!-- Reading chat, docked right (the page area shrinks) -->

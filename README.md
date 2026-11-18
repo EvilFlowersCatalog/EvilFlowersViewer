@@ -127,19 +127,125 @@ import '@evilflowers/evilflowersviewer/dist/style.css';
 ```
 
 3. Call it with a single options object. It returns the Vue `App` instance so you
-   can unmount it on teardown:
+   can unmount it on teardown, with `app.viewer` to drive it afterwards:
 
 ```ts
 const app = renderPDFViewer({
   rootId: '#my-viewer',      // CSS selector of the mount element
-  data: uint8ArrayOfPdf,      // TypedArray of the PDF bytes
+  data: uint8ArrayOfPdf,      // TypedArray of the PDF bytes (or `url`, below)
   options: { theme: 'light', lang: 'en' /* … */ },
   config: { download: true, share: true, print: true, edit: false },
 });
 
+app.viewer.goToPage(12);      // see "Controlling the viewer"
+
 // later, e.g. on route change:
 app.unmount();
 ```
+
+## Streaming a PDF by URL
+
+Pass `url` instead of `data` and the first page paints before the file has arrived
+(the server must answer HTTP Range: `Accept-Ranges: bytes`, `206`, and, cross-origin,
+expose `Accept-Ranges, Content-Range, Content-Length` via CORS).
+
+```ts
+renderPDFViewer({
+  rootId: '#viewer',
+  url: 'https://catalog.example/api/v1/acquisitions/42/content',
+  // A function, not an object: called before every request, so an expired token
+  // is refreshed mid-read. On a 401/403 it is called once more with
+  // { retry: true } and that request is retried; concurrent failures share it.
+  httpHeaders: ({ retry }) => auth.headers({ forceRefresh: retry }),
+  streaming: false,            // true: fetch only what the open page needs
+  options: {
+    pdfAssetsUrl: '/pdfjs/',   // serve pdfjs-dist/{wasm,cmaps,standard_fonts,iccs}/ here
+    onFirstPageRendered: (i) => faro.pushMeasurement({ type: 'viewer', values: { first_page_ms: i.durationMs } }, { context: { source: i.source, streaming: String(i.streaming) } }),
+    onStreamError: ({ status }) => status === 401 && auth.refresh(),
+  },
+});
+```
+
+- **Without `streaming`** (default) pdf.js keeps fetching the rest in the background
+  after page 1 (a thin bar on top of the page shows it), so search, print and download
+  behave as with `data`.
+- **With `streaming: true`** it fetches only the ranges the open page needs. Best for
+  very large scans; full-text search, print and download then cause many requests, and
+  the table of contents is read when the reader first opens it. How much page 1 needs
+  depends on the file and has to be measured on the real files: in local tests pdf.js
+  (6.1 and 6.5 alike) read nearly every sample file whole before opening it.
+- `rangeChunkSize` defaults to 512 KiB (pdf.js: 64 KiB, i.e. ~100 requests for a 6.7 MB
+  book, each through the host's authorisation).
+- With an **object** `httpHeaders` pdf.js loads the file itself: one GET it aborts after
+  the headers, then Range requests to the same URL. **Never pass a single-use URL.** The
+  headers are fixed for the whole document; if the token can expire while a book is
+  open, pass a function instead.
+- A failed range after the document opened shows a "Reconnect" notice and calls
+  `onStreamError`. `app.viewer.retry()` (or the button) re-requests the missing ranges
+  with a function `httpHeaders`; with pdf.js' own loader (object headers, signed URL) it
+  reopens the document at the current page.
+
+**Security / CSP.** The viewer renders no PDF forms or AnnotationLayer and keeps XFA off,
+so PDF JavaScript never runs (CVE-2026-16633 needs pdf.js' scripting). Hosts should still
+send a `Content-Security-Policy` with a `script-src` that excludes `'unsafe-eval'`
+(pdf.js 6 needs no eval), allow `worker-src 'self' data: blob:` (the bundled pdf.js
+workers are `data:` URLs) and the PDF origin (and `pdfAssetsUrl`) in `connect-src`.
+
+## Controlling the viewer
+
+`app.viewer` (`IViewerController`) works at any time; before the document has loaded,
+`goToPage` and `focus` set where it opens.
+
+| Method | |
+| --- | --- |
+| `open(source, { initialPage?, initialFocus? }?)` | Swap the document (`data` or `url` + options) without remounting. |
+| `retry()` | Reload after a failure, or re-request ranges after a stream error. |
+| `goToPage(n)` / `nextPage()` / `previousPage()` | Navigate. `goToPage` is recorded in the back/forward history. |
+| `goToLabel('iv')` | Go to the page the PDF *labels* `iv` (printed page numbers). Resolves to the physical page or `null`. |
+| `goToDestination('chapter-3')` | Go to a named destination (`#nameddest=`). Resolves like `goToLabel`. |
+| `back()` / `forward()` | Walk the jump history (links, contents, search, citations, host jumps; not page turns). |
+| `focus(IViewerFocus)` | Scroll to, outline and flash a cited paragraph or figure. |
+| `getOutline()` | The table of contents as `IOutlineEntry[]` (`{ title, page, level, children }`) for the host's own UI. |
+| `openPanel('toc' \| 'pages' \| 'search' \| 'highlights' \| 'share' \| 'info' \| 'print' \| null)` | Open a Navigator section, or the Share/Info/Print card. |
+| `search(query, { caseSensitive?, wholeWord?, ignoreDiacritics?, openPanel? })` | Search the text, highlight every match, go to the first one after the current page. Resolves `{ total, pages, truncated }`. |
+| `searchNext()` / `searchPrevious()` / `clearSearch()` | Step through or clear the results. |
+| `showResults(passages, { label?, select?, openPanel? })` | Show the host's own passages (`{ page, text, rects?, title?, reason?, id? }`, e.g. the sources of a chat answer) as a labelled section: highlighted on their pages (by `rects`, else by finding `text` on the page) and stepped with ‹ ›. |
+| `setTheme('dark' \| 'light' \| null)` / `setLang('sk' \| 'en')` / `setScale(1.5)` | Live changes. |
+| `getState()` | `{ page, totalPages, pageLabel, canGoBack, canGoForward, scale, theme, lang, status, progress }`. |
+
+**Events** (all optional, all on `options`, none carries document content):
+`onDocumentLoaded({ totalPages, source, streaming, totalBytes })`,
+`onFirstPageRendered({ page, durationMs, source, streaming, bytesLoaded, totalBytes })`,
+`onLoadProgress({ loaded, total })` (one per frame at most),
+`onPageChange({ page, totalPages, pageLabel, previousPage, cause, canGoBack, canGoForward })`,
+`onDocumentError({ stage, reason, status, source })`, `onStreamError({ status })`,
+`onSearch({ query, source, total, pages, truncated })`,
+`onSearchResultSelect({ source, index, page, id })`.
+
+`semanticSearchFunction(query, { page })` results show as **Related passages** above the
+text matches (one list, no mode). Give them `rects` (page fractions) for exact marks;
+without, the viewer finds `text` on `page` and marks it.
+
+`onPageChange.cause` says why the page changed: `initial`, `step`, `input`, `thumbnail`,
+`link`, `outline`, `search`, `citation`, `history` or `host`. A host can keep the page in
+its own URL (`?page=`) on every change, push browser history only for jumps, and offer
+its own back button from `canGoBack`.
+
+**Reading:** all pages scroll continuously; ↑/↓, PageUp/PageDown and the trackpad scroll,
+←/→ jump a page, Home/End go to the first/last page, Alt+←/Alt+→ walk the jump history,
+and after a jump a **Back to p. N** chip returns to where the reader was (stepping through
+search hits counts as one jump). Pinch (trackpad or touch) or Ctrl/Cmd + `+` `-` `0`
+zoom the document. When the PDF defines page labels, the page box shows and accepts
+them ("iv", "12") with the physical number beside.
+
+**Shortcuts** (single keys, ignored while typing): `F` / Ctrl/Cmd+F find, `T` Navigator,
+`C` cite, `S` share, `P` print, `D` download, `I` info, `R` recommendations, `E` draw,
+`A` ask, `Esc` closes the top-most card or panel.
+
+**Layout:** one top bar; the **Navigator** on the left (Contents · Pages · Search · Notes)
+for finding your way; actions open as cards under their own button (Cite, Share, Print,
+Info). `openPanel('share' | 'info' | 'print')` opens those cards; the other panel names
+open the Navigator section. Drawing is a mode (`E`) with its own tool rail.
 
 # Viewer Options and Properties Documentation
 
@@ -148,9 +254,11 @@ app.unmount();
 | rootId                        | ID of your component where you use the `renderViewer` function.                     |
 | data                          | TypedArray (e.g. `Uint8Array`) with the PDF bytes. Pass either `data` or `url`.     |
 | url                           | URL of the PDF. pdf.js fetches it itself and shows a progress bar; when the server answers HTTP Range requests (`Accept-Ranges: bytes`, `206`), page 1 renders before the whole file has downloaded. Without Range support the file is streamed whole. |
-| httpHeaders                   | Optional `Record<string, string>` sent with every `url` request, e.g. `Authorization`. |
+| httpHeaders                   | Optional `Record<string, string>` sent with every `url` request, e.g. `Authorization`, or a function `({ retry }) => headers` called before every request (see [Streaming](#streaming-a-pdf-by-url)). |
 | withCredentials               | Optional boolean. Send cookies with cross-origin `url` requests.                    |
-| rangeChunkSize                | Optional number. Bytes per Range request (pdf.js default 65536).                    |
+| rangeChunkSize                | Optional number. Bytes per Range request (default 524288).                          |
+| streaming                     | Optional boolean. Range-only loading for `url`: no background prefetch.             |
+| length                        | Optional number. File size, used with a function `httpHeaders` when the server's 206 has no total. |
 | options                       | Optional object consisting of theme, language, citationBib, homeFunction, etc.      |
 | options.theme                 | 'dark' or 'light'. Forces the viewer's theme. Without it the viewer uses the reader's last choice of the sun/moon toggle (saved in `localStorage` as `efv-theme`), else the system preference, which it follows live. |
 | options.lang                  | 'sk' or 'en'. Specifies the language of the viewer.                                 |
@@ -162,7 +270,7 @@ app.unmount();
 | shareFunction.expaireDate     | ISO string specifying the lifespan of the shared document.                          |
 | shareFunction => return       | Returns a string containing the link to the shared document.                        |
 | options.printFunction         | Function (type: `(pages: string | null) => Promise<string>`) or null. Generates a printable version of the selected pages. |
-| options.semanticSearchFunction | Function (type: `(query: string) => Promise<ISemanticSearchResult[]>`) or null. Optional semantic/AI search. When supplied, the search panel shows a second column of AI results (`{ page, text, score? }`) next to the keyword matches; when omitted the panel stays keyword-only. |
+| options.semanticSearchFunction | Function (type: `(query: string, context?: { page }) => Promise<ISemanticSearchResult[]>`) or null. Optional semantic/AI search. Its results (`{ page, text, score?, id?, title?, reason?, rects? }`) appear as "Related passages" above the text matches; when omitted search is text-only. |
 | options.editPackage           | Optional object for managing edit features, containing the following functions:     |
 | editPackage.saveGroupFunc     | Function (type: `(name: string) => Promise<{ response: { id: string } }>`). Saves a new group and returns its ID. |
 | editPackage.getGroupsFunc     | Function (type: `() => Promise<{ id: string; name: string }[]>`). Retrieves all available groups. |
@@ -179,8 +287,11 @@ app.unmount();
 | options.chatPackage       | Optional `IChatPackage`. Enables the reading chat — see [Intelligent viewer](#intelligent-viewer). |
 | options.regionPackage     | Optional `IRegionPackage`. Enables figure/table/equation hover.                      |
 | options.agentAnnotationPackage | Optional `IAgentAnnotationPackage`. Enables the AI highlight layer and its sidebar. |
-| options.onFirstPageRendered | Optional `(info: { page, durationMs }) => void`. Called once per opened document when its first page is painted; `durationMs` runs from the start of the load inside the viewer. Page number and timing only, no document content, so it can go to telemetry. A swapped document reports again. |
-| options.onDocumentError   | Optional `(info: { stage: 'download' \| 'parse' \| 'render' }) => void`. Called at most once per opened document when it fails before its first page is painted. Failures after that are not reported. |
+| options.onFirstPageRendered | Optional `(info: IFirstPageRenderedInfo) => void`, `{ page, durationMs, source, streaming, bytesLoaded, totalBytes }`. Called once per opened document when its first page is painted; `durationMs` runs from the start of the load inside the viewer (with `data` it excludes the host's own download). No document content, so it can go to telemetry. A swapped document reports again. |
+| options.onDocumentError   | Optional `(info: { stage, reason, status, source }) => void`. `stage` is `download`, `parse` or `render`; `reason` one of `load-error-auth`, `-not-found`, `-network`, `-invalid`, `-password`, `-unknown`; `status` the HTTP status when there was one. Called at most once per opened document when it fails before its first page is painted. |
+| options.onDocumentLoaded / onLoadProgress / onPageChange / onStreamError | Optional. See [Controlling the viewer](#controlling-the-viewer). |
+| options.pdfAssetsUrl      | Optional string. Where the host serves `pdfjs-dist`'s `wasm/`, `cmaps/`, `standard_fonts/` and `iccs/` (same version as the viewer's). Enables the Wasm JPX/JBIG2 decoders for scans and correct glyphs for CJK and non-embedded fonts. |
+| options.workerRendering   | Optional boolean. Draw pages in pdf.js' renderer worker, keeping the main thread free. The worker script is loaded only when this is on. |
 | config                    | Optional configuration object controlling viewer features.                          |
 | config.download           | Boolean. Enables or disables the download feature.                                  |
 | config.share              | Boolean. Enables or disables the share feature.                                     |

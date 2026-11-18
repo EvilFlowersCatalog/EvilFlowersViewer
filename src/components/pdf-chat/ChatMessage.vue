@@ -104,7 +104,7 @@ const isOtherBook = (c: IChatCitation) => {
 
 // Citations are rendered as plain buttons inside v-html; one delegated handler.
 const goToPage = (page: number) => {
-  docStore.activePage = Math.min(Math.max(1, page), docStore.totalPages);
+  docStore.goTo(page, 'citation');
 };
 
 // Highlight layers the assistant created with this answer, as the layer list knows them.

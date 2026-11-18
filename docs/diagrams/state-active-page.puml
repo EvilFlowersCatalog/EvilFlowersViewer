@@ -1,0 +1,23 @@
+@startuml state-active-page
+!include elvira.iuml
+' What: in the continuous view the active page is set by scrolling or by a jump, never both at once, so a jump never loops back through the scroll handler and drawing pins the page.
+' Kind: UML state machine diagram. Scope: who may change docStore.activePage in the PageStream redesign.
+' Source: src/stores/document.ts, src/components/pdf-viewer-page/PageStream.vue (2026-11-18)
+
+title Who owns the active page (proposal, 2026-11-18)
+
+[*] --> Following : document opened (cause: initial)
+
+state Following : the page nearest the top of the view\nbecomes active (cause: scroll, no history)
+state Jumping : goTo(page, cause) scrolls the stream there;\nscroll updates are ignored until it settles
+state Pinned : a drawing tool is selected;\nscrolling does not change the active page
+
+Following --> Jumping : link · outline · search · citation · host · history · step
+Jumping --> Following : scroll settled on the target
+Following --> Pinned : drawing tool picked
+Pinned --> Following : back to the pointer tool
+Pinned --> Jumping : explicit jump (saves the drawing first)
+
+caption Scrolling only reports (cause scroll, no history entry); jumps scroll and are recorded; while drawing, the page is pinned so autosave keys stay right.
+footer ELVIRA · FIIT STU · EvilFlowersViewer · docs/diagrams/state-active-page.puml
+@enduml

@@ -3,7 +3,8 @@
 // highlighted sentence. Hovering a highlight shows a comment badge in its
 // top-right corner; the badge opens the highlight's note and actions.
 import { computed, watch } from 'vue';
-import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
+import { useAssistantStore, useViewerStore } from '@/stores';
+import { usePageContext } from '../usePageContext';
 import { boxContains, boxStyle, boxToViewport, pageViewport, unionBox, usePagePointer, useStickyHover } from '../usePageHover';
 import { FloatingCard } from '@/components/pdf-aids';
 import { highlightColor } from './colors';
@@ -11,15 +12,15 @@ import { READER_ANNOTATION_ID } from '@/stores/assistant';
 
 const props = defineProps<{ pageBodyRef: HTMLDivElement | null }>();
 
-const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
 const assistantStore = useAssistantStore();
+const { page } = usePageContext();
 
 const pageBody = computed(() => props.pageBodyRef);
 const pointer = usePagePointer(pageBody);
 
 const items = computed(() =>
-  assistantStore.highlightsOnPage(docStore.activePage).map((item) => ({
+  assistantStore.highlightsOnPage(page.value).map((item) => ({
     ...item,
     bounds: unionBox(item.highlight.quads),
   }))
@@ -45,7 +46,7 @@ watch(
 
 // A page change closes the card, unless it was the navigation to that card.
 watch(
-  () => docStore.activePage,
+  () => page.value,
   () => {
     if (!items.value.some((i) => i.highlight.id === assistantStore.activeHighlightId)) hover.close();
   }

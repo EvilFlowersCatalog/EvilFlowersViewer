@@ -5,26 +5,70 @@ import type { SUGGESTION_KIND } from './enums';
 export interface ISemanticSearchResult {
   /** 1-based page number the hit points to. */
   page: number;
-  /** Snippet of matching text to show in the result card. */
+  /**
+   * Snippet of matching text to show in the result card. Without `rects` the
+   * viewer looks for this text on `page` and highlights it where found.
+   */
   text: string;
   /** Optional relevance score (0..1); used only for ordering if provided. */
   score?: number;
+  /** Stable id, echoed back in `onSearchResultSelect`. */
+  id?: string;
+  /** Short heading of the card, e.g. the section the passage is from. */
+  title?: string;
+  /** Why it matched, shown under the snippet (e.g. an AI explanation). */
+  reason?: string;
+  /** Exact boxes to highlight on `page` (page fractions, top-left origin). */
+  rects?: IPageBox[];
 }
 
-/**
- * A keyword-search hit the page canvas should highlight. Coordinates come from
- * pdf.js `getTextContent` (unscaled, PDF user space) and are scaled to the
- * current zoom by the renderer, so the highlight stays put across re-renders.
- */
-export interface ISearchHighlight {
-  /** 1-based page the hit belongs to. */
+/** Results the host pushes into the viewer (`controller.showResults`), e.g. passages an AI answer used. */
+export type IHostSearchResult = ISemanticSearchResult;
+
+export type SEARCH_SOURCE = 'text' | 'semantic' | 'host';
+
+export interface ISearchOptions {
+  /** Match upper/lower case exactly. Default false. */
+  caseSensitive?: boolean;
+  /** Only whole words. Default false. */
+  wholeWord?: boolean;
+  /** "databaz" also finds "databáz". Default true. */
+  ignoreDiacritics?: boolean;
+}
+
+/** One search result as the viewer shows and highlights it. */
+export interface ISearchHit {
+  id: string;
+  source: SEARCH_SOURCE;
   page: number;
-  /** Text-item transform matrix ([a, b, c, d, e, f]). */
-  transform: number[];
-  /** Text-item width in unscaled PDF units. */
-  width: number;
-  /** Text-item height in unscaled PDF units. */
-  height: number;
+  /** Boxes to highlight (page fractions); empty when the text was not located. */
+  rects: IPageBox[];
+  /** The snippet, split around the matched part. */
+  before: string;
+  match: string;
+  after: string;
+  title?: string;
+  reason?: string;
+  score?: number;
+}
+
+export interface ISearchSummary {
+  query: string;
+  source: SEARCH_SOURCE;
+  total: number;
+  /** Number of distinct pages with a hit. */
+  pages: number;
+  /** True when the hit list was cut at the limit. */
+  truncated: boolean;
+}
+
+export interface ISearchSelectInfo {
+  source: SEARCH_SOURCE;
+  /** 0-based index within its source's results. */
+  index: number;
+  page: number;
+  /** The host's or semantic result's `id`, when it had one. */
+  id: string | null;
 }
 
 /** A book/entry card shown in the similar-books and suggestions popups. */
@@ -393,6 +437,8 @@ export interface IPageBookmarkPackage {
 }
 
 export interface IViewerOptions {
+  /** Title shown in the top bar; defaults to the PDF's own title metadata. */
+  title?: string | null;
   theme?: 'dark' | 'light';
   lang?: 'sk' | 'en';
   /** 1-based page to open the document at, e.g. a page a chat citation pointed to. */
@@ -415,8 +461,15 @@ export interface IViewerOptions {
    * When omitted, the panel stays keyword-only.
    */
   semanticSearchFunction?:
-    | ((query: string) => Promise<ISemanticSearchResult[]>)
+    | ((
+        query: string,
+        context?: { page: number }
+      ) => Promise<ISemanticSearchResult[]>)
     | null;
+  /** A search finished (in the document, semantic, or host results shown). */
+  onSearch?: ((summary: ISearchSummary) => void) | null;
+  /** The reader picked a search result (click, Enter, ‹ ›). */
+  onSearchResultSelect?: ((info: ISearchSelectInfo) => void) | null;
   editPackage?: IEditPackage | null;
   /**
    * Optional persistence for per-page bookmarks. Without it the bookmark
@@ -461,38 +514,294 @@ export interface IViewerOptions {
    * page is painted. Carries the failing stage only.
    */
   onDocumentError?: ((info: IDocumentErrorInfo) => void) | null;
+  /**
+   * Called once per opened document, as soon as pdf.js has parsed it (before
+   * the first paint). Carries no document content.
+   */
+  onDocumentLoaded?: ((info: IDocumentLoadedInfo) => void) | null;
+  /**
+   * Bytes received for the open document. With `data` it never fires; with
+   * `url` it runs from the first byte until the whole file is in (or, with
+   * `streaming`, only while ranges arrive). Throttled to one call per frame.
+   */
+  onLoadProgress?: ((info: ILoadProgressInfo) => void) | null;
+  /** Called whenever the page on screen changes, including the initial page. */
+  onPageChange?: ((info: IPageChangeInfo) => void) | null;
+  /**
+   * Called when a Range request fails after the document opened (network
+   * drop, expired authorisation). The viewer shows a "reconnect" notice; the
+   * host may refresh its credentials and call `controller.retry()`.
+   */
+  onStreamError?: ((info: IStreamErrorInfo) => void) | null;
+  /**
+   * Base URL the host serves the pdf.js resource folders from: `wasm/`,
+   * `cmaps/`, `standard_fonts/` and `iccs/` of the matching `pdfjs-dist`
+   * (copied verbatim, trailing slash included). Without it, JPX/JBIG2 scans
+   * decode on the slower JS fallback where one exists, and PDFs with CJK
+   * CMaps or non-embedded standard fonts may render with wrong glyphs.
+   */
+  pdfAssetsUrl?: string | null;
+  /**
+   * Opt-in: draw pages in a separate renderer worker (pdf.js 6.5+), keeping
+   * the main thread free for scrolling, chat and annotation layers. Falls
+   * back to main-thread drawing where OffscreenCanvas is unavailable.
+   */
+  workerRendering?: boolean;
 }
+
+/** How the open document reached the viewer. */
+export type DOCUMENT_SOURCE_KIND = 'data' | 'url' | 'range-transport';
 
 export interface IFirstPageRenderedInfo {
   /** 1-based page that was painted first (the initial page). */
   page: number;
+  /**
+   * From the start of the load inside the viewer to the paint. With `data`
+   * this excludes the host's own download; compare streaming against data
+   * with the host's click-to-paint time.
+   */
   durationMs: number;
+  source: DOCUMENT_SOURCE_KIND;
+  /** `true` when range-only loading (`streaming`) was requested. */
+  streaming: boolean;
+  /** Bytes received when the page was painted, when known. */
+  bytesLoaded: number | null;
+  /** File size in bytes, when known. */
+  totalBytes: number | null;
 }
 
 export interface IDocumentErrorInfo {
   /** `download`: the file could not be fetched; `parse`: not a readable PDF; `render`: the first page failed to paint. */
   stage: 'download' | 'parse' | 'render';
+  /** Machine-readable reason, also the i18n key the viewer shows. */
+  reason: LOAD_ERROR_REASON;
+  /** HTTP status of the failed request, when the failure was an HTTP one. */
+  status: number | null;
+  source: DOCUMENT_SOURCE_KIND;
 }
+
+export type LOAD_ERROR_REASON =
+  | 'load-error-password'
+  | 'load-error-invalid'
+  | 'load-error-network'
+  | 'load-error-auth'
+  | 'load-error-not-found'
+  | 'load-error-unknown';
+
+export interface IDocumentLoadedInfo {
+  totalPages: number;
+  source: DOCUMENT_SOURCE_KIND;
+  streaming: boolean;
+  /** File size in bytes, when known. */
+  totalBytes: number | null;
+}
+
+export interface ILoadProgressInfo {
+  loaded: number;
+  /** 0 when the server did not announce a length. */
+  total: number;
+}
+
+/**
+ * Why the page changed. `link`, `outline`, `search`, `citation` and `host`
+ * are jumps: they are recorded in the back/forward history.
+ */
+export type NAVIGATION_CAUSE =
+  | 'initial' // the document opened
+  | 'step' // previous/next page (keys, arrows, host nextPage/previousPage)
+  | 'input' // the page number typed in the bottom bar
+  | 'thumbnail' // a thumbnail in the bottom strip
+  | 'link' // a link inside the PDF
+  | 'outline' // the table of contents
+  | 'search' // a search result
+  | 'citation' // a chat citation, region, highlight or focus target
+  | 'history' // back / forward
+  | 'host' // the host's controller (goToPage, goToLabel, goToDestination)
+  | 'scroll'; // the reader scrolled another page into view (no history)
+
+export interface IPageChangeInfo {
+  page: number;
+  totalPages: number;
+  /** The PDF's own label of the page ("iv", "12"), when it defines labels. */
+  pageLabel: string | null;
+  /** The page before this change; null when the document just opened. */
+  previousPage: number | null;
+  cause: NAVIGATION_CAUSE;
+  canGoBack: boolean;
+  canGoForward: boolean;
+}
+
+/** One entry of the document's outline (table of contents). */
+export interface IOutlineEntry {
+  title: string;
+  /** 1-based target page; null when the entry has no resolvable target. */
+  page: number | null;
+  /** Depth, 0 for top-level entries. */
+  level: number;
+  children: IOutlineEntry[];
+}
+
+export interface IStreamErrorInfo {
+  /** HTTP status of the failed Range request; null for a network failure. */
+  status: number | null;
+}
+
+/**
+ * Request headers for `url`: a fixed object, or a function the viewer calls
+ * before every request so the host can hand out a current token. With a
+ * function the viewer fetches the ranges itself; a 401/403 is retried once,
+ * asking for headers with `{ retry: true }` so the host refreshes its token
+ * instead of returning the cached one.
+ */
+export type HttpHeadersSource =
+  | Record<string, string>
+  | ((context: {
+      retry: boolean;
+    }) => Record<string, string> | Promise<Record<string, string>>);
 
 /**
  * Where the PDF comes from. Pass either `data` (the bytes, already in memory)
  * or `url`. With `url`, pdf.js fetches the file itself and, when the server
  * answers HTTP Range requests, renders page 1 before the rest has downloaded.
+ *
+ * Never pass a single-use URL: pdf.js first opens a full GET to read the
+ * response headers, aborts it, then issues Range requests to the same URL.
  */
 export interface IDocumentSource {
   data?: TypedArray | null;
   url?: string | null;
-  /** Extra request headers for `url`, e.g. `Authorization`. */
-  httpHeaders?: Record<string, string> | null;
+  /** Extra request headers for `url`, e.g. `Authorization`. See {@link HttpHeadersSource}. */
+  httpHeaders?: HttpHeadersSource | null;
   /** Send cookies with cross-origin `url` requests. */
   withCredentials?: boolean;
-  /** Bytes per Range request (pdf.js default 65536). */
+  /**
+   * Bytes per Range request. Default 524288 (512 KiB) with `url`, which keeps
+   * a 7 MB book to ~14 requests; pdf.js's own default (64 KiB) means ~100,
+   * each through the host's authorisation.
+   */
   rangeChunkSize?: number | null;
+  /**
+   * File size in bytes, if the host knows it. Used with a function
+   * `httpHeaders` when the server's 206 carries no total in `Content-Range`
+   * (pdf.js' own `url` loader has no such option in 6.x).
+   */
+  length?: number | null;
+  /**
+   * Range-only loading for `url`: pdf.js fetches just what the open page
+   * needs (`disableAutoFetch` + `disableStream`). Best for huge scans;
+   * full-text search, print and download then trigger many Range requests.
+   * Off by default: after page 1 the rest is fetched in the background.
+   */
+  streaming?: boolean;
 }
 
 export interface IViewerProps extends IDocumentSource {
   options?: IViewerOptions;
   config?: IViewerConfig;
+}
+
+/** A sidebar panel the host can open. */
+export type VIEWER_PANEL =
+  | 'search'
+  | 'share'
+  | 'info'
+  | 'print'
+  | 'toc'
+  | 'pages'
+  | 'highlights';
+
+export interface IViewerState {
+  page: number;
+  totalPages: number;
+  pageLabel: string | null;
+  canGoBack: boolean;
+  canGoForward: boolean;
+  scale: number;
+  theme: 'dark' | 'light';
+  lang: string;
+  /** `loading`, `ready` (first page painted) or `failed`. */
+  status: 'loading' | 'ready' | 'failed';
+  /** Background download progress, null before the first byte or with `data`. */
+  progress: ILoadProgressInfo | null;
+  search: {
+    query: string;
+    source: SEARCH_SOURCE;
+    total: number;
+    /** 0-based index of the selected hit, or null. */
+    active: number | null;
+  };
+}
+
+/**
+ * Imperative control of a mounted viewer, returned by `renderViewer` as
+ * `app.viewer`. Every method is safe to call before the document has loaded:
+ * navigation is clamped and applied once pages exist.
+ */
+export interface IViewerController {
+  /** Swap the document without remounting. Callbacks and config are kept. */
+  open: (
+    source: IDocumentSource,
+    at?: { initialPage?: number | null; initialFocus?: IViewerFocus | null }
+  ) => void;
+  /** Reload after a failure, or re-request ranges after a stream error. */
+  retry: () => void;
+  /**
+   * Jump to a 1-based page (clamped). Recorded in the history, so the reader
+   * can go back. Before the document has loaded it sets the opening page.
+   */
+  goToPage: (page: number) => void;
+  /**
+   * Jump to the page the PDF labels `label` (e.g. "iv", "12"; printed page
+   * numbers differ from physical ones in most books). Resolves to the page,
+   * or null when no page has that label (or the document has not loaded).
+   */
+  goToLabel: (label: string) => Promise<number | null>;
+  /** Jump to a named destination of the PDF (`#nameddest=`). Resolves like `goToLabel`. */
+  goToDestination: (name: string) => Promise<number | null>;
+  nextPage: () => void;
+  previousPage: () => void;
+  /** Back / forward through jumps (links, outline, search, citations, host jumps). */
+  back: () => void;
+  forward: () => void;
+  /**
+   * The document's outline with resolved pages, e.g. for the host's own
+   * table of contents. Empty when the PDF has none.
+   */
+  getOutline: () => Promise<IOutlineEntry[]>;
+  /** Scroll to and outline a cited paragraph or figure (same shape as `initialFocus`). */
+  focus: (target: IViewerFocus) => void;
+  setScale: (scale: number) => void;
+  /** `null` drops the host's choice: the reader's stored choice or the system theme applies. */
+  setTheme: (theme: 'dark' | 'light' | null) => void;
+  setLang: (lang: 'sk' | 'en') => void;
+  /** Open a sidebar panel, or close the open one with `null`. */
+  openPanel: (panel: VIEWER_PANEL | null) => void;
+  /**
+   * Search the document's text, highlight every hit and go to the first one
+   * at or after the current page. Also asks `semanticSearchFunction` (when the
+   * host has one) for related passages, which arrive on their own. Resolves
+   * when the text search finished. `openPanel: false` keeps the results list
+   * closed (the find bar still steps through the hits).
+   */
+  search: (
+    query: string,
+    options?: ISearchOptions & { openPanel?: boolean }
+  ) => Promise<ISearchSummary>;
+  searchNext: () => void;
+  searchPrevious: () => void;
+  /** Clear the query, results and highlights. */
+  clearSearch: () => void;
+  /**
+   * Show the host's own results, e.g. passages an AI answer is based on:
+   * listed in their own tab (`label`), highlighted on their pages (by
+   * `rects`, else by locating `text` on the page) and stepped with ‹ ›.
+   * Resolves with how many could be placed on their page.
+   */
+  showResults: (
+    results: IHostSearchResult[],
+    options?: { label?: string; select?: number | null; openPanel?: boolean }
+  ) => Promise<ISearchSummary>;
+  getState: () => IViewerState;
 }
 
 export interface IViewerConfig {

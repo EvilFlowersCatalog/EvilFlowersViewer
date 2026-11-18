@@ -37,7 +37,7 @@ const jump = () => {
   const ctx = props.context;
   if (ctx.kind === 'region') assistantStore.goToRegion(ctx.region);
   else if (ctx.kind === 'highlight') assistantStore.goToHighlight(ctx.annotationId, ctx.highlight);
-  else docStore.activePage = ctx.page;
+  else docStore.goTo(ctx.page, 'citation');
 };
 </script>
 

@@ -1,3 +1,3 @@
-import PDFPage from './PDFPage.vue';
+import PageStream from './PageStream.vue';
 
-export { PDFPage };
+export { PageStream };

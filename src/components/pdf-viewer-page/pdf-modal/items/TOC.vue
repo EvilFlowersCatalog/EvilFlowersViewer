@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Contents: the outline ("Chapters") and, when the host can list them, every
 // figure, table and equation of the copy ("Figures", IP-018 Phase 8).
-import { computed, ref, watch } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
 import { MODAL_CONTENT } from '@/assets/utils/enums';
 import type { IRegion, ITOCItem } from '@/assets/utils/interfaces';
 import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
@@ -18,13 +18,28 @@ const closePanels = () => docStore.setModalContent(MODAL_CONTENT.NULL);
 
 const handleItemClick = (page: number) => {
   if (page === -1) return;
-  docStore.activePage = page;
+  docStore.goTo(page, 'outline');
   closePanels();
 };
 
 const handleToggleExpand = (item: ITOCItem) => {
   item.isExpanded = !item.isExpanded;
 };
+
+// The deepest *visible* entry that starts at or before the reader's page:
+// "you are here" in the contents.
+const tocCurrent = computed<ITOCItem | null>(() => {
+  let found: ITOCItem | null = null;
+  const walk = (items: ITOCItem[]) => {
+    for (const item of items) {
+      if (item.pageNumber > 0 && item.pageNumber <= docStore.activePage) found = item;
+      if (item.isExpanded) walk(item.children);
+    }
+  };
+  walk(docStore.toc);
+  return found;
+});
+provide('tocCurrent', tocCurrent);
 
 const hasFigures = computed(() => !!viewerStore.regionPackage?.getAllRegionsFunc);
 const tab = ref<'chapters' | 'figures'>('chapters');

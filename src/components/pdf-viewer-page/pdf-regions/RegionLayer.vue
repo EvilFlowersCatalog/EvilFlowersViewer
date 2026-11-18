@@ -4,7 +4,8 @@
 // a card with what the catalog knows plus chat/explain actions. Hit-testing
 // runs on pointer position, so text selection underneath keeps working.
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
-import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
+import { useAssistantStore, useViewerStore } from '@/stores';
+import { usePageContext } from '../usePageContext';
 import type { IRegion } from '@/assets/utils/interfaces';
 import { boxContains, boxStyle, boxToViewport, pageViewport, usePagePointer, useStickyHover } from '../usePageHover';
 import { FloatingCard } from '@/components/pdf-aids';
@@ -15,14 +16,14 @@ const props = defineProps<{
   canvasRef: HTMLCanvasElement | null;
 }>();
 
-const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
 const assistantStore = useAssistantStore();
+const { page: pageNumber } = usePageContext();
 
 const pageBody = computed(() => props.pageBodyRef);
 const pointer = usePagePointer(pageBody);
 
-const regions = computed<IRegion[]>(() => assistantStore.regionsByPage.get(docStore.activePage) ?? []);
+const regions = computed<IRegion[]>(() => assistantStore.regionsByPage.get(pageNumber.value) ?? []);
 
 // Smallest region under the pointer wins, so an equation inside a figure is reachable.
 const hitId = computed(() => {
@@ -54,7 +55,7 @@ watch(
 onBeforeUnmount(() => flashTimer && clearTimeout(flashTimer));
 
 watch(
-  () => docStore.activePage,
+  () => pageNumber.value,
   (page) => {
     // Keep a card that a citation just opened on this page.
     if (!flashId.value || !regions.value.some((r) => r.id === flashId.value)) hover.close();

@@ -10,6 +10,10 @@ import { useEditRail } from '../pdf-edit/pdf-edit-menu/useEditRail';
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
 const editRail = useEditRail();
+// `below`: dropped from a top-bar button; `above`: raised from a bottom chip.
+const props = withDefaults(defineProps<{ placement?: 'above' | 'below' }>(), {
+  placement: 'above',
+});
 
 const tabs = [
   { kind: SUGGESTION_KIND.SIMILAR, label: 'similar' },
@@ -49,8 +53,9 @@ onMounted(() => load(activeTab.value));
 
 <template>
   <div
-    :style="{ right: `${10 + editRail.offset.value}px` }"
-    class="absolute bottom-full mb-[8px] w-[280px] max-h-[360px] flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[8px] shadow-[0px_6px_18px_rgba(0,0,0,0.2)] overflow-hidden z-20"
+    :style="props.placement === 'above' ? { right: `${10 + editRail.offset.value}px` } : { right: '0px' }"
+    class="absolute w-[300px] max-h-[420px] flex flex-col bg-white dark:bg-[#1e1e1e] rounded-[10px] shadow-[0px_10px_30px_rgba(0,0,0,0.22)] overflow-hidden z-40"
+    :class="props.placement === 'above' ? 'bottom-full mb-[8px]' : 'top-full mt-2'"
     role="dialog"
     :aria-label="$t('recommendations')"
   >

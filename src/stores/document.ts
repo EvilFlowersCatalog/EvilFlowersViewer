@@ -9,9 +9,13 @@ import {
   SIDEBAR_STATE,
 } from '@/assets/utils/enums';
 import type {
+  DOCUMENT_SOURCE_KIND,
   IDocumentErrorInfo,
+  ILoadProgressInfo,
+  IStreamErrorInfo,
+  LOAD_ERROR_REASON,
+  NAVIGATION_CAUSE,
   ILayer,
-  ISearchHighlight,
   ITOCItem,
 } from '@/assets/utils/interfaces';
 import {
@@ -56,21 +60,57 @@ export const useDocumentStore = defineStore('document', () => {
   const layerState = ref<LAYER_STATE>(LAYER_STATE.NOT_READY);
   const layer = ref<ILayer | null>(null);
   const groupId = ref<string | null>(null);
+  // `edit`: saved drawings are shown (the drawing canvas is mounted).
+  // `drawMode`: the drawing tools are out. Reading is the default; drawing
+  // is a mode the reader enters on purpose.
   const edit = ref<boolean>(true);
+  const drawMode = ref<boolean>(false);
+  // Scale at which the page fills the view's width (set by the page stream),
+  // for "Fit width" and the opening zoom.
+  const fitWidthScale = ref<number>(1);
+  // While fitted, the zoom follows the view's width (Navigator, chat and window
+  // size change it) up to `fitCap`; any manual zoom ends that.
+  const fitToWidth = ref<boolean>(false);
+  // The action popover open under its top-bar button (cite, share, print,
+  // info), so an action opens where it was asked for, not across the screen.
+  const actionPopover = ref<'cite' | 'share' | 'print' | 'info' | null>(null);
+  const toggleAction = (action: 'cite' | 'share' | 'print' | 'info') => {
+    actionPopover.value = actionPopover.value === action ? null : action;
+  };
+  const fitCap = ref<number>(1.4);
   const canUndo = ref<boolean>(false);
   const canRedo = ref<boolean>(false);
   const undoFn = ref<(() => void) | null>(null);
   const redoFn = ref<(() => void) | null>(null);
-  // The text match the page canvas should highlight. Owned here (not reached
-  // for via the DOM) so Search and PDFPage stay decoupled and the highlight
-  // survives page/zoom re-renders.
-  const searchHighlight = ref<ISearchHighlight | null>(null);
   // Bookmarked pages → the host's record id for that bookmark (null when the
   // host issues none, or when nothing is persisting them). A Map keeps the
   // page-corner button and every thumbnail on one reactive source of truth.
   const bookmarks = ref<Map<number, string | null>>(new Map());
   // Pages with a bookmark call in flight, so double clicks can't race.
   const bookmarkPending = ref<Set<number>>(new Set());
+  // How the open document was loaded, for the host's timing reports.
+  const loadInfo = ref<{
+    source: DOCUMENT_SOURCE_KIND;
+    streaming: boolean;
+  }>({ source: 'data', streaming: false });
+  // Bytes received for the open document (null with `data` or before byte 1).
+  const downloadProgress = ref<ILoadProgressInfo | null>(null);
+  // Set when a Range request failed after the document opened; cleared on retry.
+  const streamError = ref<IStreamErrorInfo | null>(null);
+  // `ready` once the first page painted.
+  const openStatus = ref<'loading' | 'ready' | 'failed'>('loading');
+  // The drawing layer (SVG) of each page, as the drawing canvas loaded or saved
+  // it. The canvas is one instance on the active page; the other pages of the
+  // continuous view show their drawing from here, read-only.
+  const pageLayerSvgs = ref<Map<number, string>>(new Map());
+  const setPageLayerSvg = (page: number, svg: string | null) => {
+    if (svg) pageLayerSvgs.value.set(page, svg);
+    else pageLayerSvgs.value.delete(page);
+  };
+  // A request to bring a page into view (a jump). `seq` changes on every
+  // request, so jumping to the page already on screen still scrolls to its top.
+  const scrollRequest = ref<{ page: number; seq: number } | null>(null);
+  let scrollSeq = 0;
 
   // Page is considered ready once its bitmap is painted (text layer is async
   // and must not block navigation/zoom).
@@ -79,22 +119,137 @@ export const useDocumentStore = defineStore('document', () => {
   const clampScale = (val: number) =>
     val < MIN_SCALE ? MIN_SCALE : val > MAX_SCALE ? MAX_SCALE : val;
 
+  // Manual zoom (buttons, keys, pinch, host): the reader's choice sticks.
   const setScale = (val: number) => {
-    if (isLoaded()) scale.value = clampScale(val);
+    if (!isLoaded()) return;
+    fitToWidth.value = false;
+    scale.value = clampScale(val);
   };
-  const zoomIn = () => {
-    if (isLoaded()) scale.value = clampScale(scale.value + SCALE_STEP);
-  };
-  const zoomOut = () => {
-    if (isLoaded()) scale.value = clampScale(scale.value - SCALE_STEP);
+  const zoomIn = () => setScale(scale.value + SCALE_STEP);
+  const zoomOut = () => setScale(scale.value - SCALE_STEP);
+
+  /** Fit the page to the view's width and keep following it, up to `cap`. */
+  const fitWidth = (cap: number = MAX_SCALE) => {
+    fitToWidth.value = true;
+    fitCap.value = cap;
+    scale.value = clampScale(Math.min(cap, Math.max(0.5, fitWidthScale.value)));
   };
 
-  const nextPage = () => {
-    activePage.value = Math.min(activePage.value + 1, totalPages.value);
+  const setDrawMode = (on: boolean) => {
+    drawMode.value = on;
+    if (!on) editTool.value = EDIT_TOOL.MOUSE; // back to reading
   };
-  const previousPage = () => {
-    activePage.value = Math.max(activePage.value - 1, 1);
+
+  // ---- Navigation -------------------------------------------------------
+  // Every page change goes through goTo() with its cause, so jumps (a link,
+  // the outline, a search hit, a citation, the host) are recorded in a
+  // back/forward history while page turns are not, and the host learns why
+  // the page changed.
+  const JUMPS = new Set<NAVIGATION_CAUSE>([
+    'link',
+    'outline',
+    'search',
+    'citation',
+    'host',
+  ]);
+  const MAX_HISTORY = 50;
+  const backStack = ref<number[]>([]);
+  const forwardStack = ref<number[]>([]);
+  // Cause of the latest change, read once by the page-change reporter.
+  let pendingCause: NAVIGATION_CAUSE = 'initial';
+  // Cause of the latest jump into the current page; stepping from hit to hit
+  // of one search records a single history entry (back = before the search).
+  let arrivedBy: NAVIGATION_CAUSE = 'initial';
+  // PDF page labels ("i", "ii", "1"…); null when the document defines none.
+  const pageLabels = ref<string[] | null>(null);
+
+  const clampPage = (page: number) =>
+    Math.min(Math.max(1, Math.trunc(Number(page)) || 1), totalPages.value || 1);
+
+  const requestScroll = (page: number) => {
+    scrollRequest.value = { page, seq: ++scrollSeq };
   };
+
+  const goTo = (page: number, cause: NAVIGATION_CAUSE = 'host') => {
+    const target = clampPage(page);
+    // Always bring the page into view: in the continuous view the target may
+    // already be the active page, scrolled halfway down.
+    requestScroll(target);
+    if (target === activePage.value) return;
+    const chained = cause === 'search' && arrivedBy === 'search';
+    if (JUMPS.has(cause) && !chained) {
+      backStack.value.push(activePage.value);
+      if (backStack.value.length > MAX_HISTORY) backStack.value.shift();
+      forwardStack.value = [];
+    }
+    pendingCause = cause;
+    arrivedBy = cause;
+    activePage.value = target;
+  };
+
+  const goBack = () => {
+    const page = backStack.value.pop();
+    if (page === undefined) return;
+    forwardStack.value.push(activePage.value);
+    pendingCause = arrivedBy = 'history';
+    activePage.value = clampPage(page);
+    requestScroll(activePage.value);
+  };
+
+  const goForward = () => {
+    const page = forwardStack.value.pop();
+    if (page === undefined) return;
+    backStack.value.push(activePage.value);
+    pendingCause = arrivedBy = 'history';
+    activePage.value = clampPage(page);
+    requestScroll(activePage.value);
+  };
+
+  /**
+   * The continuous view reports the page the reader scrolled to: no history,
+   * no scroll request. Ignored while a drawing tool is in use, so drawings
+   * and their saves stay on the page they were started on.
+   */
+  const setActiveFromScroll = (page: number) => {
+    if (editTool.value !== EDIT_TOOL.MOUSE) return;
+    const target = clampPage(page);
+    if (target === activePage.value) return;
+    pendingCause = arrivedBy = 'scroll';
+    activePage.value = target;
+  };
+
+  const clearHistory = () => {
+    backStack.value = [];
+    forwardStack.value = [];
+  };
+
+  /** The cause of the latest page change; resets to `step`. */
+  const takeNavigationCause = (): NAVIGATION_CAUSE => {
+    const cause = pendingCause;
+    pendingCause = 'step';
+    return cause;
+  };
+
+  /** Starts a document at `page` without recording history. */
+  const openAtPage = (page: number) => {
+    clearHistory();
+    pendingCause = arrivedBy = 'initial';
+    pageLayerSvgs.value = new Map();
+    activePage.value = clampPage(page);
+    requestScroll(activePage.value);
+  };
+
+  const pageLabel = (page: number) => pageLabels.value?.[page - 1] ?? null;
+
+  /** 1-based page whose label is `label` (case-insensitive), or null. */
+  const pageForLabel = (label: string) => {
+    const wanted = label.trim().toLowerCase();
+    const index = pageLabels.value?.findIndex((l) => l.toLowerCase() === wanted) ?? -1;
+    return index >= 0 ? index + 1 : null;
+  };
+
+  const nextPage = () => goTo(activePage.value + 1, 'step');
+  const previousPage = () => goTo(activePage.value - 1, 'step');
 
   // Sidebar/modal are single-slot: selecting the open item closes it.
   const setSidebarState = (val: SIDEBAR_STATE) => {
@@ -171,23 +326,57 @@ export const useDocumentStore = defineStore('document', () => {
     }
   };
 
-  const startDocumentOpen = () => {
+  const startDocumentOpen = (info: {
+    source: DOCUMENT_SOURCE_KIND;
+    streaming: boolean;
+  }) => {
     openStartedAt = performance.now();
+    loadInfo.value = info;
+    downloadProgress.value = null;
+    streamError.value = null;
+    openStatus.value = 'loading';
   };
 
   const reportFirstPaint = (page: number) => {
     if (openStartedAt === null) return;
     const durationMs = Math.round(performance.now() - openStartedAt);
     openStartedAt = null;
+    openStatus.value = 'ready';
     const cb = useViewerStore().onFirstPageRendered;
-    if (cb) callHost(() => cb({ page, durationMs }));
+    const progress = downloadProgress.value;
+    if (cb)
+      callHost(() =>
+        cb({
+          page,
+          durationMs,
+          ...loadInfo.value,
+          bytesLoaded: progress?.loaded ?? null,
+          totalBytes: progress?.total || null,
+        })
+      );
   };
 
-  const reportDocumentError = (stage: IDocumentErrorInfo['stage']) => {
+  const reportDocumentError = (
+    stage: IDocumentErrorInfo['stage'],
+    reason: LOAD_ERROR_REASON = 'load-error-unknown',
+    status: number | null = null
+  ) => {
     if (openStartedAt === null) return;
     openStartedAt = null;
+    openStatus.value = 'failed';
     const cb = useViewerStore().onDocumentError;
-    if (cb) callHost(() => cb({ stage }));
+    if (cb)
+      callHost(() =>
+        cb({ stage, reason, status, source: loadInfo.value.source })
+      );
+  };
+
+  const reportStreamError = (status: number | null) => {
+    // One notice per outage: further failing ranges join the first.
+    if (streamError.value) return;
+    streamError.value = { status };
+    const cb = useViewerStore().onStreamError;
+    if (cb) callHost(() => cb({ status }));
   };
 
   const undo = () => {
@@ -220,14 +409,42 @@ export const useDocumentStore = defineStore('document', () => {
     layer,
     groupId,
     edit,
+    drawMode,
+    fitWidthScale,
+    fitToWidth,
+    fitCap,
+    fitWidth,
+    actionPopover,
+    toggleAction,
     canUndo,
     canRedo,
     undoFn,
     redoFn,
-    searchHighlight,
     bookmarks,
     bookmarkPending,
+    loadInfo,
+    downloadProgress,
+    streamError,
+    openStatus,
+    backStack,
+    forwardStack,
+    pageLabels,
+    pageLayerSvgs,
+    scrollRequest,
     // actions
+    setPageLayerSvg,
+    setActiveFromScroll,
+    setDrawMode,
+    goTo,
+    goBack,
+    goForward,
+    clearHistory,
+    takeNavigationCause,
+    openAtPage,
+    pageLabel,
+    pageForLabel,
+    callHost,
+    reportStreamError,
     isLoaded,
     setScale,
     zoomIn,

@@ -3,28 +3,28 @@
 // view, its box outlined and its sentence flashed, then faded out. Transient:
 // nothing here is stored or listed with the highlights.
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
-import { useAssistantStore, useDocumentStore } from '@/stores';
-import { RENDER_STATE } from '@/assets/utils/enums';
+import { useAssistantStore } from '@/stores';
 import type { IPageBox } from '@/assets/utils/interfaces';
-import { boxStyle, unionBox } from '../usePageHover';
+import { usePageContext } from '../usePageContext';
+import { boxStyle, scrollPageToBox, unionBox } from '../usePageHover';
 
 const props = defineProps<{ pageBodyRef: HTMLDivElement | null }>();
 
-const docStore = useDocumentStore();
 const assistantStore = useAssistantStore();
+// This layer draws for its own page; every page in the stream has one.
+const { page: pageNumber, rendered } = usePageContext();
 
 const SHOWN_MS = 3500;
 const FADE_MS = 800;
 
 const focus = computed(() => assistantStore.focus);
 const quadsPage = computed(() => focus.value?.quadsPage ?? focus.value?.page);
-const rendered = computed(() => docStore.renderState === RENDER_STATE.RENDERED);
 
 const bbox = computed(() =>
-  rendered.value && focus.value?.bbox && docStore.activePage === focus.value.page ? focus.value.bbox : null
+  rendered.value && focus.value?.bbox && pageNumber.value === focus.value.page ? focus.value.bbox : null
 );
 const quads = computed<IPageBox[]>(() =>
-  rendered.value && focus.value?.quads?.length && docStore.activePage === quadsPage.value ? focus.value.quads : []
+  rendered.value && focus.value?.quads?.length && pageNumber.value === quadsPage.value ? focus.value.quads : []
 );
 
 const fading = ref(false);
@@ -38,45 +38,19 @@ const stopTimers = () => {
   fadeTimer = clearTimer = null;
 };
 
-/** Scrolls the page scroller (never the host page) so `box` sits in the middle of it. */
-const scrollToBox = (box: IPageBox) => {
-  const body = props.pageBodyRef;
-  const scroller = body?.closest<HTMLElement>('[data-page-scroll]');
-  if (!body || !scroller) return;
-  const page = body.getBoundingClientRect();
-  const view = scroller.getBoundingClientRect();
-  if (!page.width || !page.height) return;
+const scrollToBox = (box: IPageBox) => scrollPageToBox(props.pageBodyRef, box);
 
-  const margin = 24;
-  const top = page.top - view.top + scroller.scrollTop + box.y0 * page.height;
-  const height = (box.y1 - box.y0) * page.height;
-  const left = page.left - view.left + scroller.scrollLeft + box.x0 * page.width;
-  const width = (box.x1 - box.x0) * page.width;
-
-  const center = (start: number, size: number, viewSize: number) =>
-    size + 2 * margin > viewSize ? start - margin : start + size / 2 - viewSize / 2;
-
-  scroller.scrollTo({
-    top: Math.max(0, center(top, height, scroller.clientHeight)),
-    left: Math.max(0, center(left, width, scroller.clientWidth)),
-    behavior: 'smooth',
-  });
-};
-
-// Once a page of the focus is on screen: scroll to its box, then fade it out.
-// A sentence that runs onto the next page (`quadsPage`) gets its own show when
-// the reader turns there; the focus is dropped once that is done too, or when
-// the reader goes to an unrelated page.
+// Once this layer's page is rendered and holds part of the focus: scroll to
+// its box, then fade it out. A sentence that runs onto the next page
+// (`quadsPage`) is shown by that page's layer. The focus is dropped when its
+// own show is over; scrolling past other pages never cancels it.
 watch(
-  () => [focus.value?.id, rendered.value, docStore.activePage] as const,
-  async ([id, , page]) => {
+  () => [focus.value?.id, rendered.value] as const,
+  async ([id]) => {
     const target = focus.value;
+    const page = pageNumber.value;
     if (!target || id === undefined) return;
-    if (page !== target.page && page !== quadsPage.value) {
-      stopTimers();
-      assistantStore.clearFocus(id);
-      return;
-    }
+    if (page !== target.page && page !== quadsPage.value) return;
     const key = `${id}:${page}`;
     if (!rendered.value || startedKey === key) return;
 

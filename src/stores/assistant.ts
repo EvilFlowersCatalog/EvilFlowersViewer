@@ -12,6 +12,7 @@ import type {
   IRegion,
   IViewerFocus,
 } from '@/assets/utils/interfaces';
+import type { NAVIGATION_CAUSE } from '@/assets/utils/interfaces';
 import { SIDEBAR_STATE } from '@/assets/utils/enums';
 import { useDocumentStore } from './document';
 import { useViewerStore } from './viewer';
@@ -126,7 +127,7 @@ export const useAssistantStore = defineStore('assistant', () => {
   const focusedRegionId = ref<string | null>(null);
 
   const goToRegion = (region: IRegion) => {
-    useDocumentStore().activePage = region.page;
+    useDocumentStore().goTo(region.page, 'citation');
     focusedRegionId.value = region.id;
   };
 
@@ -137,7 +138,10 @@ export const useAssistantStore = defineStore('assistant', () => {
   const focus = ref<(IViewerFocus & { id: number; page: number }) | null>(null);
 
   /** Brings a paragraph/region box into view and flashes its sentence. */
-  const focusOn = (target: IViewerFocus) => {
+  const focusOn = (
+    target: IViewerFocus,
+    cause: NAVIGATION_CAUSE = 'citation'
+  ) => {
     const docStore = useDocumentStore();
     const region = target.regionId ? findRegion(target.regionId) : null;
     const page = target.page ?? region?.page ?? target.quadsPage;
@@ -152,7 +156,7 @@ export const useAssistantStore = defineStore('assistant', () => {
       quadsPage: target.quadsPage && target.quadsPage !== clamped ? target.quadsPage : undefined,
       id: ++sequence,
     };
-    docStore.activePage = clamped;
+    docStore.goTo(clamped, cause);
   };
 
   const clearFocus = (id?: number) => {
@@ -487,7 +491,7 @@ export const useAssistantStore = defineStore('assistant', () => {
   const goToHighlight = (annotationId: string, highlight: IAgentHighlight) => {
     showAgentHighlights.value = true;
     hiddenAnnotationIds.value.delete(annotationId);
-    useDocumentStore().activePage = highlight.page;
+    useDocumentStore().goTo(highlight.page, 'citation');
     activeHighlightId.value = highlight.id;
   };
 
