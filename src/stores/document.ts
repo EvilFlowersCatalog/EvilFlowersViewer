@@ -3,7 +3,6 @@ import { defineStore } from 'pinia';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import {
   EDIT_TOOL,
-  LAYER_STATE,
   MODAL_CONTENT,
   RENDER_STATE,
   SIDEBAR_STATE,
@@ -15,15 +14,12 @@ import type {
   IStreamErrorInfo,
   LOAD_ERROR_REASON,
   NAVIGATION_CAUSE,
-  ILayer,
   ITOCItem,
 } from '@/assets/utils/interfaces';
 import {
   DEFAULT_PAGE,
-  DEFAULT_TOOL_COLOR,
   MAX_SCALE,
   MIN_SCALE,
-  MIN_TOOL_SIZE,
   MOBILE_SIZE,
   SCALE_STEP,
 } from '@/assets/utils/constans';
@@ -32,7 +28,7 @@ import { useViewerStore } from './viewer';
 /**
  * Per-instance document state. Refs are exposed directly (read + write) — see
  * the Pinia setup-store pattern; only operations that carry real logic (page
- * bounds, scale clamping, sidebar/modal toggling, undo/redo) are kept as
+ * bounds, scale clamping, sidebar/modal toggling) are kept as
  * actions so the invariants live in one place.
  */
 export const useDocumentStore = defineStore('document', () => {
@@ -51,16 +47,13 @@ export const useDocumentStore = defineStore('document', () => {
   // sidebarState since it isn't a left-panel view.
   const isSuggestionsPopupOpen = ref<boolean>(false);
   const editTool = ref<EDIT_TOOL>(EDIT_TOOL.MOUSE);
-  const toolColor = ref<string>(DEFAULT_TOOL_COLOR);
-  const toolSize = ref<number>(MIN_TOOL_SIZE);
+  // The drawing tool picked last, taken up again on entering draw mode.
+  let lastDrawTool: EDIT_TOOL = EDIT_TOOL.PEN;
   const toc = ref<ITOCItem[]>([]);
   const isMobile = ref<boolean>(
     window.innerWidth <= MOBILE_SIZE || window.innerHeight <= MOBILE_SIZE
   );
-  const layerState = ref<LAYER_STATE>(LAYER_STATE.NOT_READY);
-  const layer = ref<ILayer | null>(null);
-  const groupId = ref<string | null>(null);
-  // `edit`: saved drawings are shown (the drawing canvas is mounted).
+  // `edit`: saved drawings are shown (each page's ink layer is mounted).
   // `drawMode`: the drawing tools are out. Reading is the default; drawing
   // is a mode the reader enters on purpose.
   const edit = ref<boolean>(true);
@@ -78,10 +71,6 @@ export const useDocumentStore = defineStore('document', () => {
     actionPopover.value = actionPopover.value === action ? null : action;
   };
   const fitCap = ref<number>(1.4);
-  const canUndo = ref<boolean>(false);
-  const canRedo = ref<boolean>(false);
-  const undoFn = ref<(() => void) | null>(null);
-  const redoFn = ref<(() => void) | null>(null);
   // Bookmarked pages → the host's record id for that bookmark (null when the
   // host issues none, or when nothing is persisting them). A Map keeps the
   // page-corner button and every thumbnail on one reactive source of truth.
@@ -99,14 +88,6 @@ export const useDocumentStore = defineStore('document', () => {
   const streamError = ref<IStreamErrorInfo | null>(null);
   // `ready` once the first page painted.
   const openStatus = ref<'loading' | 'ready' | 'failed'>('loading');
-  // The drawing layer (SVG) of each page, as the drawing canvas loaded or saved
-  // it. The canvas is one instance on the active page; the other pages of the
-  // continuous view show their drawing from here, read-only.
-  const pageLayerSvgs = ref<Map<number, string>>(new Map());
-  const setPageLayerSvg = (page: number, svg: string | null) => {
-    if (svg) pageLayerSvgs.value.set(page, svg);
-    else pageLayerSvgs.value.delete(page);
-  };
   // A request to bring a page into view (a jump). `seq` changes on every
   // request, so jumping to the page already on screen still scrolls to its top.
   const scrollRequest = ref<{ page: number; seq: number } | null>(null);
@@ -137,7 +118,13 @@ export const useDocumentStore = defineStore('document', () => {
 
   const setDrawMode = (on: boolean) => {
     drawMode.value = on;
-    if (!on) editTool.value = EDIT_TOOL.MOUSE; // back to reading
+    if (on) {
+      // Draw mode opens with a tool in hand, the one used last.
+      if (editTool.value === EDIT_TOOL.MOUSE) editTool.value = lastDrawTool;
+    } else {
+      if (editTool.value !== EDIT_TOOL.MOUSE) lastDrawTool = editTool.value;
+      editTool.value = EDIT_TOOL.MOUSE; // back to reading
+    }
   };
 
   // ---- Navigation -------------------------------------------------------
@@ -207,11 +194,10 @@ export const useDocumentStore = defineStore('document', () => {
 
   /**
    * The continuous view reports the page the reader scrolled to: no history,
-   * no scroll request. Ignored while a drawing tool is in use, so drawings
-   * and their saves stay on the page they were started on.
+   * no scroll request. Drawing does not depend on it (every page has its own
+   * ink layer), so it is reported with a tool in hand too.
    */
   const setActiveFromScroll = (page: number) => {
-    if (editTool.value !== EDIT_TOOL.MOUSE) return;
     const target = clampPage(page);
     if (target === activePage.value) return;
     pendingCause = arrivedBy = 'scroll';
@@ -234,7 +220,6 @@ export const useDocumentStore = defineStore('document', () => {
   const openAtPage = (page: number) => {
     clearHistory();
     pendingCause = arrivedBy = 'initial';
-    pageLayerSvgs.value = new Map();
     activePage.value = clampPage(page);
     requestScroll(activePage.value);
   };
@@ -363,13 +348,6 @@ export const useDocumentStore = defineStore('document', () => {
     events().emit('stream-error', { status });
   };
 
-  const undo = () => {
-    if (canUndo.value) undoFn.value?.();
-  };
-  const redo = () => {
-    if (canRedo.value) redoFn.value?.();
-  };
-
   return {
     // state
     pdf,
@@ -385,13 +363,8 @@ export const useDocumentStore = defineStore('document', () => {
     modalContent,
     isSuggestionsPopupOpen,
     editTool,
-    toolColor,
-    toolSize,
     toc,
     isMobile,
-    layerState,
-    layer,
-    groupId,
     edit,
     drawMode,
     fitWidthScale,
@@ -400,10 +373,6 @@ export const useDocumentStore = defineStore('document', () => {
     fitWidth,
     actionPopover,
     toggleAction,
-    canUndo,
-    canRedo,
-    undoFn,
-    redoFn,
     bookmarks,
     bookmarkPending,
     loadInfo,
@@ -413,10 +382,8 @@ export const useDocumentStore = defineStore('document', () => {
     backStack,
     forwardStack,
     pageLabels,
-    pageLayerSvgs,
     scrollRequest,
     // actions
-    setPageLayerSvg,
     setActiveFromScroll,
     setDrawMode,
     goTo,
@@ -442,7 +409,5 @@ export const useDocumentStore = defineStore('document', () => {
     startDocumentOpen,
     reportFirstPaint,
     reportDocumentError,
-    undo,
-    redo,
   };
 });

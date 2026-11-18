@@ -3,13 +3,6 @@ export enum RENDER_STATE {
   RENDERING,
 }
 
-export enum LAYER_STATE {
-  NOT_READY = 'not-ready',
-  LOADING = 'load',
-  READY = 'ready',
-  SAVING = 'save',
-}
-
 export enum SIDEBAR_STATE {
   SEARCH = 'search',
   SHARE = 'share',
@@ -53,12 +46,16 @@ export enum CITATION_FORMAT {
   TXT = 'bibliography',
 }
 
+/**
+ * The tool in hand. MOUSE is reading (text selection, links); every other
+ * tool belongs to draw mode and turns the page's ink layer interactive.
+ */
 export enum EDIT_TOOL {
   MOUSE,
+  SELECT,
   PEN,
   HIGHLIGHTER,
+  SHAPE,
+  NOTE,
   ERASER,
-  CIRCLE,
-  RECT,
-  LINE,
 }

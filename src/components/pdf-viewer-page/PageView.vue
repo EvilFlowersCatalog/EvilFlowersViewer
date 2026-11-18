@@ -1,23 +1,23 @@
 <script setup lang="ts">
 // One page of the continuous view: its bitmap, text layer, links and every
-// per-page layer (search hits, highlights, regions, focus, selection). Mounted
-// only while the page is in the stream's window around the view; leaving it
-// releases the bitmap. The drawing canvas is not here: it is one instance,
-// teleported into the active page's `edit slot`.
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue';
-import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
+// per-page layer (drawings, search hits, highlights, regions, focus,
+// selection). Mounted only while the page is in the stream's window around
+// the view; leaving it releases the bitmap.
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue';
+import { useAssistantStore, useDocumentStore, useInkStore, useViewerStore } from '@/stores';
 import { TextLayer } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type { PageViewport } from 'pdfjs-dist/types/src/display/page_viewport';
 import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist/types/src/display/api';
-import DOMPurify from 'dompurify';
 import { EDIT_TOOL, RENDER_STATE } from '@/assets/utils/enums';
+// Drawings load after the page paints: the layer, its input and perfect-freehand are one lazy chunk.
+const InkLayer = defineAsyncComponent(() => import('./pdf-ink/InkLayer.vue'));
 import { BookmarkIcon } from '../pdf-aids';
 import { SelectionLayer } from './pdf-selection';
 import RegionLayer from './pdf-regions/RegionLayer.vue';
 import AgentHighlightLayer from './pdf-agent/AgentHighlightLayer.vue';
 import FocusLayer from './pdf-agent/FocusLayer.vue';
 import SearchHighlightLayer from './pdf-search/SearchHighlightLayer.vue';
-import { boxStyle, boxToViewport } from './usePageHover';
+import { boxStyle } from './usePageHover';
 import { providePageContext } from './usePageContext';
 import type { IPageBox, ISelectionInfo } from '@/assets/utils/interfaces';
 import { useTextSelection } from '@/composables/useTextSelection';
@@ -25,19 +25,18 @@ import { isPageFetchFailure } from '@/core/document/loadErrors';
 
 const props = defineProps<{
   page: number;
-  /** Id of this page's slot for the drawing canvas (it teleports to the active page's). */
-  editSlotId: string;
 }>();
 const emit = defineEmits<{
   /** Page size at scale 1, once known (the stream lays pages out with it). */
   measured: [page: number, width: number, height: number];
-  /** Selection highlight to paint on the drawing canvas (no host persistence). */
-  highlight: [page: number, rects: DOMRect[]];
 }>();
 
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
 const assistantStore = useAssistantStore();
+const inkStore = useInkStore();
+/** The page at scale 1, in PDF points (the drawing layer's space). */
+const baseSize = ref<{ w: number; h: number } | null>(null);
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const textLayerRef = ref<HTMLDivElement | null>(null);
@@ -251,6 +250,7 @@ const render = async () => {
     if (disposed) return;
     const base = page.getViewport({ scale: 1 });
     emit('measured', props.page, base.width, base.height);
+    baseSize.value = { w: base.width, h: base.height };
     const viewport = page.getViewport({ scale: docStore.scale });
     viewportSize.value = { width: viewport.width, height: viewport.height };
     if (isActive.value) {
@@ -329,43 +329,23 @@ onBeforeUnmount(() => {
   }
 });
 
-// ---- bookmark, drawings, selection ----------------------------------------
+// ---- bookmark, selection ----------------------------------------------------
 const isBookmarked = computed(() => docStore.isBookmarked(props.page));
 const toggleBookmark = () => docStore.toggleBookmark(props.page);
 
-// This page's drawing when the drawing canvas is elsewhere: read-only SVG.
-const staticLayer = computed(() => {
-  if (isActive.value && docStore.edit) return null;
-  const svg = docStore.pageLayerSvgs.get(props.page);
-  if (!svg) return null;
-  const clean = DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true, svgFilters: true } });
-  const parsed = new DOMParser().parseFromString(clean, 'image/svg+xml').documentElement;
-  if (!parsed || parsed.nodeName !== 'svg') return null;
-  const width = Number(parsed.getAttribute('width')) || 0;
-  const height = Number(parsed.getAttribute('height')) || 0;
-  if (width && height && !parsed.getAttribute('viewBox'))
-    parsed.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  parsed.setAttribute('preserveAspectRatio', 'none');
-  parsed.removeAttribute('width');
-  parsed.removeAttribute('height');
-  parsed.setAttribute('class', 'absolute inset-0 w-full h-full pointer-events-none');
-  return parsed.outerHTML;
-});
-
 // "Highlight" on a selection: the host stores it (one highlight per page the
-// selection covers), or it is painted on the drawing canvas.
+// selection covers), or it becomes marks on the drawing layer of each page.
 const handleHighlight = (selection: ISelectionInfo) => {
   if (viewerStore.readerHighlightPackage) {
     for (const segment of selection.segments)
       assistantStore.addReaderHighlight({ page: segment.page, text: selection.text, quads: segment.boxes });
     return;
   }
-  const own = selection.segments.find((s) => s.page === props.page)?.boxes ?? [];
-  const rects = own
-    .map((box) => boxToViewport(pageBodyRef.value, box))
-    .filter((r): r is NonNullable<typeof r> => !!r)
-    .map((r) => new DOMRect(r.left, r.top, r.right - r.left, r.bottom - r.top));
-  emit('highlight', props.page, rects);
+  // Pages of a uniform book share this page's size; a page drawn on
+  // before keeps its own layer space.
+  const space = baseSize.value ?? { w: 612, h: 792 };
+  for (const segment of selection.segments)
+    inkStore.addMarks(segment.page, segment.boxes, space, selection.text);
 };
 
 // The passage the open Explain card is about, on this page.
@@ -392,11 +372,8 @@ const pointerTool = computed(() => docStore.editTool === EDIT_TOOL.MOUSE);
       aria-hidden="true"
     />
 
-    <!-- This page's drawing while the drawing canvas is on another page -->
-    <div v-if="staticLayer" class="absolute inset-0 pointer-events-none" v-html="staticLayer" />
-
-    <!-- The drawing canvas teleports in here when this is the active page -->
-    <div :id="editSlotId" class="contents" />
+    <!-- The reader's drawings: objects, pen and touch input -->
+    <InkLayer v-if="docStore.edit && baseSize" :page="page" :page-size="baseSize" :page-body-ref="pageBodyRef" />
 
     <div
       ref="textLayerRef"

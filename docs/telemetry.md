@@ -58,7 +58,8 @@ first.
 | `navigation` | | `cause` (see `NAVIGATION_CAUSE`), `page`, `totalPages`, `distance` |
 | `zoom` | | `scale`, `fitToWidth` |
 | `panel.open` | | `panel` |
-| `action` | | `action` (`cite` · `share` · `print` · `download` · `info` · `recommendations` · `chat` · `draw` · selection actions) |
+| `action` | | `action` (`cite` · `share` · `print` · `download` · `info` · `recommendations` · `chat` · `draw` · `copy-link` · selection actions) |
+| `annotation` | | `action` (`add` · `change` · `remove` · `undo` · `redo`), `kind` (or `mixed`), `input` (`pen` · `mouse` · `touch` · `keyboard`), `count` |
 | `search` | query → results | `source` (`text` · `semantic` · `host`), `total`, `pages`, `truncated`, `queryLength` |
 | `search.select` | | `source`, `index`, `page` |
 | `selection` | | `length`, `page`, `pages` |

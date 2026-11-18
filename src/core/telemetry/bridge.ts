@@ -65,6 +65,9 @@ export const bridgeTelemetry = (bus: EventBus<IViewerEventMap>, telemetry: Telem
       if (panel) telemetry.record('panel.open', { panel });
     }),
     bus.on('action', ({ action }) => telemetry.record('action', { action })),
+    bus.on('annotation-change', ({ action, kinds, input, count }) =>
+      telemetry.record('annotation', { action, kind: kinds.length === 1 ? kinds[0] : 'mixed', input: input ?? null, count })
+    ),
     // `search` / `search.select` are recorded by the search store (with timing).
     bus.on('selection-change', (selection) => {
       if (selection)

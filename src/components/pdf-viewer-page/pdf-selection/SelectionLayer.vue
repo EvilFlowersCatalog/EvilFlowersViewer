@@ -13,6 +13,7 @@ import { useEscapeLayer } from '@/components/pdf-aids/useEscapeLayer';
 import { useTextSelection } from '@/composables/useTextSelection';
 import { useAnnouncer } from '@/composables/useAnnouncer';
 import { usePageContext } from '../usePageContext';
+import { copyText } from '@/core/clipboard';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{ pageBodyRef: HTMLDivElement | null }>();
@@ -34,13 +35,15 @@ const selection = computed<ISelectionInfo | null>(() => {
 });
 const boxes = computed(() => selection.value?.segments.find((s) => s.page === page.value)?.boxes ?? []);
 const similarFor = ref<ISelectionInfo | null>(null);
-const copied = ref(false);
+/** Brief feedback on a copy action: done, or (for a link) failed. */
+const feedback = ref<{ action: 'copy' | 'link'; ok: boolean } | null>(null);
 
 const actions = computed<SelectionMenuAction[]>(() => {
   const list: SelectionMenuAction[] = [];
   if (viewerStore.explainFunction) list.push('explain');
   if (docStore.edit || viewerStore.readerHighlightPackage) list.push('highlight');
   list.push('copy');
+  if (viewerStore.linkFunction) list.push('link');
   if (viewerStore.chatPackage) list.push('ask');
   // Short phrases only: "find every occurrence" of a paragraph means nothing.
   if ((selection.value?.text.length ?? 0) <= 80) list.push('search');
@@ -57,24 +60,34 @@ const report = (action: VIEWER_ACTION) => {
   viewerStore.telemetry.record('selection.action', { action, length: selection.value?.text.length ?? 0 });
 };
 
+const flash = (action: 'copy' | 'link', ok: boolean) => {
+  feedback.value = { action, ok };
+  announce(t(ok ? (action === 'link' ? 'link-copied' : 'copied') : action === 'link' ? 'link-failed-short' : 'copy-failed'), 0);
+  setTimeout(() => {
+    feedback.value = null;
+    if (ok) done();
+  }, ok ? 700 : 1600);
+};
+
 const run = async (action: SelectionMenuAction) => {
   const current = selection.value;
   if (!current) return;
-  report(action === 'search' ? 'search-selection' : action);
+  report(action === 'search' ? 'search-selection' : action === 'link' ? 'copy-link' : action);
   switch (action) {
     case 'copy':
-      try {
-        await navigator.clipboard.writeText(current.text);
-      } catch {
-        document.execCommand('copy');
-      }
-      copied.value = true;
-      announce(t('copied'), 0);
-      setTimeout(() => {
-        copied.value = false;
-        done();
-      }, 700);
+      flash('copy', await copyText(current.text));
       return;
+    case 'link': {
+      // The host makes the link (#155); the viewer only passes where.
+      let url: string | null = null;
+      try {
+        url = (await viewerStore.linkFunction?.({ page: current.page, selection: current })) || null;
+      } catch {
+        url = null;
+      }
+      flash('link', !!url && (await copyText(url)));
+      return;
+    }
     case 'highlight':
       emit('highlight', current);
       break;
@@ -102,7 +115,7 @@ const run = async (action: SelectionMenuAction) => {
 </script>
 
 <template>
-  <SelectionMenu v-if="selection && boxes.length" :boxes="boxes" :actions="actions" :copied="copied" @action="run" />
+  <SelectionMenu v-if="selection && boxes.length" :boxes="boxes" :actions="actions" :feedback="feedback" @action="run" />
   <SimilarBooksPopup
     v-if="similarFor"
     :page-body-ref="pageBodyRef"

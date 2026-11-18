@@ -1,18 +1,46 @@
 <script setup lang="ts">
-// Share: what (the whole document, this page, or pages), for how long, with
-// or without your annotations; then the link, ready to copy, as a QR code,
-// or to the system share sheet. Everything happens here, nothing opens
-// elsewhere. The link comes from the host (`options.shareFunction`).
+// Share, two different things side by side (#155):
+//  · a link to this page (`options.linkFunction`), for people who can already
+//    read the publication: it grants nothing;
+//  · sharing access (`options.shareFunction`): what (the whole document, this
+//    page, or pages), for how long, with or without your annotations; then the
+//    link, ready to copy, as a QR code, or to the system share sheet.
+// Everything happens here, nothing opens elsewhere.
 import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { DAY, ERROR_LINK } from '@/assets/utils/constans';
 import { useDocumentStore, useViewerStore } from '@/stores';
 import { isPageRange, pagesForScope, type PageScope } from '@/core/document/pageRange';
+import { copyText } from '@/core/clipboard';
+import { useAnnouncer } from '@/composables/useAnnouncer';
+import { useI18n } from 'vue-i18n';
 
 // The QR encoder is fetched only once a link exists to encode.
 const QrcodeVue = defineAsyncComponent(() => import('qrcode.vue'));
 
 const viewerStore = useViewerStore();
 const docStore = useDocumentStore();
+const { announce } = useAnnouncer();
+const { t } = useI18n();
+
+const canShareAccess = computed(() => !!(viewerStore.shareFunction && viewerStore.config.share));
+
+// ---- link to this page (no access granted) ----------------------------------
+const pageLink = ref<'idle' | 'working' | 'copied' | 'error'>('idle');
+const copyPageLink = async () => {
+  if (!viewerStore.linkFunction || pageLink.value === 'working') return;
+  pageLink.value = 'working';
+  viewerStore.events.emit('action', { action: 'copy-link' });
+  let url: string | null = null;
+  try {
+    url = (await viewerStore.linkFunction({ page: docStore.activePage })) || null;
+  } catch {
+    url = null;
+  }
+  const ok = !!url && (await copyText(url));
+  pageLink.value = ok ? 'copied' : 'error';
+  announce(t(ok ? 'link-copied' : 'link-failed-short'), 0);
+  setTimeout(() => (pageLink.value = 'idle'), ok ? 1600 : 2400);
+};
 
 const scope = ref<PageScope>('document');
 const customPages = ref('');
@@ -71,6 +99,28 @@ const nativeShare = () =>
 
 <template>
   <div class="flex flex-col gap-3.5">
+    <!-- A plain link: grants nothing -->
+    <section v-if="viewerStore.linkFunction" class="flex flex-col gap-1.5">
+      <h3 class="efv-label">{{ $t('link-section') }}</h3>
+      <button
+        type="button"
+        class="h-9 px-3 flex items-center justify-between gap-2 rounded-[9px] text-[13px] font-medium bg-black/[0.05] dark:bg-white/[0.07] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] transition-colors disabled:opacity-60"
+        :disabled="pageLink === 'working'"
+        @click="copyPageLink"
+      >
+        <span>{{ $t('link-to-page', { page: docStore.pageLabel(docStore.activePage) ?? docStore.activePage }) }}</span>
+        <span
+          class="text-[12px]"
+          :class="pageLink === 'error' ? 'text-[#ff3b30]' : pageLink === 'copied' ? 'text-[#34c759]' : 'text-[#0077cc]'"
+          aria-live="polite"
+        >
+          {{ pageLink === 'copied' ? $t('link-copied') : pageLink === 'error' ? $t('link-failed-short') : $t('copy') }}
+        </span>
+      </button>
+    </section>
+
+    <template v-if="canShareAccess">
+    <h3 v-if="viewerStore.linkFunction" class="efv-label -mb-2">{{ $t('share-access-section') }}</h3>
     <!-- What -->
     <fieldset class="flex flex-col gap-1.5">
       <legend class="efv-label">{{ $t('share-what') }}</legend>
@@ -163,6 +213,7 @@ const nativeShare = () =>
     >
       {{ status === 'working' ? $t('share-creating') : $t('share-create') }}
     </button>
+    </template>
   </div>
 </template>
 

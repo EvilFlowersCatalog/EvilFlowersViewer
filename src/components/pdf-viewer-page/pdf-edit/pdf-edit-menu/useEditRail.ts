@@ -1,8 +1,8 @@
 import { computed } from 'vue';
 import { useDocumentStore, useViewerStore } from '@/stores';
 
-/** Width of the docked drawing rail (PDFEditMenu, `w-10`). */
-export const EDIT_RAIL_WIDTH = 40;
+/** Width of the docked drawing rail (PDFEditMenu, `w-11`). */
+export const EDIT_RAIL_WIDTH = 44;
 
 // Whether the drawing rail is docked right of the page. Things floating at the
 // right edge of the content column (the recommendations chip and popup) shift

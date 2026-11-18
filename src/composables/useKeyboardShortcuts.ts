@@ -8,12 +8,12 @@
 // into any text field, the host's included, never triggers anything but Esc.
 import { onBeforeUnmount, onMounted, type Ref } from 'vue';
 
-export type ShortcutAction = () => unknown;
+export type ShortcutAction = (event: KeyboardEvent) => unknown;
 
 export interface ShortcutMap {
   /** Single keys, lower-case (`f`, `arrowleft`, `+`). */
   keys: Record<string, ShortcutAction>;
-  /** With Ctrl or Cmd held. */
+  /** With Ctrl or Cmd held; `shift+z` entries need Shift too and win over `z`. */
   mod: Record<string, ShortcutAction>;
   /** With Alt held. */
   alt: Record<string, ShortcutAction>;
@@ -52,7 +52,7 @@ export const useKeyboardShortcuts = (
     const key = event.key.toLowerCase();
     const shortcuts = map();
     if (key === 'escape') {
-      if (inScope(event)) shortcuts.escape();
+      if (inScope(event)) shortcuts.escape(event);
       return;
     }
     if (isTypingTarget(event.target) || !inScope(event)) return;
@@ -64,7 +64,7 @@ export const useKeyboardShortcuts = (
       return;
     }
     const action = mod
-      ? shortcuts.mod[key]
+      ? (event.shiftKey ? shortcuts.mod[`shift+${key}`] : undefined) ?? shortcuts.mod[key]
       : event.altKey
         ? shortcuts.alt[key]
         : mode() === 'off'
@@ -72,7 +72,7 @@ export const useKeyboardShortcuts = (
           : shortcuts.keys[key];
     if (!action) return;
     event.preventDefault();
-    action();
+    action(event);
   };
 
   onMounted(() => {

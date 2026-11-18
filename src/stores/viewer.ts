@@ -6,6 +6,7 @@ import type {
   IEditPackage,
   IExplainContext,
   IExplainResult,
+  ILinkTarget,
   IRegionPackage,
   IPageBookmarkPackage,
   ISemanticSearchResult,
@@ -54,6 +55,7 @@ export const useViewerStore = defineStore('viewer', () => {
   const closeFunction = ref<(() => void) | null>(null);
   const shareFunction = ref<((pages: string | null, expaireDate: string) => Promise<string>) | null>(null);
   const printFunction = ref<((pages: string | null) => Promise<string>) | null>(null);
+  const linkFunction = ref<((target: ILinkTarget) => Promise<string>) | null>(null);
   const semanticSearchFunction = ref<
     ((query: string, context?: { page: number }) => Promise<ISemanticSearchResult[]>) | null
   >(null);
@@ -83,6 +85,7 @@ export const useViewerStore = defineStore('viewer', () => {
     closeFunction,
     shareFunction,
     printFunction,
+    linkFunction,
     semanticSearchFunction,
     editPackage,
     pageBookmarkPackage,
@@ -157,6 +160,7 @@ export const useViewerStore = defineStore('viewer', () => {
     closeFunction,
     shareFunction,
     printFunction,
+    linkFunction,
     semanticSearchFunction,
     editPackage,
     pageBookmarkPackage,
