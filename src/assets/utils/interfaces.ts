@@ -1,5 +1,6 @@
 import type { TypedArray } from 'pdfjs-dist/types/src/display/api';
 import type { SUGGESTION_KIND } from './enums';
+import type { ITelemetrySink } from '@/core/telemetry/types';
 
 /** A single semantic/AI search hit returned by the host-provided function. */
 export interface ISemanticSearchResult {
@@ -83,16 +84,45 @@ export interface ISuggestedEntry {
   shelf_record_id?: string | null;
 }
 
-/** Result of the host-provided `explainFunction`. */
+/**
+ * Result of the host-provided `explainFunction`. Only `simple` is required;
+ * every other part adds a section to the Explain card when present.
+ */
 export interface IExplainResult {
+  /** A plain-language explanation (markdown). */
   simple: string;
-  examples: { label: string; description: string }[];
+  examples?: { label: string; description: string }[];
+  /** A longer, more technical explanation (markdown): the card's "In depth". */
+  detailed?: string | null;
+  /** Key terms of the passage with one-line definitions. */
+  terms?: { term: string; definition: string }[];
+  /**
+   * Where else this publication covers it. Without it the viewer asks
+   * `semanticSearchFunction` (when the host has one) for related passages.
+   */
+  related?: ISemanticSearchResult[];
+  /** Questions the reader may want to ask next; each opens the chat with it. */
+  followUps?: string[];
 }
 
 /** What `explainFunction` gets besides the text. `regionId` is set when a figure/table/equation is explained. */
 export interface IExplainContext {
   page?: number;
   regionId?: string;
+  /** Aborted when the reader closes the card or explains something else: stop the request. */
+  signal?: AbortSignal;
+  /**
+   * Stream the result: call it with what has arrived so far (e.g. `simple`
+   * growing), as often as you like; the card updates in place. The returned
+   * promise still resolves with the final result.
+   */
+  onPartial?: (partial: Partial<IExplainResult>) => void;
+  /**
+   * The explanation the reader was reading when they selected this text in
+   * the Explain card itself ("explain the explanation"); absent for text from
+   * the page.
+   */
+  parent?: { text: string; explanation: string } | null;
 }
 
 /**
@@ -547,6 +577,35 @@ export interface IViewerOptions {
    * back to main-thread drawing where OffscreenCanvas is unavailable.
    */
   workerRendering?: boolean;
+  /**
+   * URL of `pdfjs-dist/legacy/build/pdf.worker.min.mjs` (same version as the
+   * viewer's) served by the host, e.g. next to `pdfAssetsUrl`. Without it the
+   * viewer loads its bundled copy (a ~1.7 MB chunk with a `data:` worker);
+   * with it that chunk is never downloaded and the browser can cache the file.
+   */
+  pdfWorkerUrl?: string | null;
+  /**
+   * Where telemetry goes (see `ITelemetrySink`). Batched; never carries
+   * document content. Without it the viewer records nothing.
+   */
+  telemetry?: ITelemetrySink | null;
+  /**
+   * Single-key shortcuts (F, T, C, …). `auto` (default): active while focus
+   * is in this viewer, or on the page body when this was the last viewer used
+   * (several viewers on one page don't all react). `off`: none, for hosts with
+   * their own shortcuts (WCAG 2.1.4). Ctrl/Cmd shortcuts and Escape stay.
+   */
+  keyboardShortcuts?: 'auto' | 'off';
+  /**
+   * Describe the open publication to reference managers (Zotero Connector,
+   * Mendeley importer), from `citationBib`: Highwire `citation_*` <meta> tags in
+   * the document head (removed on unmount, skipped when the page already has
+   * them) and a COinS span in the viewer. Default true; false for hosts that
+   * publish their own metadata.
+   */
+  citationMetadata?: boolean;
+  /** The reader's text selection changed (null: cleared). For AI features of the host. */
+  onSelectionChange?: ((selection: ISelectionInfo | null) => void) | null;
 }
 
 /** How the open document reached the viewer. */
@@ -801,7 +860,84 @@ export interface IViewerController {
     results: IHostSearchResult[],
     options?: { label?: string; select?: number | null; openPanel?: boolean }
   ) => Promise<ISearchSummary>;
+  /**
+   * The current state. Immutable and cached: the same object is returned
+   * until something in it changes, so it can be used as a snapshot
+   * (`useSyncExternalStore(viewer.subscribe, viewer.getState)` in React).
+   */
   getState: () => IViewerState;
+  /** Called after every state change (coalesced per tick). Returns the unsubscribe function. */
+  subscribe: (listener: () => void) => () => void;
+  /** Listen to one viewer event (see `IViewerEventMap`). Returns the unsubscribe function. */
+  on: <K extends keyof IViewerEventMap>(event: K, listener: (payload: IViewerEventMap[K]) => void) => () => void;
+  /**
+   * Replace some options without remounting: services (`explainFunction`,
+   * packages…), callbacks, `telemetry`, `title`, `lang`, `citationBib`,
+   * `keyboardShortcuts`. Keys left out stay; a key set to null removes it.
+   */
+  setOptions: (options: Partial<IViewerOptions>) => void;
+  /** The reader's current text selection, or null. */
+  getSelection: () => ISelectionInfo | null;
+  clearSelection: () => void;
+  /**
+   * The text of one page (1-based), in reading order with line breaks, for
+   * grounding AI features in what the reader sees. Cached per document.
+   */
+  getPageText: (page: number) => Promise<string>;
+}
+
+/**
+ * Text the reader selected. `segments` lists the boxes per page (a selection
+ * may run onto the next page); boxes are page fractions, top-left origin,
+ * one per text line.
+ */
+export interface ISelectionInfo {
+  text: string;
+  /** Page the selection starts on. */
+  page: number;
+  segments: { page: number; boxes: IPageBox[] }[];
+}
+
+/** A top-bar or selection action the reader ran. */
+export type VIEWER_ACTION =
+  | 'cite'
+  | 'share'
+  | 'print'
+  | 'download'
+  | 'info'
+  | 'fullscreen'
+  | 'theme'
+  | 'recommendations'
+  | 'chat'
+  | 'draw'
+  | 'copy'
+  | 'highlight'
+  | 'explain'
+  | 'ask'
+  | 'similar'
+  | 'search-selection';
+
+/**
+ * Events of a mounted viewer, `app.viewer.on(name, listener)`. The same
+ * payloads go to the matching `options.on*` callbacks. None of them carries
+ * document content except `selection-change` (the reader's own selection,
+ * for AI features of the host); telemetry never receives that text.
+ */
+export interface IViewerEventMap {
+  'document-open': { source: DOCUMENT_SOURCE_KIND; streaming: boolean };
+  'document-loaded': IDocumentLoadedInfo;
+  'first-page-rendered': IFirstPageRenderedInfo;
+  'document-error': IDocumentErrorInfo;
+  'load-progress': ILoadProgressInfo;
+  'stream-error': IStreamErrorInfo;
+  'page-change': IPageChangeInfo;
+  'scale-change': { scale: number; fitToWidth: boolean };
+  'theme-change': { theme: 'dark' | 'light' };
+  'panel-change': { panel: VIEWER_PANEL | 'cite' | null };
+  search: ISearchSummary;
+  'search-select': ISearchSelectInfo;
+  'selection-change': ISelectionInfo | null;
+  action: { action: VIEWER_ACTION };
 }
 
 export interface IViewerConfig {
@@ -812,7 +948,8 @@ export interface IViewerConfig {
 }
 
 export interface IRenderViewerProps extends IDocumentSource {
-  rootId: string;
+  /** Where to mount: a CSS selector (e.g. `#viewer`) or the element itself. */
+  rootId: string | Element;
   options?: IViewerOptions | null;
   config?: IViewerConfig | null;
 }

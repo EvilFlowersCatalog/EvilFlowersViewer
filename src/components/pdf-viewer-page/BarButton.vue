@@ -67,6 +67,11 @@ const emit = defineEmits<{ click: [event: MouseEvent] }>();
   transform: translate(-50%, 0);
   transition-delay: 350ms;
 }
+/* Keyboard users see the name and shortcut too (WCAG 1.4.13). */
+.efv-bar-btn:has(button:focus-visible) .efv-tip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
 /* A popover open under the button hides its tooltip. */
 .efv-bar-btn:has(button[aria-expanded='true']) .efv-tip {
   display: none;

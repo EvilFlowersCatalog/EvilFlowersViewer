@@ -2,20 +2,19 @@ import { createI18n } from 'vue-i18n';
 import en from './en.json';
 import sk from './sk.json';
 
-const messages = {
-  en,
-  sk,
-};
+export const SUPPORTED_LANGS = ['en', 'sk'] as const;
+export type ViewerLang = (typeof SUPPORTED_LANGS)[number];
 
-// Composition API mode (legacy was deprecated in vue-i18n v11).
-// `globalInjection` keeps `$t` available in templates; `i18n.global.locale`
-// is a writable ref, so assign via `i18n.global.locale.value = ...`.
-const i18n = createI18n({
-  legacy: false,
-  globalInjection: true,
-  locale: 'en',
-  fallbackLocale: 'en',
-  messages,
-});
-
-export default i18n;
+/**
+ * One i18n instance per mounted viewer, so two viewers on a page can speak
+ * different languages and `setLang` on one never switches the other.
+ * Composition mode; `$t` stays available in templates (`globalInjection`).
+ */
+export const createViewerI18n = (locale: string = 'en') =>
+  createI18n({
+    legacy: false,
+    globalInjection: true,
+    locale,
+    fallbackLocale: 'en',
+    messages: { en, sk },
+  });

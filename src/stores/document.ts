@@ -312,19 +312,11 @@ export const useDocumentStore = defineStore('document', () => {
     }
   };
 
-  // Host timing of one document open: started by the load, ended by the first
+  // Timing of one document open: started by the load, ended by the first
   // painted page or the first failure, whichever comes first. Each is reported
   // once; later page renders and errors are not.
   let openStartedAt: number | null = null;
-
-  // Host callbacks are fire-and-forget: a throwing host never breaks the viewer.
-  const callHost = (fn: () => void) => {
-    try {
-      fn();
-    } catch (error) {
-      console.error('Host viewer callback failed:\n', error);
-    }
-  };
+  const events = () => useViewerStore().events;
 
   const startDocumentOpen = (info: {
     source: DOCUMENT_SOURCE_KIND;
@@ -335,6 +327,7 @@ export const useDocumentStore = defineStore('document', () => {
     downloadProgress.value = null;
     streamError.value = null;
     openStatus.value = 'loading';
+    events().emit('document-open', { ...info });
   };
 
   const reportFirstPaint = (page: number) => {
@@ -342,18 +335,14 @@ export const useDocumentStore = defineStore('document', () => {
     const durationMs = Math.round(performance.now() - openStartedAt);
     openStartedAt = null;
     openStatus.value = 'ready';
-    const cb = useViewerStore().onFirstPageRendered;
     const progress = downloadProgress.value;
-    if (cb)
-      callHost(() =>
-        cb({
-          page,
-          durationMs,
-          ...loadInfo.value,
-          bytesLoaded: progress?.loaded ?? null,
-          totalBytes: progress?.total || null,
-        })
-      );
+    events().emit('first-page-rendered', {
+      page,
+      durationMs,
+      ...loadInfo.value,
+      bytesLoaded: progress?.loaded ?? null,
+      totalBytes: progress?.total || null,
+    });
   };
 
   const reportDocumentError = (
@@ -364,19 +353,14 @@ export const useDocumentStore = defineStore('document', () => {
     if (openStartedAt === null) return;
     openStartedAt = null;
     openStatus.value = 'failed';
-    const cb = useViewerStore().onDocumentError;
-    if (cb)
-      callHost(() =>
-        cb({ stage, reason, status, source: loadInfo.value.source })
-      );
+    events().emit('document-error', { stage, reason, status, source: loadInfo.value.source });
   };
 
   const reportStreamError = (status: number | null) => {
     // One notice per outage: further failing ranges join the first.
     if (streamError.value) return;
     streamError.value = { status };
-    const cb = useViewerStore().onStreamError;
-    if (cb) callHost(() => cb({ status }));
+    events().emit('stream-error', { status });
   };
 
   const undo = () => {
@@ -443,7 +427,6 @@ export const useDocumentStore = defineStore('document', () => {
     openAtPage,
     pageLabel,
     pageForLabel,
-    callHost,
     reportStreamError,
     isLoaded,
     setScale,

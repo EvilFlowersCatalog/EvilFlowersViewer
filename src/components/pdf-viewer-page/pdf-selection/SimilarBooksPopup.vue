@@ -14,7 +14,8 @@ import { boxToViewport, pageViewport } from '../usePageHover';
 const props = defineProps<{
   pageBodyRef: HTMLDivElement | null;
   selectedText: string;
-  anchorRect: DOMRect | null;
+  /** The selection's first line (page fractions): the card follows it on scroll and zoom. */
+  box: IPageBox | null;
 }>();
 
 const emit = defineEmits<{ close: [] }>();
@@ -23,20 +24,7 @@ const viewerStore = useViewerStore();
 const loading = ref(true);
 const entries = ref<ISuggestedEntry[]>([]);
 
-// The selection as page fractions, so the card follows it on scroll and zoom.
-const toPageBox = (): IPageBox | null => {
-  const body = props.pageBodyRef?.getBoundingClientRect();
-  const rect = props.anchorRect;
-  if (!body?.width || !body.height || !rect) return null;
-  return {
-    x0: (rect.left - body.left) / body.width,
-    y0: (rect.top - body.top) / body.height,
-    x1: (rect.right - body.left) / body.width,
-    y1: (rect.bottom - body.top) / body.height,
-  };
-};
-const selectionBox = toPageBox();
-const cardAnchor = () => (selectionBox ? boxToViewport(props.pageBodyRef, selectionBox) : null);
+const cardAnchor = () => (props.box ? boxToViewport(props.pageBodyRef, props.box) : null);
 const cardBounds = () => pageViewport(props.pageBodyRef);
 
 onMounted(async () => {

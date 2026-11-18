@@ -1,18 +1,31 @@
 import { onBeforeUnmount, ref, watch, type Ref } from 'vue';
 import type { IPageBox } from '@/assets/utils/interfaces';
+import { useTextSelection } from '@/composables/useTextSelection';
 
 /**
  * Pointer position over the page body as page fractions (top-left origin), or
  * null when the pointer is elsewhere. Layers hit-test against this instead of
  * catching pointer events themselves, so text selection keeps working under
- * figures and highlights.
+ * figures and highlights. While the reader selects text (or has a selection
+ * with its menu open) the pointer counts as absent: figure and highlight
+ * cards must not flicker under a drag.
  */
 export const usePagePointer = (pageBodyRef: Ref<HTMLElement | null>) => {
   const point = ref<{ x: number; y: number } | null>(null);
+  const selection = useTextSelection();
   let element: HTMLElement | null = null;
+
+  if (selection)
+    watch(
+      () => selection.state.value.kind,
+      (kind) => {
+        if (kind !== 'none') point.value = null;
+      }
+    );
 
   const onMove = (event: MouseEvent) => {
     if (!element) return;
+    if (selection && selection.state.value.kind !== 'none') return;
     const rect = element.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width;
     const y = (event.clientY - rect.top) / rect.height;

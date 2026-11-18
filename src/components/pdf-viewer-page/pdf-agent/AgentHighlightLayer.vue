@@ -105,6 +105,7 @@ const cardBounds = () => pageViewport(props.pageBodyRef);
       <div
         v-for="(quad, index) in item.highlight.quads"
         :key="index"
+        data-efv-mark
         class="absolute mix-blend-multiply dark:mix-blend-normal rounded-[2px] transition-opacity duration-150"
         :class="assistantStore.activeHighlightId === item.highlight.id ? 'efv-highlight-active' : ''"
         :style="{

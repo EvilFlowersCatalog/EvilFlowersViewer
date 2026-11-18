@@ -1,16 +1,16 @@
 @startuml component-reader-shell
 !include elvira.iuml
 ' What: the reader shell is reduced to a page stream with one top bar and one Navigator drawer; every page draws its own layers, while the drawing canvas stays a single instance on the active page.
-' Kind: UML component diagram. Scope: EvilFlowersViewer UI shell (redesign); host packages and stores unchanged.
+' Kind: UML component diagram. Scope: EvilFlowersViewer UI shell; the logic behind it is in component-viewer-architecture.puml.
 ' Source: src/components/PDFViewer.vue, src/components/pdf-viewer-page/*, src/stores/* (2026-11-18)
 
-title Document-centric reader shell (proposal, 2026-11-18)
+title Document-centric reader shell (implemented in #152)
 
 component "PDFViewer.vue\n(root, controller)" as root
-component "ReaderTopBar\n(title · page · search · ⋯)" as top <<proposed>>
-component "Navigator drawer\n(Contents · Pages · Search · Notes)" as nav <<proposed>>
-component "PageStream\n(continuous scroll, virtual window)" as stream <<proposed>> <<focus>>
-component "PageView ×N\n(canvas · text · links · highlight layers)" as page <<proposed>>
+component "ReaderTopBar\n(title · page · search · ⋯)" as top
+component "Navigator drawer\n(Contents · Pages · Search · Notes)" as nav
+component "PageStream\n(continuous scroll, virtual window,\nkeyed per document)" as stream <<focus>>
+component "PageView ×N\n(canvas · text · links · highlight layers\n· selection menu · explained passage)" as page
 component "EditCanvas\n(single instance, teleported to the active page)" as edit
 component "ChatPanel\n(right, host chat)" as chat
 database "document store\n(activePage, navigation, history)" as docstore

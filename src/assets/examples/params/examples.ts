@@ -192,13 +192,32 @@ export const exampleExplainFunction = async (
       ],
     };
   }
+  // Streams the plain explanation word by word through `onPartial`, as a real
+  // LLM-backed host would, then resolves with the full result.
+  const short = selectedText.length > 60 ? `${selectedText.slice(0, 60)}…` : selectedText;
+  const simple = context?.parent
+    ? `V kontexte predchádzajúceho vysvetlenia znamená **${short}** konkrétny pojem, ktorý autor ďalej rozvíja (mock dáta). Pozri aj [[page:16]].`
+    : `Jednoducho povedané: pasáž „${short}“ opisuje, ako sú údaje v databáze organizované a ako sa k nim pristupuje. **Kľúčová myšlienka** je oddeliť to, *čo* chceme, od toho, *ako* to systém nájde (mock dáta). Viac na [[page:16]].`;
+  let streamed = '';
+  for (const word of simple.split(' ')) {
+    if (context?.signal?.aborted) throw new DOMException('aborted', 'AbortError');
+    streamed = streamed ? `${streamed} ${word}` : word;
+    context?.onPartial?.({ simple: streamed });
+    await delay(25);
+  }
   return {
-    simple: `Jednoducho povedané: „${selectedText}“ je pasáž vysvetlená zrozumiteľným jazykom (mock dáta, backend zatiaľ neexistuje).`,
+    simple,
+    detailed:
+      'Relačný model ukladá údaje do tabuliek (relácií). Dotazovací jazyk SQL je **deklaratívny**: opisuje požadovaný výsledok, plán vykonania volí optimalizátor.\n\n- Tabuľka = množina n-tíc\n- Kľúč jednoznačne určuje riadok\n- Index urýchľuje vyhľadávanie',
     examples: [
-      { label: 'Strojový preklad', description: `Príklad pre „${selectedText}“ v kontexte prekladu.` },
-      { label: 'Generovanie textu', description: `Príklad pre „${selectedText}“ v kontexte generovania.` },
-      { label: 'Analýza časových radov', description: `Príklad pre „${selectedText}“ v kontexte analýzy.` },
+      { label: 'Knižnica', description: 'Tabuľka kníh a tabuľka výpožičiek spojená cez číslo čitateľa.' },
+      { label: 'E-shop', description: 'Objednávka odkazuje na zákazníka a položky na produkty.' },
     ],
+    terms: [
+      { term: 'relácia', definition: 'tabuľka s pomenovanými stĺpcami a bez duplicitných riadkov' },
+      { term: 'SQL', definition: 'štandardizovaný jazyk na prácu s relačnými databázami' },
+    ],
+    followUps: ['Aký je rozdiel medzi SQL a NoSQL?', 'Ukáž príklad dotazu SELECT'],
   };
 };
 

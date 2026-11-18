@@ -39,6 +39,7 @@ watch(
       <div
         v-for="(rect, index) in hit.rects"
         :key="index"
+        data-efv-mark
         class="absolute rounded-[2px] mix-blend-multiply"
         :class="
           hit.source !== 'text'

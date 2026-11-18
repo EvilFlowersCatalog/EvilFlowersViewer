@@ -1,149 +1,113 @@
 <script setup lang="ts">
-// Invisible: watches text selection over this page and drives the popups.
-import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { debounce } from '@/assets/utils/functions';
-import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
-import SelectionMenu from './SelectionMenu.vue';
+// The selection menu of one page, and what its actions do. The selection
+// itself is tracked once for the whole viewer (useTextSelection); this page
+// shows the menu when a finished selection starts on it. Explain also covers
+// "similar publications" (its card has an "Elsewhere" section), so the menu
+// only offers Similar to hosts without Explain.
+import { computed, ref } from 'vue';
+import { useAssistantStore, useDocumentStore, useSearchStore, useViewerStore } from '@/stores';
+import type { ISelectionInfo, VIEWER_ACTION } from '@/assets/utils/interfaces';
+import SelectionMenu, { type SelectionMenuAction } from './SelectionMenu.vue';
 import SimilarBooksPopup from './SimilarBooksPopup.vue';
 import { useEscapeLayer } from '@/components/pdf-aids/useEscapeLayer';
+import { useTextSelection } from '@/composables/useTextSelection';
+import { useAnnouncer } from '@/composables/useAnnouncer';
 import { usePageContext } from '../usePageContext';
+import { useI18n } from 'vue-i18n';
 
-const props = defineProps<{
-  textLayerRef: HTMLDivElement | null;
-  pageBodyRef: HTMLDivElement | null;
-}>();
-
-const emit = defineEmits<{ highlight: [rects: DOMRect[], text: string] }>();
+const props = defineProps<{ pageBodyRef: HTMLDivElement | null }>();
+const emit = defineEmits<{ highlight: [selection: ISelectionInfo] }>();
 
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
 const assistantStore = useAssistantStore();
-// The page this layer watches; a selection belongs to the page it starts on.
+const searchStore = useSearchStore();
+const textSelection = useTextSelection();
+const { announce } = useAnnouncer();
+const { t } = useI18n();
 const { page } = usePageContext();
 
-const selectionText = ref('');
-const selectionRects = ref<DOMRect[]>([]);
-const anchorRect = ref<DOMRect | null>(null);
-const activePopup = ref<'similar' | null>(null);
+// A selection belongs to the page it starts on.
+const selection = computed<ISelectionInfo | null>(() => {
+  const state = textSelection?.state.value;
+  return state?.kind === 'selected' && state.selection.page === page.value ? state.selection : null;
+});
+const boxes = computed(() => selection.value?.segments.find((s) => s.page === page.value)?.boxes ?? []);
+const similarFor = ref<ISelectionInfo | null>(null);
+const copied = ref(false);
 
-const getSelectionRects = (range: Range): DOMRect[] => {
-  const startContainer = range.commonAncestorContainer;
-  const root = startContainer.nodeType === Node.TEXT_NODE
-    ? startContainer.parentNode!
-    : startContainer;
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+const actions = computed<SelectionMenuAction[]>(() => {
+  const list: SelectionMenuAction[] = [];
+  if (viewerStore.explainFunction) list.push('explain');
+  if (docStore.edit || viewerStore.readerHighlightPackage) list.push('highlight');
+  list.push('copy');
+  if (viewerStore.chatPackage) list.push('ask');
+  // Short phrases only: "find every occurrence" of a paragraph means nothing.
+  if ((selection.value?.text.length ?? 0) <= 80) list.push('search');
+  if (!viewerStore.explainFunction && viewerStore.suggestionsFunction) list.push('similar');
+  return list;
+});
 
-  const rects: DOMRect[] = [];
-  let node = walker.nextNode();
-  while (node) {
-    if (range.intersectsNode(node)) {
-      const nodeRange = document.createRange();
-      nodeRange.selectNodeContents(node);
-      if (node === range.startContainer) nodeRange.setStart(node, range.startOffset);
-      if (node === range.endContainer) nodeRange.setEnd(node, range.endOffset);
-      for (const rect of nodeRange.getClientRects()) {
-        if (rect.width > 0 && rect.height > 0) rects.push(rect);
+const done = () => textSelection?.clear();
+
+useEscapeLayer(() => selection.value !== null, done);
+
+const report = (action: VIEWER_ACTION) => {
+  viewerStore.events.emit('action', { action });
+  viewerStore.telemetry.record('selection.action', { action, length: selection.value?.text.length ?? 0 });
+};
+
+const run = async (action: SelectionMenuAction) => {
+  const current = selection.value;
+  if (!current) return;
+  report(action === 'search' ? 'search-selection' : action);
+  switch (action) {
+    case 'copy':
+      try {
+        await navigator.clipboard.writeText(current.text);
+      } catch {
+        document.execCommand('copy');
       }
-    }
-    node = walker.nextNode();
+      copied.value = true;
+      announce(t('copied'), 0);
+      setTimeout(() => {
+        copied.value = false;
+        done();
+      }, 700);
+      return;
+    case 'highlight':
+      emit('highlight', current);
+      break;
+    case 'explain':
+      assistantStore.openExplain({
+        text: current.text,
+        page: current.page,
+        segments: current.segments,
+        anchor: props.pageBodyRef?.getBoundingClientRect() ?? null,
+      });
+      break;
+    case 'ask':
+      assistantStore.addContext({ kind: 'selection', text: current.text, page: current.page });
+      break;
+    case 'search':
+      // The find pill steps through the matches; the Navigator stays as it is.
+      void searchStore.run(current.text);
+      break;
+    case 'similar':
+      similarFor.value = current;
+      break;
   }
-  return rects;
-};
-
-const clearSelection = () => {
-  anchorRect.value = null;
-  selectionText.value = '';
-  selectionRects.value = [];
-  activePopup.value = null;
-};
-
-// Debounced: selectionchange fires continuously while dragging.
-const handleSelectionChange = debounce(() => {
-  const sel = window.getSelection();
-  const collapsed = !sel || sel.isCollapsed || sel.toString().trim() === '';
-
-  if (collapsed) {
-    // Clicking inside an open popup can collapse the selection — don't dismiss it.
-    if (activePopup.value === null) clearSelection();
-    return;
-  }
-
-  const anchorNode = sel!.anchorNode;
-  if (!props.textLayerRef || !anchorNode || !props.textLayerRef.contains(anchorNode)) {
-    return; // selection belongs to a different page's text layer
-  }
-
-  const range = sel!.getRangeAt(0);
-  selectionText.value = sel!.toString();
-  selectionRects.value = getSelectionRects(range);
-  anchorRect.value = range.getBoundingClientRect();
-  activePopup.value = null; // a fresh selection re-shows the menu, not a stale popup
-}, 150);
-
-// Escape dismisses the selection menu (the similar-books card closes itself).
-useEscapeLayer(
-  () => anchorRect.value !== null && activePopup.value === null,
-  () => {
-    window.getSelection()?.removeAllRanges();
-    clearSelection();
-  }
-);
-
-onMounted(() => document.addEventListener('selectionchange', handleSelectionChange));
-onBeforeUnmount(() =>
-  document.removeEventListener('selectionchange', handleSelectionChange)
-);
-
-const handleCopy = () => {
-  if (selectionText.value) navigator.clipboard.writeText(selectionText.value);
-};
-
-const handleHighlight = () => {
-  if (selectionRects.value.length) emit('highlight', selectionRects.value, selectionText.value);
-  window.getSelection()?.removeAllRanges();
-  clearSelection();
-};
-
-// The explain popup lives at the viewer root (draggable, survives the
-// selection), so the selection only hands it the text and goes away.
-const handleExplain = () => {
-  assistantStore.openExplain({
-    text: selectionText.value,
-    page: page.value,
-    anchor: props.pageBodyRef?.getBoundingClientRect() ?? null,
-  });
-  window.getSelection()?.removeAllRanges();
-  clearSelection();
-};
-
-const handleAsk = () => {
-  assistantStore.addContext({ kind: 'selection', text: selectionText.value.trim(), page: page.value });
-  window.getSelection()?.removeAllRanges();
-  clearSelection();
+  done();
 };
 </script>
 
 <template>
-  <template v-if="anchorRect">
-    <SelectionMenu
-      v-if="activePopup === null"
-      :anchor-rect="anchorRect"
-      :show-similar="!!viewerStore.suggestionsFunction"
-      :show-highlight="docStore.edit || !!viewerStore.readerHighlightPackage"
-      :show-explain="!!viewerStore.explainFunction"
-      :show-ask="!!viewerStore.chatPackage"
-      @copy="handleCopy"
-      @similar="activePopup = 'similar'"
-      @highlight="handleHighlight"
-      @explain="handleExplain"
-      @ask="handleAsk"
-    />
-    <SimilarBooksPopup
-      v-else-if="activePopup === 'similar'"
-      :page-body-ref="pageBodyRef"
-      :selected-text="selectionText"
-      :anchor-rect="anchorRect"
-      @close="clearSelection"
-    />
-  </template>
+  <SelectionMenu v-if="selection && boxes.length" :boxes="boxes" :actions="actions" :copied="copied" @action="run" />
+  <SimilarBooksPopup
+    v-if="similarFor"
+    :page-body-ref="pageBodyRef"
+    :selected-text="similarFor.text"
+    :box="similarFor.segments[0]?.boxes[0] ?? null"
+    @close="similarFor = null"
+  />
 </template>

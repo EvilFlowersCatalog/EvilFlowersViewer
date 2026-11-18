@@ -11,19 +11,33 @@
  * works offline).
  */
 
-/* Self-hosted Inter — only the `latin` + `latin-ext` subsets (latin-ext covers
-   Slovak diacritics: č š ž ď ť ň ĺ ľ ŕ ô ä). Loading just these two subsets
-   instead of every script keeps the bundled CSS small. @font-face is global by
-   nature but only makes the family available — it never forces itself onto the
-   host's elements. */
-@import '@fontsource/inter/latin-400.css';
-@import '@fontsource/inter/latin-500.css';
-@import '@fontsource/inter/latin-600.css';
-@import '@fontsource/inter/latin-700.css';
-@import '@fontsource/inter/latin-ext-400.css';
-@import '@fontsource/inter/latin-ext-500.css';
-@import '@fontsource/inter/latin-ext-600.css';
-@import '@fontsource/inter/latin-ext-700.css';
+@import './textLayer.css';
+
+/* Self-hosted Inter as ONE variable woff2 per subset (every weight 100–900 in
+   one file), only `latin` + `latin-ext` (latin-ext covers Slovak diacritics:
+   č š ž ď ť ň ĺ ľ ŕ ô ä). The browser downloads a subset only when the page
+   uses a glyph in its `unicode-range`. woff2 only: every browser the viewer
+   supports reads it, so no woff fallback is shipped. @font-face is global by
+   nature but only makes the family available, never forces it on the host. */
+@font-face {
+  font-family: 'EFV Inter';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+    U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'EFV Inter';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 /* corePlugins.preflight is off (tailwind.config.js), so this emits nothing
    except the `@layer base` block below — it exists only to give that block a
@@ -38,7 +52,7 @@
  * override any token from the host by setting it on `.efv-viewer`.
  * ------------------------------------------------------------------------- */
 .efv-viewer {
-  --efv-font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --efv-font: 'EFV Inter', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   /* Brand */
   --efv-primary: #0077cc;
@@ -228,33 +242,155 @@
   --user-unit: 1;
   --total-scale-factor: calc(var(--scale-factor) * var(--user-unit));
 }
-.efv-viewer .textLayer br {
-  user-select: none;
+
+/* Selection menu: a translucent pill over the text (SelectionMenu.vue). */
+.efv-viewer .efv-selection-menu {
+  background: rgba(255, 255, 255, 0.92);
+  color: #1d1d1f;
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.16);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  animation: efv-menu-in 0.14s ease-out;
 }
-.efv-viewer .textLayer span::selection {
-  background-color: rgba(0, 119, 204, 0.35);
+.efv-viewer.dark .efv-selection-menu {
+  background: rgba(44, 44, 46, 0.92);
+  color: #f5f5f7;
+  box-shadow:
+    0 0 0 0.5px rgba(255, 255, 255, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.efv-viewer .efv-selection-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  transition: background-color 0.12s;
+}
+.efv-viewer .efv-selection-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.efv-viewer.dark .efv-selection-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.efv-viewer .efv-selection-primary {
+  color: var(--efv-primary);
+  font-weight: 600;
+}
+.efv-viewer.dark .efv-selection-primary {
+  color: #64b5ff;
+}
+/* Phones: only the primary action keeps its label; the others are icons
+   whose names stay available to screen readers. */
+@media (max-width: 480px) {
+  .efv-viewer .efv-selection-btn:not(.efv-selection-primary) > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+  .efv-viewer .efv-selection-btn {
+    padding: 0 9px;
+  }
+}
+.efv-viewer .efv-selection-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  background: currentColor;
+  opacity: 0.15;
+}
+/* Opacity only: the menu's transform positions it. */
+@keyframes efv-menu-in {
+  from {
+    opacity: 0;
+  }
 }
 
-/* Tool size slider (vue-3-slider-component) */
-.efv-viewer .tool-size-slider {
-  height: 4px;
+/* Explain card sections */
+.efv-viewer .efv-explain-section {
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
-.efv-viewer .tool-size-slider .vue-slider-rail {
-  background-color: #e5e7eb;
-  border-radius: 40px;
-  height: 4px;
+.efv-viewer.dark .efv-explain-section {
+  border-top-color: rgba(255, 255, 255, 0.08);
 }
-.efv-viewer.dark .tool-size-slider .vue-slider-rail {
-  background-color: #3a3a3a;
+.efv-viewer .efv-explain-heading {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8e8e93;
 }
-.efv-viewer .tool-size-slider .vue-slider-process {
-  background-color: var(--efv-primary);
-  border-radius: 40px;
+.efv-viewer details.efv-explain-section > summary::-webkit-details-marker {
+  display: none;
 }
-.efv-viewer .tool-size-slider .vue-slider-dot-handle {
-  background-color: var(--efv-primary-strong);
-  box-shadow: none;
-  border: none;
+
+/* The passage an Explain card is about stays marked while the card is open. */
+.efv-viewer .efv-explain-source {
+  background: rgba(0, 119, 204, 0.14);
+  box-shadow: inset 0 -2px 0 rgba(0, 119, 204, 0.55);
+  border-radius: 2px;
+  transition: opacity 0.2s;
+}
+.efv-viewer.dark .efv-explain-source {
+  background: rgba(100, 181, 255, 0.16);
+}
+
+/* Native range input (drawing tool size): accent-colored, full width. */
+.efv-viewer .efv-range {
+  width: 100%;
+  height: 16px;
+  accent-color: var(--efv-primary);
+  cursor: pointer;
+}
+
+/* Windows High Contrast / forced colors: shadows and translucent fills
+   disappear there, so focus rings, highlights and selection get system
+   colors and real outlines instead. */
+@media (forced-colors: active) {
+  .efv-viewer button:focus-visible,
+  .efv-viewer input:focus-visible,
+  .efv-viewer textarea:focus-visible,
+  .efv-viewer select:focus-visible,
+  .efv-viewer a:focus-visible,
+  .efv-viewer [tabindex]:focus-visible {
+    outline: 2px solid Highlight;
+  }
+  .efv-viewer .efv-focus-box,
+  .efv-viewer .efv-region-flash,
+  .efv-viewer .efv-highlight-active {
+    outline: 2px solid Highlight;
+    forced-color-adjust: none;
+  }
+  .efv-viewer .efv-focus-quad,
+  .efv-viewer [data-efv-mark] {
+    forced-color-adjust: none;
+    background-color: Mark;
+    outline: 1px solid CanvasText;
+  }
+  .efv-viewer .textLayer span::selection {
+    background-color: Highlight;
+    color: HighlightText;
+  }
+  .efv-viewer .efv-selection-menu {
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+  .efv-viewer .efv-explain-source {
+    forced-color-adjust: none;
+    background: Mark;
+    outline: 1px solid CanvasText;
+  }
 }
 
 /* Assistant markdown (chat answers, region tables) */

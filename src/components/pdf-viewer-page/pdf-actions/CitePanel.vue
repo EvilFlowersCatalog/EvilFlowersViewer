@@ -2,10 +2,15 @@
 // Cite, the way publishers offer it: pick a style, see it, copy it or take
 // the file for a reference manager. "Cite page N" adds the page you are on.
 // The source is the host's BibTeX (`options.citationBib`).
-import { computed, ref, watch } from 'vue';
+import { computed, ref, shallowRef, watch } from 'vue';
 import { useDocumentStore, useViewerStore } from '@/stores';
-// @ts-ignore (no types)
-import Cite from 'citation-js';
+import type { CitationOutput, FormattedCitation } from '@/core/citation/formatter';
+import { readPreference, writePreference } from '@/core/storage/preferences';
+
+// The formatter (citation-js) is a separate chunk, fetched when the card first
+// opens; nothing citation-related is in the reader's first download.
+let formatterModule: Promise<typeof import('@/core/citation/formatter')> | null = null;
+const loadFormatter = () => (formatterModule ??= import('@/core/citation/formatter'));
 
 const viewerStore = useViewerStore();
 const docStore = useDocumentStore();
@@ -26,25 +31,14 @@ const STYLES: Style[] = [
   { id: 'bibtex', label: 'BibTeX', kind: 'export', value: 'bibtex', ext: 'bib', mime: 'application/x-bibtex' },
   { id: 'biblatex', label: 'BibLaTeX', kind: 'export', value: 'biblatex', ext: 'bib', mime: 'application/x-bibtex' },
   { id: 'ris', label: 'RIS', kind: 'export', value: 'ris', ext: 'ris', mime: 'application/x-research-info-systems' },
+  // Zotero, Mendeley and most reference managers import CSL-JSON directly.
+  { id: 'csl-json', label: 'CSL JSON', kind: 'export', value: 'data', ext: 'json', mime: 'application/vnd.citationstyles.csl+json' },
 ];
 
-const STYLE_KEY = 'efv-cite-style';
-const stored = (() => {
-  try {
-    return window.localStorage.getItem(STYLE_KEY);
-  } catch {
-    return null;
-  }
-})();
+const stored = readPreference('cite-style');
 const styleId = ref<string>(STYLES.some((s) => s.id === stored) ? stored! : 'apa');
 const style = computed(() => STYLES.find((s) => s.id === styleId.value)!);
-watch(styleId, (id) => {
-  try {
-    window.localStorage.setItem(STYLE_KEY, id);
-  } catch {
-    // remembering the style is a nicety
-  }
-});
+watch(styleId, (id) => writePreference('cite-style', id));
 
 const withPage = ref(false);
 const page = computed(() => docStore.pageLabel(docStore.activePage) ?? String(docStore.activePage));
@@ -58,22 +52,32 @@ const source = computed(() => {
   return `${bib.slice(0, end).replace(/\s*,?\s*$/, '')},\n  pages = {${page.value}}\n${bib.slice(end)}`;
 });
 
-const formatted = computed<{ text: string; inText: string | null; error: boolean }>(() => {
-  try {
-    const cite = new Cite(source.value);
-    if (style.value.kind === 'export') {
-      return { text: String(cite.format(style.value.value)).trim(), inText: null, error: false };
-    }
-    const options = { format: 'text', template: style.value.value, lang: 'en-US' };
-    return {
-      text: String(cite.format('bibliography', options)).trim(),
-      inText: String(cite.format('citation', options)).trim() || null,
-      error: false,
-    };
-  } catch {
-    return { text: viewerStore.basedCitation ?? '', inText: null, error: true };
-  }
+// Until the formatter has loaded, the host's BibTeX is shown as is.
+const formatted = shallowRef<FormattedCitation & { error: boolean }>({
+  text: viewerStore.basedCitation ?? '',
+  inText: null,
+  error: false,
 });
+const outputOf = (s: Style): CitationOutput =>
+  s.kind === 'export'
+    ? { kind: 'export', format: s.value as 'bibtex' | 'biblatex' | 'ris' | 'data' }
+    : { kind: 'csl', template: s.value };
+let formatSeq = 0;
+watch(
+  [source, style],
+  async ([src, s]) => {
+    const seq = ++formatSeq;
+    try {
+      const { formatCitation } = await loadFormatter();
+      if (seq !== formatSeq) return;
+      formatted.value = { ...formatCitation(src, outputOf(s)), error: false };
+    } catch {
+      if (seq === formatSeq)
+        formatted.value = { text: viewerStore.basedCitation ?? '', inText: null, error: true };
+    }
+  },
+  { immediate: true }
+);
 
 const copied = ref<'reference' | 'in-text' | null>(null);
 let copiedTimer: ReturnType<typeof setTimeout> | null = null;

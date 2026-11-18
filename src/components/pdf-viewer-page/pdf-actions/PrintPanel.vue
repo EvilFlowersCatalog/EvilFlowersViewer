@@ -3,33 +3,31 @@
 // The host renders the print copy (`options.printFunction`); it goes to the
 // browser's print dialog by URL, without parsing it again here.
 import { computed, ref } from 'vue';
-import printJS from 'print-js';
 import { ERROR_LINK } from '@/assets/utils/constans';
 import { useDocumentStore, useViewerStore } from '@/stores';
+import { isPageRange, pagesForScope, type PageScope } from '@/core/document/pageRange';
 
 const viewerStore = useViewerStore();
 const docStore = useDocumentStore();
 
-const scope = ref<'document' | 'page' | 'pages'>('document');
+const scope = ref<PageScope>('document');
 const customPages = ref('');
 const withAnnotations = ref(false);
 const status = ref<'idle' | 'working' | 'error'>('idle');
 
-const RANGE = /^\s*\d+(\s*-\s*\d+)?(\s*,\s*\d+(\s*-\s*\d+)?)*\s*$/;
-const rangeValid = computed(() => scope.value !== 'pages' || RANGE.test(customPages.value));
+const rangeValid = computed(() => scope.value !== 'pages' || isPageRange(customPages.value));
 
 const print = async () => {
   if (!viewerStore.printFunction || !rangeValid.value) return;
   status.value = 'working';
-  const pages =
-    scope.value === 'document'
-      ? null
-      : scope.value === 'page'
-        ? String(docStore.activePage)
-        : customPages.value.replace(/\s+/g, '');
+  const pages = pagesForScope(scope.value, docStore.activePage, customPages.value);
   try {
-    const result = (await viewerStore.printFunction(pages)) || ERROR_LINK;
-    if (result === ERROR_LINK) throw new Error('no print link');
+    // print-js is fetched on the first print, together with the host's copy.
+    const [result, { default: printJS }] = await Promise.all([
+      viewerStore.printFunction(pages),
+      import('print-js'),
+    ]);
+    if (!result || result === ERROR_LINK) throw new Error('no print link');
     const url = new URL(result);
     url.searchParams.set('annotations', String(withAnnotations.value));
     printJS({

@@ -17,9 +17,11 @@ import RegionLayer from './pdf-regions/RegionLayer.vue';
 import AgentHighlightLayer from './pdf-agent/AgentHighlightLayer.vue';
 import FocusLayer from './pdf-agent/FocusLayer.vue';
 import SearchHighlightLayer from './pdf-search/SearchHighlightLayer.vue';
-import { boxStyle } from './usePageHover';
+import { boxStyle, boxToViewport } from './usePageHover';
 import { providePageContext } from './usePageContext';
-import type { IPageBox } from '@/assets/utils/interfaces';
+import type { IPageBox, ISelectionInfo } from '@/assets/utils/interfaces';
+import { useTextSelection } from '@/composables/useTextSelection';
+import { isPageFetchFailure } from '@/core/document/loadErrors';
 
 const props = defineProps<{
   page: number;
@@ -197,6 +199,11 @@ const paintCanvas = async (page: PDFPageProxy, viewport: PageViewport) => {
   return true;
 };
 
+// The viewer-wide selection engine adopts this page's text layer (selection
+// guard, clean copy, the menu's model).
+const textSelection = useTextSelection();
+let releaseTextLayer: (() => void) | null = null;
+
 const buildTextLayer = async (page: PDFPageProxy, viewport: PageViewport) => {
   const container = textLayerRef.value;
   if (!container) return;
@@ -206,6 +213,9 @@ const buildTextLayer = async (page: PDFPageProxy, viewport: PageViewport) => {
   if (disposed) return;
   textLayer = new TextLayer({ textContentSource, container, viewport });
   await textLayer.render();
+  if (disposed) return;
+  releaseTextLayer?.();
+  releaseTextLayer = textSelection?.register(container) ?? null;
 };
 
 // A page whose bytes could not be fetched after the document opened (a Range
@@ -214,17 +224,9 @@ const buildTextLayer = async (page: PDFPageProxy, viewport: PageViewport) => {
 const settleOnError = (error: unknown) => {
   rendered.value = true;
   publishState(RENDER_STATE.RENDERED);
-  const { name, message, details, status } = (error ?? {}) as {
-    name?: string;
-    message?: string;
-    details?: string;
-    status?: number;
-  };
-  const fetchFailed =
-    name === 'ResponseException' ||
-    /fetch|network|load failed|unexpected server response/i.test(`${message ?? ''} ${details ?? ''}`);
+  const fetchFailed = isPageFetchFailure(error);
   if (fetchFailed && docStore.openStatus === 'ready') {
-    docStore.reportStreamError(typeof status === 'number' && status > 0 ? status : null);
+    docStore.reportStreamError(fetchFailed.status);
     return;
   }
   if (isActive.value) docStore.reportDocumentError('render'); // no-op after the first paint
@@ -242,6 +244,8 @@ const render = async () => {
   // Re-renders (zoom, pixel ratio) keep the previous bitmap and the layers
   // visible; only the very first render starts from a blank page.
   publishState(RENDER_STATE.RENDERING);
+  const kind = rendered.value ? 'rerender' : 'initial';
+  const startedAt = performance.now();
   try {
     const page = await pdf.getPage(props.page);
     if (disposed) return;
@@ -255,6 +259,7 @@ const render = async () => {
     }
     if (!(await paintCanvas(page, viewport))) return; // superseded
     if (disposed) return;
+    const paintedAt = performance.now();
     rendered.value = true;
     // The opening page's paint is the host's "first page" moment.
     if (isActive.value) docStore.reportFirstPaint(props.page);
@@ -265,6 +270,17 @@ const render = async () => {
       collectLinks(page);
     }
     publishState(RENDER_STATE.RENDERED);
+    viewerStore.telemetry.record(
+      'page.render',
+      {
+        page: props.page,
+        kind,
+        scale: Math.round(docStore.scale * 100) / 100,
+        pixelRatio: Math.round(pixelRatio(viewport.width, viewport.height) * 100) / 100,
+        textLayerMs: Math.round(performance.now() - paintedAt),
+      },
+      { durationMs: paintedAt - startedAt }
+    );
   } catch (error) {
     if (!disposed) settleOnError(error);
   }
@@ -272,6 +288,8 @@ const render = async () => {
 
 onMounted(render);
 watch(() => docStore.scale, render);
+// A new document remounts the whole page stream (PDFViewer keys it by
+// document), so a page never shows the previous document's bitmap.
 
 // Becoming the active page: report this page's state and size to the view.
 watch(isActive, (active) => {
@@ -301,6 +319,7 @@ onBeforeUnmount(() => {
   dprQuery?.removeEventListener('change', onPixelRatioChange);
   renderTask?.cancel();
   textLayer?.cancel();
+  releaseTextLayer?.();
   // Free the bitmap now rather than whenever the element is collected:
   // at DPR 2–3 a page is tens of megabytes.
   const canvas = canvasRef.value;
@@ -333,48 +352,26 @@ const staticLayer = computed(() => {
   return parsed.outerHTML;
 });
 
-// "Highlight" on a selection: the host stores it, or it is painted on the
-// drawing canvas (which lives on the active page).
-const handleHighlight = (rects: DOMRect[], text: string) => {
-  const body = pageBodyRef.value;
-  if (!body) return;
-  const bounds = body.getBoundingClientRect();
-  // A selection that runs onto the next page is highlighted on its own page.
-  const own = rects.filter((r) => r.bottom > bounds.top && r.top < bounds.bottom);
-  if (!viewerStore.readerHighlightPackage) {
-    emit('highlight', props.page, own);
+// "Highlight" on a selection: the host stores it (one highlight per page the
+// selection covers), or it is painted on the drawing canvas.
+const handleHighlight = (selection: ISelectionInfo) => {
+  if (viewerStore.readerHighlightPackage) {
+    for (const segment of selection.segments)
+      assistantStore.addReaderHighlight({ page: segment.page, text: selection.text, quads: segment.boxes });
     return;
   }
-  assistantStore.addReaderHighlight({
-    page: props.page,
-    text: text.replace(/\s+/g, ' ').trim(),
-    quads: lineBoxes(own).map((rect) => ({
-      x0: clamp((rect.left - bounds.left) / bounds.width),
-      y0: clamp((rect.top - bounds.top) / bounds.height),
-      x1: clamp((rect.right - bounds.left) / bounds.width),
-      y1: clamp((rect.bottom - bounds.top) / bounds.height),
-    })),
-  });
+  const own = selection.segments.find((s) => s.page === props.page)?.boxes ?? [];
+  const rects = own
+    .map((box) => boxToViewport(pageBodyRef.value, box))
+    .filter((r): r is NonNullable<typeof r> => !!r)
+    .map((r) => new DOMRect(r.left, r.top, r.right - r.left, r.bottom - r.top));
+  emit('highlight', props.page, rects);
 };
 
-const clamp = (value: number) => Math.min(1, Math.max(0, Number(value.toFixed(5))));
-
-/** One box per text line: the selection's client rects come one per text span. */
-const lineBoxes = (rects: DOMRect[]) => {
-  const lines: { left: number; top: number; right: number; bottom: number }[] = [];
-  for (const rect of [...rects].sort((a, b) => a.top - b.top || a.left - b.left)) {
-    const line = lines.find((l) => Math.abs(l.top - rect.top) < rect.height / 2);
-    if (line) {
-      line.left = Math.min(line.left, rect.left);
-      line.right = Math.max(line.right, rect.right);
-      line.top = Math.min(line.top, rect.top);
-      line.bottom = Math.max(line.bottom, rect.bottom);
-    } else {
-      lines.push({ left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom });
-    }
-  }
-  return lines;
-};
+// The passage the open Explain card is about, on this page.
+const explainBoxes = computed<IPageBox[]>(
+  () => assistantStore.explainRequest?.segments?.find((s) => s.page === props.page)?.boxes ?? []
+);
 
 const pointerTool = computed(() => docStore.editTool === EDIT_TOOL.MOUSE);
 </script>
@@ -427,6 +424,15 @@ const pointerTool = computed(() => docStore.editTool === EDIT_TOOL.MOUSE);
     <SearchHighlightLayer :page-body-ref="pageBodyRef" />
     <FocusLayer :page-body-ref="pageBodyRef" />
 
+    <!-- What the open Explain card is about -->
+    <div
+      v-for="(box, index) in explainBoxes"
+      :key="`explain-${index}`"
+      class="efv-explain-source absolute z-[3] pointer-events-none"
+      :style="boxStyle(box)"
+      aria-hidden="true"
+    />
+
     <!-- Bookmark: the page's own corner, shown on hover, pinned once set -->
     <button
       v-if="pointerTool"
@@ -444,11 +450,6 @@ const pointerTool = computed(() => docStore.editTool === EDIT_TOOL.MOUSE);
       <BookmarkIcon :filled="isBookmarked" :width="13" :height="17" />
     </button>
 
-    <SelectionLayer
-      v-if="pointerTool"
-      :text-layer-ref="textLayerRef"
-      :page-body-ref="pageBodyRef"
-      @highlight="handleHighlight"
-    />
+    <SelectionLayer v-if="pointerTool" :page-body-ref="pageBodyRef" @highlight="handleHighlight" />
   </div>
 </template>
