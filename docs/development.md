@@ -47,15 +47,20 @@ paragraph on page N).
 
 ## Bundle budget
 
-Measured on the ES build (gzip): entry ≤ 310 kB (301 kB at 2026-11-18), `style.css` ≤ 150 kB (147 kB). Check after `npm run build` (Vite prints
+Measured on the ES build (gzip): entry ≤ 310 kB (271 kB at 2026-11-18, after #156 moved the drawing layer out), `style.css` ≤ 150 kB (147 kB). Check after `npm run build` (Vite prints
 the sizes). Heavy, rarely used dependencies are `import()`ed where first needed; never import citation-js,
-print-js or qrcode from code that runs at open.
+print-js or qrcode from code that runs at open. The drawing layer (`pdf-ink/InkLayer.vue`, perfect-freehand,
+DOMPurify) and the layer SVG codec (`core/annotations/svg.ts`) load after the first page paints.
 
 ## Dependencies
 
 `npm outdated` and `npm audit --omit=dev` before a release. Deliberately pinned (see docs/architecture.md ›
 Decisions): Tailwind 3, TypeScript 6, citation-js 0.7. Dev-only audit findings come from `picomatch` (no
 patched release exists) and don't reach the package.
+
+- `perfect-freehand` (runtime, MIT): pressure-shaped pen strokes; loaded only in the lazy ink chunk.
+- `happy-dom` (dev): a DOM for the SVG parser tests (`// @vitest-environment happy-dom` per file;
+  the rest of the suite stays on Node). Keep it at ≥ 21.0.4: earlier versions have open advisories.
 
 ## Releasing
 

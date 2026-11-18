@@ -72,6 +72,7 @@ them; measure on real files (`first-page-rendered` carries `bytesLoaded` and `to
 | --- | --- |
 | `homeFunction`, `closeFunction` | `() => void` |
 | `shareFunction` | `(pages: string \| null, expiresAt: string) => Promise<string>`: a share link (`pages` like `"1,3-6"`, null for all) |
+| `linkFunction` | `({ page, selection? }) => Promise<string>`: a link to a place, for people who already have access (grants nothing). Adds **Copy link** to the selection menu and **Link to this page** to the Share card. The host builds the URL, e.g. `/entries/<id>/read?page=N` or `?loc=<key>`; the selection text never goes into it. A rejection copies nothing. |
 | `printFunction` | `(pages: string \| null) => Promise<string>`: URL of a printable PDF |
 | `semanticSearchFunction` | `(query, { page }) => Promise<ISemanticSearchResult[]>`: "Related passages" above the text matches, and "Elsewhere in this book" in Explain |
 | `explainFunction` | `(text, IExplainContext) => Promise<IExplainResult>`: see [Explain](#explain) |
@@ -83,7 +84,7 @@ them; measure on real files (`first-page-rendered` carries `bytesLoaded` and `to
 | `agentAnnotationPackage` | `{ getAnnotationsFunc, requestAnnotationFunc?, waitForAnnotationFunc?, deleteHighlightFunc?, deleteAnnotationFunc? }`: AI highlights |
 | `readerHighlightPackage` | `{ getHighlightsFunc, addHighlightFunc, deleteHighlightFunc? }`: the reader's own text highlights |
 | `pageBookmarkPackage` | `{ getBookmarksFunc, addBookmarkFunc, removeBookmarkFunc }`: without it bookmarks last for the session |
-| `editPackage` | `{ saveGroupFunc, getGroupsFunc, saveLayerFunc, updateLayerFunc, getLayerFunc, getLayersFunc? }`: drawing layers as SVG |
+| `editPackage` | `{ saveGroupFunc, getGroupsFunc, saveLayerFunc, updateLayerFunc, getLayerFunc, getLayersFunc? }`: drawing layers as SVG, see [Drawings](#drawings) |
 
 ### Loading
 
@@ -149,10 +150,34 @@ logged and never breaks the viewer or other listeners.
 | `search-select` | `{ source, index, page, id }` |
 | `selection-change` | `ISelectionInfo \| null`: emitted when the reader lets go, not while dragging |
 | `action` | `{ action }`: a top-bar or selection action ran |
+| `annotation-change` | `{ page, action, kinds, count, input? }`: the reader drew, changed, removed, undid or redid marks on a page (no content) |
 
 `page-change.cause` is `initial`, `step`, `input`, `thumbnail`, `link`, `outline`, `search`, `citation`,
 `history`, `host` or `scroll`. Jumps (`link`, `outline`, `search`, `citation`, `host`) enter the history, so
 a host can push browser history only for them and replace it for the rest.
+
+## Drawings
+
+The reader's marks (draw mode, key E) are objects, stored per page through `editPackage` as one SVG
+string, the same contract as before. See [annotations.md](annotations.md) for the tools and the design.
+
+- **Loading**: `getGroupsFunc()` once, then `getLayersFunc(groupId)` if given (one request), else
+  `getLayerFunc(page, groupId)` per page as pages come into view. A group is created with
+  `saveGroupFunc('edit-group')` only when the first drawing is saved.
+- **Saving**: `saveLayerFunc` for a page's first layer, `updateLayerFunc` after. A page is saved once
+  the reader pauses (1.5 s), and at once when they leave draw mode, hide the tab or open another
+  document. At most one request per page is in flight; the latest state wins. A failed save is
+  retried once after 10 s and on the next change.
+- **Format**: `<svg width=W height=H viewBox="0 0 W H" data-efv-ink="2">` in the page's own units
+  (PDF points of the page at scale 1), one top-level element per object. Each element is plain SVG
+  (any renderer shows it) with `data-efv-id`, `data-efv-kind` (`pen`, `highlighter`, `rect`,
+  `ellipse`, `line`, `arrow`, `mark`, `note`), `data-efv-note` (the reader's note),
+  `data-efv-text` (the page text under the mark, ≤ 500 characters) and `data-efv-created` (epoch
+  ms). Pen and highlighter strokes add `data-efv-points` (`x,y,pressure …`).
+  A search index or an AI feature on the host can read the marks from there, without the PDF.
+- **Older layers** (bare `path`, `line`, `rect` in pixels of the page as drawn) load as objects in their
+  own space and are rewritten in the new format on their next change. A layer whose SVG cannot be
+  parsed is left as stored: the page refuses edits rather than save over it.
 
 ## AI features
 

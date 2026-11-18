@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Drawings become objects, with pen and touch (#156)
+
+- **Every mark is an object** you can select, move, resize, recolour, duplicate, bring to front, delete and annotate with a note. The rail has new tools: Select, Pen, Highlighter, Shapes (rectangle, ellipse, line, arrow), Note and Eraser (keys 1–6 in draw mode). The highlighter blends with the text instead of covering it. The eraser removes whole objects. ⌘Z / ⇧⌘Z undo and redo across pages, and Delete, arrows (Shift ×10), ⌘D and ⌘A work on the selection. Esc steps back: selection, then draw mode.
+- **Pen and touch** through Pointer Events: pen pressure shapes the stroke (perfect-freehand), and coalesced samples give smooth lines at 120–240 Hz. The pen's eraser end erases whatever tool is in hand. Once a pen has touched the page, fingers scroll and zoom instead of drawing (palm rejection), with a rail toggle to let fingers draw again. A second finger cancels a finger stroke, so a pinch zooms.
+- **Hold to snap**: hold a stroke still for 0.6 s and it becomes a straight line, a rectangle or an ellipse. A held highlighter straightens.
+- **Notes** pin to the page; while reading, a click opens the note beside its pin.
+- **Every page draws**: each mounted page has its own layer (the single canvas teleported to the active page is gone), and drawings scale by `viewBox`, so zoom no longer rewrites coordinates.
+- **Gentle autosave**: a page is saved once the reader pauses (1.5 s), not after every stroke. Saves happen at once when leaving draw mode, hiding the tab or opening another document. The "Saving…" pill over the page is gone; a quiet check at the foot of the rail shows the state and asks for attention only when a save failed (one quiet retry, click to retry now).
+- **Same host contract** (`editPackage`, one SVG per page). Layers saved before load as objects, unchanged. New layers are plain SVG with `data-efv-*` attributes (kind, note, points, the text under the mark), and their pen paths use only `M`/`L`, so older viewers still show and rescale them. A page whose stored SVG cannot be read is left untouched rather than overwritten. A group is created only on the first save.
+- New event `annotation-change` (page, action, kinds, count, input; no content) and telemetry event `annotation`.
+
+### Links to a place (#155)
+
+- New option `linkFunction({ page, selection? })`: the host's link to a place in the publication, for people who already have access (it grants nothing, unlike `shareFunction`). With it, the selection menu has **Copy link** and the Share card has **Link to this page** above *Share access (expires)*. A rejection copies nothing and says so. The viewer never builds the URL and never puts the selected text in it. `action` event `copy-link`.
+
 ### Text selection and Explain, reimagined
 
 - `controller.open()`: the page stream is rebuilt per document (keyed), so pages never carry state over from the previous document.

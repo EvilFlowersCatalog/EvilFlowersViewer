@@ -13,6 +13,7 @@ import {
   exampleExplainFunction,
   exampleOpenEntryDetailFunction,
   exampleShareFunction,
+  exampleLinkFunction,
   exampleSuggestionsFunction,
   getLayerFunc,
   getLayersFunc,
@@ -49,6 +50,7 @@ const config: IViewerConfig = {
 const options: IViewerOptions = {
   citationBib: exampleCitation,
   shareFunction: exampleShareFunction,
+  linkFunction: exampleLinkFunction,
   printFunction: examplePrintFunction,
   // Dev stub for semantic search — returns a few fake hits after a short delay
   // so the two-column search layout can be exercised locally.

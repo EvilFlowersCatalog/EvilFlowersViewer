@@ -30,6 +30,7 @@ export type TELEMETRY_EVENT =
   | 'search.select' // a search hit was picked
   | 'selection' // the reader selected text (length, pages)
   | 'selection.action' // a selection menu action ran
+  | 'annotation' // the reader drew, moved or removed a mark (action, kind, input)
   | 'explain' // an explanation finished (durationMs, outcome)
   | 'chat.first_token' // first streamed answer text (durationMs from send)
   // host integration

@@ -1,0 +1,53 @@
+@startuml component-annotation-layer
+!include elvira.iuml
+' What: drawings become objects. A framework-free core owns the model, the SVG wire format and the geometry; one ink store holds every page's objects, history and save queue; each mounted page renders its own InkLayer and takes pointer, pen and touch input. The host contract (IEditPackage, one SVG per page) is unchanged.
+' Kind: UML component diagram. Scope: EvilFlowersViewer annotation layer.
+' Source: src/core/annotations/*, src/stores/ink.ts, src/components/pdf-viewer-page/pdf-ink/*, src/assets/utils/interfaces.ts IEditPackage (2026-11-18)
+top to bottom direction
+
+title EvilFlowersViewer: annotation layer as objects
+
+package "Host (elvira-portal or any app)" as host {
+  component "editPackage\n(IEditPackage, unchanged)" as pkg
+  component "Event listeners\n(future AI: index marks, ask about them)" as listeners
+}
+
+package "UI (Vue components)" as ui {
+  component "PageView ×N\n(mounted pages)" as page
+  component "InkLayer\nrender objects · hit areas\nselection frame · handles" as layer <<focus>>
+  component "InkInspector\ncolour · width · note · duplicate · delete" as inspector
+  component "PDFEditMenu (rail)\nselect · pen · highlighter · shapes · note · eraser" as rail
+}
+
+package "Composables" as comp {
+  component "useInkInput\nPointer Events: pen / mouse / touch\ncoalesced samples · capture · palm rule" as input
+}
+
+database "ink store (Pinia)\nobjects per page · selection\nundo / redo · save queue per page" as store
+
+package "Core (framework-free, unit-tested)" as core {
+  component "annotations/model\nInkObject kinds" as model
+  component "annotations/svg\nparse (legacy + v2) · serialize" as svg
+  component "annotations/geometry\nbbox · hit test · move · resize" as geo
+  component "annotations/stroke\npressure outline · shape snap" as stroke
+}
+
+component "EventBus" as bus
+
+page --> layer : page, size, text layer
+layer --> input : pointer events
+input --> store : create · move · resize · erase
+inspector --> store : set attributes
+rail --> store : tool, colour, width
+store --> geo : hit test · move · resize
+store --> stroke : outline · snap
+store --> svg : per-page SVG
+svg --> model : builds objects
+store -[$accent()]-> pkg : <b>saveLayerFunc / updateLayerFunc</b>\ndebounced per page
+pkg --> store : getLayersFunc / getLayerFunc
+store --> bus : annotation-change (no content)
+bus --> listeners : events
+
+caption One store, one layer per page, the same SVG on the wire: old layers load, new ones still render in older viewers.
+footer ELVIRA · FIIT STU · EvilFlowersViewer · docs/diagrams/component-annotation-layer.puml
+@enduml

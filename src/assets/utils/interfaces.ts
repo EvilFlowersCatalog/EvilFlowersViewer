@@ -484,6 +484,14 @@ export interface IViewerOptions {
   shareFunction?:
     | ((pages: string | null, expaireDate: string) => Promise<string>)
     | null;
+  /**
+   * A link to a place in the open publication, for people who can already
+   * read it: it grants nothing (unlike `shareFunction`, which shares access).
+   * With it, the selection menu gets "Copy link" and the Share card "Link to
+   * this page". The host decides what the link is; the viewer never builds
+   * one and never puts the selected text in it. A rejection copies nothing.
+   */
+  linkFunction?: ((target: ILinkTarget) => Promise<string>) | null;
   printFunction?: ((pages: string | null) => Promise<string>) | null;
   /**
    * Optional semantic/AI search. When supplied, the search panel shows a
@@ -898,6 +906,13 @@ export interface ISelectionInfo {
   segments: { page: number; boxes: IPageBox[] }[];
 }
 
+/** What `linkFunction` links to: a page, or a selection on it. */
+export interface ILinkTarget {
+  /** 1-based page. */
+  page: number;
+  selection?: ISelectionInfo;
+}
+
 /** A top-bar or selection action the reader ran. */
 export type VIEWER_ACTION =
   | 'cite'
@@ -915,7 +930,8 @@ export type VIEWER_ACTION =
   | 'explain'
   | 'ask'
   | 'similar'
-  | 'search-selection';
+  | 'search-selection'
+  | 'copy-link';
 
 /**
  * Events of a mounted viewer, `app.viewer.on(name, listener)`. The same
@@ -938,6 +954,25 @@ export interface IViewerEventMap {
   'search-select': ISearchSelectInfo;
   'selection-change': ISelectionInfo | null;
   action: { action: VIEWER_ACTION };
+  'annotation-change': IAnnotationChangeInfo;
+}
+
+/**
+ * The reader changed their drawings (the annotation layer) on one page. No
+ * content: what changed is read from the layer the host stores
+ * (`editPackage`), where every object carries its kind, note and the text
+ * under it (`data-efv-*`), for search or AI features of the host.
+ */
+export interface IAnnotationChangeInfo {
+  /** 1-based page. */
+  page: number;
+  action: 'add' | 'change' | 'remove' | 'undo' | 'redo';
+  /** Kinds of the objects changed: pen, highlighter, rect, ellipse, line, arrow, mark, note. */
+  kinds: string[];
+  /** Objects on the page afterwards. */
+  count: number;
+  /** What drew it, for `add`. */
+  input?: 'pen' | 'mouse' | 'touch' | 'keyboard';
 }
 
 export interface IViewerConfig {

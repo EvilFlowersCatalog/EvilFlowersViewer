@@ -127,7 +127,8 @@ onBeforeUnmount(() => {
 // ---- what is available ----
 const can = computed(() => ({
   cite: !!viewerStore.citation,
-  share: !!(viewerStore.shareFunction && viewerStore.config.share),
+  // The Share card holds an access share, a plain link (#155), or both.
+  share: !!((viewerStore.shareFunction && viewerStore.config.share) || viewerStore.linkFunction),
   print: !!(viewerStore.config.print && viewerStore.printFunction),
   download: !!viewerStore.config.download,
   ask: !!viewerStore.chatPackage,

@@ -7,8 +7,8 @@
 // Who moves whom (docs/diagrams/state-active-page.puml):
 //  · scrolling reports the active page (setActiveFromScroll: no history);
 //  · a jump (docStore.scrollRequest) scrolls here, and scroll reports are
-//    ignored until that scroll settles, so it never loops back;
-//  · while a drawing tool is picked the store ignores scroll reports.
+//    ignored until that scroll settles, so it never loops back.
+// Drawings need no active page: every mounted page has its own ink layer.
 import {
   computed,
   nextTick,
@@ -17,22 +17,17 @@ import {
   reactive,
   ref,
   toRaw,
-  useId,
   watch,
 } from 'vue';
 import type { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api';
 import { useDocumentStore } from '@/stores';
-import { EDIT_TOOL } from '@/assets/utils/enums';
 import PageView from './PageView.vue';
-import { EditCanvas } from './pdf-edit';
 import { usePinchZoom } from './usePinchZoom';
 import { MAX_SCALE, MIN_SCALE } from '@/assets/utils/constans';
 
 const docStore = useDocumentStore();
 
 const scroller = ref<HTMLDivElement | null>(null);
-const editCanvasRef = ref<InstanceType<typeof EditCanvas> | null>(null);
-const editSlotBase = `efv-edit-${useId()}`;
 
 // ---- layout ----------------------------------------------------------------
 const PAD = 24; // space above the first and below the last page
@@ -269,32 +264,6 @@ usePinchZoom(scroller, content, {
   },
 });
 
-// ---- the single drawing canvas ----------------------------------------------
-// It follows the active page by teleporting into that page's slot; when the
-// active page is not mounted yet it stays where it was.
-const editPage = ref<number | null>(null);
-watch(
-  () => [docStore.activePage, mounted.value] as const,
-  async () => {
-    if (mounted.value.has(docStore.activePage)) {
-      await nextTick();
-      editPage.value = docStore.activePage;
-    }
-  },
-  { immediate: true }
-);
-const editTarget = computed(() =>
-  editPage.value === null ? null : `#${editSlotBase}-${editPage.value}`
-);
-
-const onHighlight = async (page: number, rects: DOMRect[]) => {
-  // The canvas paints on the active page; make this page the active one first.
-  docStore.setActiveFromScroll(page);
-  await nextTick();
-  await nextTick();
-  editCanvasRef.value?.addHighlight(rects);
-};
-
 // ---- lifecycle -----------------------------------------------------------------
 onMounted(async () => {
   await measureFirstPage();
@@ -358,25 +327,8 @@ const pages = computed(() => Array.from({ length: docStore.totalPages }, (_, i) 
         :aria-label="$t('page-short', { page: docStore.pageLabel(page) ?? page })"
         role="group"
       >
-        <PageView
-          v-if="mounted.has(page)"
-          :page="page"
-          :edit-slot-id="`${editSlotBase}-${page}`"
-          @measured="onMeasured"
-          @highlight="onHighlight"
-        />
+        <PageView v-if="mounted.has(page)" :page="page" @measured="onMeasured" />
       </div>
     </div>
-
-    <Teleport v-if="docStore.edit && editTarget" :to="editTarget" defer>
-      <EditCanvas
-        ref="editCanvasRef"
-        :class="
-          EDIT_TOOL.MOUSE === docStore.editTool
-            ? 'pointer-events-none'
-            : 'pointer-events-auto cursor-crosshair'
-        "
-      />
-    </Teleport>
   </div>
 </template>

@@ -6,15 +6,28 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import type { IPageBox } from '@/assets/utils/interfaces';
 
-export type SelectionMenuAction = 'explain' | 'highlight' | 'copy' | 'ask' | 'search' | 'similar';
+export type SelectionMenuAction = 'explain' | 'highlight' | 'copy' | 'link' | 'ask' | 'search' | 'similar';
 
 const props = defineProps<{
   /** The selection's lines on this page (page fractions). */
   boxes: IPageBox[];
   actions: SelectionMenuAction[];
-  /** Brief confirmation after Copy. */
-  copied?: boolean;
+  /** Brief confirmation (or failure) after Copy or Copy link. */
+  feedback?: { action: 'copy' | 'link'; ok: boolean } | null;
 }>();
+
+const done = (action: SelectionMenuAction) => props.feedback?.action === action && props.feedback.ok;
+const failed = (action: SelectionMenuAction) => props.feedback?.action === action && !props.feedback.ok;
+const label = (action: SelectionMenuAction) =>
+  done(action)
+    ? action === 'link'
+      ? 'link-copied'
+      : 'copied'
+    : failed(action)
+      ? action === 'link'
+        ? 'link-failed-short'
+        : 'copy-failed'
+      : LABELS[action];
 const emit = defineEmits<{ action: [action: SelectionMenuAction] }>();
 
 const root = ref<HTMLElement | null>(null);
@@ -45,6 +58,7 @@ const LABELS: Record<SelectionMenuAction, string> = {
   explain: 'explain',
   highlight: 'highlight',
   copy: 'copy',
+  link: 'copy-link',
   ask: 'ask',
   search: 'find-in-document',
   similar: 'similar',
@@ -83,6 +97,7 @@ defineExpose({ focus: () => root.value?.querySelector<HTMLButtonElement>('button
         class="efv-selection-btn"
         :class="{ 'efv-selection-primary': action === 'explain' }"
         :title="$t(LABELS[action])"
+        :aria-label="$t(label(action))"
         :aria-keyshortcuts="SHORTCUT[action]"
         :tabindex="index === 0 ? 0 : -1"
         @click="emit('action', action)"
@@ -96,8 +111,15 @@ defineExpose({ focus: () => root.value?.querySelector<HTMLButtonElement>('button
           <rect x="2.5" y="14" width="15" height="3.5" rx="1" fill="#ffd60a" />
           <path d="M12.5 2.8l3.7 3.7-6.9 6.9H5.6V9.7l6.9-6.9z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
         </svg>
+        <svg v-else-if="action === 'link'" aria-hidden="true" width="15" height="15" viewBox="0 0 20 20" fill="none">
+          <path v-if="done('link')" d="M4 10.5l4 4 8-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          <template v-else>
+            <path d="M8.5 11.5a3.2 3.2 0 0 0 4.6.2l2.6-2.6a3.2 3.2 0 0 0-4.6-4.6l-1 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            <path d="M11.5 8.5a3.2 3.2 0 0 0-4.6-.2l-2.6 2.6a3.2 3.2 0 0 0 4.6 4.6l1-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </template>
+        </svg>
         <svg v-else-if="action === 'copy'" aria-hidden="true" width="15" height="15" viewBox="0 0 20 20" fill="none">
-          <template v-if="copied">
+          <template v-if="done('copy')">
             <path d="M4 10.5l4 4 8-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
           </template>
           <template v-else>
@@ -116,7 +138,7 @@ defineExpose({ focus: () => root.value?.querySelector<HTMLButtonElement>('button
           <rect x="3" y="4" width="9" height="12" rx="1" stroke="currentColor" stroke-width="1.4" />
           <rect x="8.5" y="6.5" width="9" height="12" rx="1" stroke="currentColor" stroke-width="1.4" />
         </svg>
-        <span>{{ action === 'copy' && copied ? $t('copied') : $t(LABELS[action]) }}</span>
+        <span :class="{ 'text-[#ff3b30]': failed(action) }">{{ $t(label(action)) }}</span>
       </button>
     </template>
   </div>

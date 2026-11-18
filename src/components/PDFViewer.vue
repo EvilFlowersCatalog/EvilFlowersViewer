@@ -5,9 +5,9 @@
 // modules (src/core); see docs/architecture.md.
 import { computed, nextTick, onBeforeUnmount, onErrorCaptured, onMounted, provide, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useAssistantStore, useDocumentStore, useSearchStore, useViewerStore } from '@/stores';
+import { useAssistantStore, useDocumentStore, useInkStore, useSearchStore, useViewerStore } from '@/stores';
 import type { IViewerProps, VIEWER_ACTION } from '@/assets/utils/interfaces';
-import { EDIT_TOOL, LAYER_STATE, MODAL_CONTENT, SIDEBAR_STATE } from '@/assets/utils/enums';
+import { EDIT_TOOL, MODAL_CONTENT, SIDEBAR_STATE } from '@/assets/utils/enums';
 import { MOBILE_SIZE } from '@/assets/utils/constans';
 import { ExplainPopup } from './pdf-viewer-page/pdf-selection';
 import ChatPanel from './pdf-chat/ChatPanel.vue';
@@ -36,6 +36,7 @@ const viewerStore = useViewerStore();
 const docStore = useDocumentStore();
 const assistantStore = useAssistantStore();
 const searchStore = useSearchStore();
+const inkStore = useInkStore();
 const { t, locale } = useI18n({ useScope: 'global' });
 
 // ---- host options: bound before anything reads them ----------------------------
@@ -224,7 +225,51 @@ watch(
   (on) => on && reportAction('fullscreen')
 );
 
-const shortcuts = (): ShortcutMap => ({
+// Draw mode adds its own keys on top of the reader's: 1–6 pick a tool (the
+// letters belong to the top bar), Delete removes the selection, arrows nudge
+// it (Shift: ten times further), ⌘Z / ⇧⌘Z undo and redo, ⌘D duplicates,
+// ⌘A selects every mark on the page.
+const drawShortcuts = (): Partial<ShortcutMap> | null => {
+  if (!docStore.drawMode) return null;
+  const tools = [EDIT_TOOL.SELECT, EDIT_TOOL.PEN, EDIT_TOOL.HIGHLIGHTER, EDIT_TOOL.SHAPE, EDIT_TOOL.NOTE, EDIT_TOOL.ERASER];
+  const keys: ShortcutMap['keys'] = Object.fromEntries(tools.map((tool, i) => [String(i + 1), () => (docStore.editTool = tool)]));
+  const selected = inkStore.selection;
+  if (selected) {
+    const step = (dx: number, dy: number) => (event: KeyboardEvent) => {
+      const space = inkStore.pageInk(selected.page)?.space;
+      const unit = space ? space.w / 612 : 1; // one point on a Letter-wide page
+      const far = event.shiftKey ? 10 : 1;
+      inkStore.moveSelection(dx * unit * far, dy * unit * far);
+    };
+    Object.assign(keys, {
+      delete: () => inkStore.deleteSelection(),
+      backspace: () => inkStore.deleteSelection(),
+      arrowleft: step(-1, 0),
+      arrowright: step(1, 0),
+      arrowup: step(0, -1),
+      arrowdown: step(0, 1),
+    });
+  }
+  return {
+    keys,
+    mod: {
+      z: () => inkStore.undo(),
+      'shift+z': () => inkStore.redo(),
+      y: () => inkStore.redo(),
+      a: () => inkStore.selectAll(docStore.activePage),
+      ...(selected ? { d: () => inkStore.duplicateSelection() } : {}),
+    },
+  };
+};
+
+const shortcuts = (): ShortcutMap => {
+  const base = readingShortcuts();
+  const draw = drawShortcuts();
+  if (!draw) return base;
+  return { ...base, keys: { ...base.keys, ...draw.keys }, mod: { ...base.mod, ...draw.mod } };
+};
+
+const readingShortcuts = (): ShortcutMap => ({
   keys: {
     arrowleft: () => docStore.previousPage(),
     arrowright: () => docStore.nextPage(),
@@ -237,7 +282,9 @@ const shortcuts = (): ShortcutMap => ({
     f: openSearchPanel,
     t: () => docStore.setSidebarState(docStore.toc.length ? SIDEBAR_STATE.TOC : SIDEBAR_STATE.PAGES),
     c: () => viewerStore.citation && docStore.toggleAction('cite'),
-    s: () => viewerStore.shareFunction && viewerStore.config.share && docStore.toggleAction('share'),
+    s: () =>
+      ((viewerStore.shareFunction && viewerStore.config.share) || viewerStore.linkFunction) &&
+      docStore.toggleAction('share'),
     p: () => viewerStore.printFunction && viewerStore.config.print && docStore.toggleAction('print'),
     i: () => docStore.toggleAction('info'),
     d: () => viewerStore.config.download && topBarRef.value?.download(),
@@ -263,9 +310,11 @@ const shortcuts = (): ShortcutMap => ({
     arrowright: () => docStore.goForward(),
   },
   find: (backwards) => searchStore.step(backwards ? -1 : 1),
+  // Esc peels one layer: a card or popup, then the selected marks, then draw mode.
   escape: () => {
     if (closeTopLayer()) return;
-    if (docStore.editTool !== EDIT_TOOL.MOUSE) docStore.editTool = EDIT_TOOL.MOUSE;
+    if (inkStore.selection) inkStore.clearSelection();
+    else if (docStore.drawMode) docStore.setDrawMode(false);
   },
 });
 useKeyboardShortcuts(rootRef, shortcuts, () => viewerStore.keyboardShortcuts);
@@ -277,10 +326,17 @@ const onResize = () => {
   docStore.isMobile = window.innerWidth <= MOBILE_SIZE || window.innerHeight <= MOBILE_SIZE;
 };
 
+// Drawings wait for a pause before they save; a tab that is hidden or closed
+// may never get that pause, so they save at once.
+const saveDrawings = () => void inkStore.flushAll();
+const onVisibility = () => document.visibilityState === 'hidden' && saveDrawings();
+
 onMounted(() => {
   void loader.load();
   window.addEventListener('resize', onResize, { passive: true });
   document.addEventListener('fullscreenchange', onFullscreenChange);
+  document.addEventListener('visibilitychange', onVisibility);
+  window.addEventListener('pagehide', saveDrawings);
 });
 
 // Props changed by a host that renders <PDFViewer> as a component.
@@ -299,6 +355,9 @@ watch(
 );
 
 onBeforeUnmount(() => {
+  saveDrawings();
+  document.removeEventListener('visibilitychange', onVisibility);
+  window.removeEventListener('pagehide', saveDrawings);
   window.removeEventListener('resize', onResize);
   document.removeEventListener('fullscreenchange', onFullscreenChange);
   loader.dispose();
@@ -446,19 +505,6 @@ onBeforeUnmount(() => {
         :title="$t('background-download', { percent: backgroundPercent })"
       >
         <div class="h-full bg-[#0077CC]/70 transition-[width] duration-300" :style="{ width: `${backgroundPercent}%` }"></div>
-      </div>
-
-      <!-- Drawing layer state -->
-      <div
-        v-if="docStore.layerState !== LAYER_STATE.READY && docStore.layerState !== LAYER_STATE.NOT_READY && docStore.drawMode"
-        class="absolute top-16 left-0 right-0 flex justify-center z-20 pointer-events-none select-none transition-opacity hover:opacity-30"
-        role="status"
-        aria-live="polite"
-      >
-        <div class="flex flex-row gap-2 items-center px-3 py-2 rounded-md shadow-lg" :style="{ backgroundColor: topbarBg }">
-          <Loader :size="20" color="#0077CC" :label="$t(docStore.layerState)" />
-          <span class="text-secondary text-xs font-medium">{{ $t(docStore.layerState) }}</span>
-        </div>
       </div>
 
       <!-- Reading column: the bar, then the Navigator beside the pages -->

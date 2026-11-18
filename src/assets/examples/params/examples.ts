@@ -9,6 +9,7 @@ import type {
   IExplainContext,
   IExplainResult,
   ILayer,
+  ILinkTarget,
   IPageBookmark,
   IPageLayer,
   IPageBox,
@@ -23,9 +24,25 @@ const delay = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-// Store layers per page, keyed by groupId-pageNumber
-const layerStore = new Map<string, ILayer>();
-let layerIdCounter = 0;
+// Store layers per page, keyed by groupId-pageNumber. Kept in localStorage so
+// drawings survive a reload of the dev harness (clear `efv-dev-layers` to reset).
+const LAYERS_KEY = 'efv-dev-layers';
+const readLayers = (): Map<string, ILayer> => {
+  try {
+    return new Map(JSON.parse(localStorage.getItem(LAYERS_KEY) ?? '[]'));
+  } catch {
+    return new Map();
+  }
+};
+const layerStore = readLayers();
+const persistLayers = () => {
+  try {
+    localStorage.setItem(LAYERS_KEY, JSON.stringify([...layerStore.entries()]));
+  } catch {
+    // private mode: session only
+  }
+};
+let layerIdCounter = layerStore.size;
 
 export const saveLayerFunc = async (
   svg: string,
@@ -39,7 +56,8 @@ export const saveLayerFunc = async (
   const key = `${groupId}-${page}`;
   
   layerStore.set(key, layer);
-  
+  persistLayers();
+
   return layer;
 };
 
@@ -53,8 +71,9 @@ export const updateLayerFunc = async (
 
   const key = `${groupId}-${page}`;
   const layer: ILayer = { id, svg };
-  
+
   layerStore.set(key, layer);
+  persistLayers();
 };
 
 export const getLayerFunc = async (
@@ -90,6 +109,13 @@ export const getGroupsFunc = async (): Promise<
   await delay(2000);
 
   return [{ id: '1', name: 'jeden' }];
+};
+
+// A plain link to a place (#155): the portal's shape, built here only for the
+// harness. A selection gets the page only; a real host may mint a locator.
+export const exampleLinkFunction = async ({ page }: ILinkTarget): Promise<string> => {
+  await delay(300);
+  return `${location.origin}/entries/example/read?page=${page}`;
 };
 
 export const exampleShareFunction = async (

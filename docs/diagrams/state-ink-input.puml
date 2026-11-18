@@ -1,0 +1,47 @@
+@startuml state-ink-input
+!include elvira.iuml
+' What: how one pointer on a page becomes an annotation action. A pen always inks, a mouse inks, a finger inks only until a pen was seen (then fingers scroll); a second finger cancels the stroke so pinch zoom wins. The pen's eraser end erases whatever tool is picked.
+' Kind: UML state diagram. Scope: useInkInput in one InkLayer.
+' Source: src/composables/useInkInput.ts, src/stores/ink.ts (2026-11-18)
+
+title Ink input: one pointer, from down to commit
+
+[*] --> Idle
+
+state Idle : touch after a pen was seen\nscrolls the page instead
+
+state Inking <<focus>> {
+  state Drawing : pen · highlighter · shape\nsamples from getCoalescedEvents()
+  state Held : still for 600 ms\nsnaps to a line or shape
+  [*] --> Drawing
+  Drawing --> Held : no movement
+  Held --> Drawing : pointermove
+}
+
+state Erasing : objects under the path are removed
+
+state Editing {
+  state Moving : selection follows the pointer
+  state Resizing : scales from the opposite corner
+  state Marquee : selects what it touches
+}
+
+Idle --> Inking : pointerdown\n[draw tool]
+Idle --> Erasing : pointerdown\n[eraser, or pen eraser end]
+Idle --> Moving : on an object\n[select tool]
+Idle --> Resizing : on a handle
+Idle --> Marquee : on empty page\n[select tool]
+
+Inking --> Idle : pointerup / commit
+Inking --> Idle : second finger, pointercancel / discard
+Erasing --> Idle : pointerup / commit
+Editing --> Idle : pointerup / commit
+
+note bottom of Editing
+  commit = one undo step
+  and one save of the page
+end note
+
+caption Every gesture is one undo step and one save of its page, never a save per pointer sample.
+footer ELVIRA · FIIT STU · EvilFlowersViewer · docs/diagrams/state-ink-input.puml
+@enduml
