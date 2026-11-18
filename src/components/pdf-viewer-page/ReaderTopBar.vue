@@ -77,6 +77,7 @@ const openMenu = ref<'more' | 'zoom' | 'suggestions' | null>(null);
 const toggleMenu = (menu: 'more' | 'zoom' | 'suggestions') => {
   docStore.actionPopover = null;
   openMenu.value = openMenu.value === menu ? null : menu;
+  if (openMenu.value === 'suggestions') viewerStore.events.emit('action', { action: 'recommendations' });
 };
 const toggleAction = (action: 'cite' | 'share' | 'print' | 'info') => {
   openMenu.value = null;
@@ -153,6 +154,7 @@ const download = () => {
   openMenu.value = null;
   const doc = toRaw(docStore.pdf);
   if (!doc) return;
+  viewerStore.events.emit('action', { action: 'download' });
   doc.getData().then((data) => {
     const link = document.createElement('a');
     link.href = URL.createObjectURL(new Blob([data as BlobPart], { type: 'application/pdf' }));

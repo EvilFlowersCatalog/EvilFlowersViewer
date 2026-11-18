@@ -3,15 +3,18 @@
 // or without your annotations; then the link, ready to copy, as a QR code,
 // or to the system share sheet. Everything happens here, nothing opens
 // elsewhere. The link comes from the host (`options.shareFunction`).
-import { computed, ref, watch } from 'vue';
-import QrcodeVue from 'qrcode.vue';
+import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { DAY, ERROR_LINK } from '@/assets/utils/constans';
 import { useDocumentStore, useViewerStore } from '@/stores';
+import { isPageRange, pagesForScope, type PageScope } from '@/core/document/pageRange';
+
+// The QR encoder is fetched only once a link exists to encode.
+const QrcodeVue = defineAsyncComponent(() => import('qrcode.vue'));
 
 const viewerStore = useViewerStore();
 const docStore = useDocumentStore();
 
-const scope = ref<'document' | 'page' | 'pages'>('document');
+const scope = ref<PageScope>('document');
 const customPages = ref('');
 const lifespan = ref<number>(DAY * 7);
 const withAnnotations = ref(false);
@@ -21,16 +24,8 @@ const LIFESPANS = [
   { hours: DAY * 30, label: 'share-30-days' },
 ];
 
-const RANGE = /^\s*\d+(\s*-\s*\d+)?(\s*,\s*\d+(\s*-\s*\d+)?)*\s*$/;
-const rangeValid = computed(() => scope.value !== 'pages' || RANGE.test(customPages.value));
-
-const pages = computed<string | null>(() =>
-  scope.value === 'document'
-    ? null
-    : scope.value === 'page'
-      ? String(docStore.activePage)
-      : customPages.value.replace(/\s+/g, '')
-);
+const rangeValid = computed(() => scope.value !== 'pages' || isPageRange(customPages.value));
+const pages = computed(() => pagesForScope(scope.value, docStore.activePage, customPages.value));
 
 const status = ref<'idle' | 'working' | 'ready' | 'error'>('idle');
 const link = ref('');

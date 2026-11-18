@@ -6,11 +6,10 @@ import {
   INTERVAL,
 } from '@/assets/utils/constans';
 import { useDocumentStore } from '@/stores';
-import { ref } from 'vue';
-import VueSlider from 'vue-3-slider-component';
+import { useId } from 'vue';
 
 const docStore = useDocumentStore();
-const value = ref(docStore.toolSize);
+const sizeId = useId();
 </script>
 
 <template>
@@ -22,27 +21,19 @@ const value = ref(docStore.toolSize);
     <div class="flex flex-col p-[7px] gap-2 text-left">
       <!-- Width -->
       <div class="flex flex-col gap-1">
-        <span class="text-[10px] font-medium">{{ $t('size') }}: {{ value }}</span>
-        <VueSlider
-          v-model="value"
+        <label :for="sizeId" class="text-[10px] font-medium">
+          {{ $t('size') }}: <output :for="sizeId">{{ docStore.toolSize }}</output>
+        </label>
+        <!-- Native range: keyboard (arrows, Home/End, PageUp/Down), touch and
+             screen readers for free, no slider library in the bundle. -->
+        <input
+          :id="sizeId"
+          v-model.number="docStore.toolSize"
+          type="range"
+          class="efv-range my-1"
           :min="MIN_TOOL_SIZE"
           :max="MAX_TOOL_SIZE"
-          :interval="INTERVAL"
-          :height="4"
-          :dot-size="12"
-          :rail-style="{ backgroundColor: 'var(--efv-border)', borderRadius: '40px' }"
-          :process-style="{ backgroundColor: 'var(--efv-primary)', borderRadius: '40px' }"
-          :dot-style="{
-            backgroundColor: 'var(--efv-primary-strong)',
-            border: 'none',
-            boxShadow: 'none',
-          }"
-          clickable
-          dragOnClick
-          silent
-          class="tool-size-slider !my-1"
-          @change="(e: number) => docStore.toolSize = e"
-          tooltip="none"
+          :step="INTERVAL"
         />
       </div>
 

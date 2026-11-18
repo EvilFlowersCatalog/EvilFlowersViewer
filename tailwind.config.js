@@ -25,7 +25,7 @@ export default {
         width: 'width',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['EFV Inter', 'Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
       colors: {
         // Bind Tailwind colour utilities to the CSS design tokens so the whole

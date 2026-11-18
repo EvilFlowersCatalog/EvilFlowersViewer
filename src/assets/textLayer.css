@@ -1,0 +1,88 @@
+/*
+ * pdf.js text layer, scoped to the viewer.
+ *
+ * These are the `.textLayer` rules of pdfjs-dist/web/pdf_viewer.css (6.5),
+ * which this viewer used to import whole: 169 kB of global CSS for pdf.js's
+ * own viewer UI (toolbars, editors, `:root` variables) that also reached into
+ * the host page. Only what the text layer needs is kept, flattened and put
+ * under `.efv-viewer`. Keep in sync with pdf.js when upgrading it.
+ */
+
+.efv-viewer .textLayer {
+  color-scheme: only light;
+  position: absolute;
+  text-align: initial;
+  inset: 0;
+  overflow: clip;
+  opacity: 1;
+  line-height: 1;
+  letter-spacing: normal;
+  word-spacing: normal;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  caret-color: CanvasText;
+  z-index: 0;
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+
+.efv-viewer .textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.efv-viewer .textLayer > :not(.markedContent),
+.efv-viewer .textLayer .markedContent span:not(.markedContent) {
+  z-index: 1;
+  --font-height: 0;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  --scale-x: 1;
+  --rotate: 0deg;
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+
+.efv-viewer .textLayer .markedContent {
+  display: contents;
+}
+
+.efv-viewer .textLayer span[role='img'] {
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+
+.efv-viewer .textLayer ::selection {
+  background: rgba(0, 119, 204, 0.3);
+  color: transparent;
+}
+.efv-viewer .textLayer br::selection {
+  background: transparent;
+}
+
+/*
+ * Selection guard (see core/selection/textSelection.ts). Without it, dragging
+ * over empty space between spans selects everything up to the end of the
+ * layer: the selection "jumps". While selecting, `.endOfContent` covers the
+ * layer and is moved right after the span under the selection's moving end,
+ * so a jump can cover at most that span.
+ */
+.efv-viewer .textLayer .endOfContent {
+  display: block;
+  position: absolute;
+  inset: 100% 0 0;
+  z-index: 0;
+  cursor: default;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.efv-viewer .textLayer.selecting .endOfContent {
+  top: 0;
+}

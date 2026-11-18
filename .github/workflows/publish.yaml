@@ -38,6 +38,8 @@ jobs:
         run: npm ci
       - name: Type check
         run: npm run type-check
+      - name: Unit tests
+        run: npm test
       # dist/ is already built by `prepare` above; don't build it twice.
       - name: Publish
         run: npm publish --ignore-scripts

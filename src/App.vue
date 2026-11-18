@@ -173,6 +173,17 @@ if (markUrl) {
   };
 }
 options.onLoadProgress = (info) => console.debug('[viewer] progress', info);
+// Telemetry to the console (the portal forwards batches to Faro / OTLP).
+// `window.efvTelemetry` keeps every exported event for inspection.
+const telemetryLog: unknown[] = [];
+(window as unknown as { efvTelemetry: unknown[] }).efvTelemetry = telemetryLog;
+options.telemetry = {
+  flushIntervalMs: 1000,
+  export: (batch) => {
+    telemetryLog.push(...batch);
+    console.debug('[viewer] telemetry', batch.map((e) => e.name).join(', '));
+  },
+};
 options.onPageChange = (info) => console.info('[viewer] page', info);
 options.onStreamError = (info) => console.warn('[viewer] stream error', info);
 // pdf.js resources served by the dev server straight from node_modules.

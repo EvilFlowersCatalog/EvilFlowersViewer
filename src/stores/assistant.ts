@@ -10,6 +10,7 @@ import type {
   IChatSummary,
   INewReaderHighlight,
   IRegion,
+  ISelectionInfo,
   IViewerFocus,
 } from '@/assets/utils/interfaces';
 import type { NAVIGATION_CAUSE } from '@/assets/utils/interfaces';
@@ -17,13 +18,17 @@ import { SIDEBAR_STATE } from '@/assets/utils/enums';
 import { useDocumentStore } from './document';
 import { useViewerStore } from './viewer';
 
-/** An open explain popup. `anchor` is the page body the popup first spawns next to. */
+/** An open explain card. `anchor` is the page body the card first spawns next to. */
 export interface IExplainRequest {
   id: number;
   text: string;
   page: number;
   regionId?: string;
   anchor: DOMRect | null;
+  /** Where the explained text sits, kept marked on the page while the card is open. */
+  segments?: ISelectionInfo['segments'];
+  /** Set when the text was selected inside a previous explanation. */
+  parent?: { text: string; explanation: string } | null;
 }
 
 /** Id of the pseudo-annotation holding the reader's own text highlights. */
@@ -188,16 +193,30 @@ export const useAssistantStore = defineStore('assistant', () => {
     return !!(citation.page || citation.regionId);
   };
 
-  // --- Explain popup ---------------------------------------------------------
-  const explainRequest = ref<IExplainRequest | null>(null);
-  // Where the reader last dragged the popup; the next one opens there.
+  // --- Explain card ----------------------------------------------------------
+  // A stack: explaining a term of an explanation pushes onto it, Back pops.
+  // Explaining new text from the page starts a fresh stack.
+  const explainStack = ref<IExplainRequest[]>([]);
+  const explainRequest = computed<IExplainRequest | null>(() => explainStack.value[explainStack.value.length - 1] ?? null);
+  // Where the reader last dragged the card; the next one opens there.
   const explainPosition = ref<{ x: number; y: number } | null>(null);
 
-  const openExplain = (request: Omit<IExplainRequest, 'id'>) => {
-    explainRequest.value = { ...request, id: ++sequence };
+  const openExplain = (request: Omit<IExplainRequest, 'id'>, { push = false } = {}) => {
+    const next = { ...request, id: ++sequence };
+    explainStack.value = push ? [...explainStack.value.slice(-9), next] : [next];
+  };
+  const explainBack = () => {
+    if (explainStack.value.length > 1) explainStack.value = explainStack.value.slice(0, -1);
   };
   const closeExplain = () => {
-    explainRequest.value = null;
+    explainStack.value = [];
+  };
+
+  /** Opens the chat with `question` sent right away, about what was explained. */
+  const askAbout = (question: string, ctx?: IChatContext) => {
+    if (ctx) addContext(ctx);
+    else openChat();
+    void sendMessage(question);
   };
 
   // --- Chat ------------------------------------------------------------------
@@ -633,7 +652,7 @@ export const useAssistantStore = defineStore('assistant', () => {
     allRegions.value = null;
     focusedRegionId.value = null;
     focus.value = null;
-    explainRequest.value = null;
+    explainStack.value = [];
     messages.value = [];
     pendingContexts.value = [];
     currentChatId.value = null;
@@ -666,8 +685,11 @@ export const useAssistantStore = defineStore('assistant', () => {
     // explain
     explainRequest,
     explainPosition,
+    explainStack,
     openExplain,
+    explainBack,
     closeExplain,
+    askAbout,
     // chat
     isChatOpen,
     messages,

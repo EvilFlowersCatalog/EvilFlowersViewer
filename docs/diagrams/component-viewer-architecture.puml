@@ -1,0 +1,51 @@
+@startuml component-viewer-architecture
+!include elvira.iuml
+' What: the viewer's layers after the 2026-11 cleanup: a thin Vue shell composes composables, which drive framework-free core modules; the host talks to one controller and one event bus, and telemetry is an adapter on that bus.
+' Kind: UML component diagram. Scope: EvilFlowersViewer (library), host integration included.
+' Source: src/main.ts, src/components/PDFViewer.vue, src/composables/*, src/core/*, src/stores/* (2026-11-18)
+top to bottom direction
+
+title EvilFlowersViewer: layers and host integration
+
+package "Host (elvira-portal or any app)" as host {
+  component "app.viewer\n(IViewerController)" as ctl
+  component "Host services\n(explain, chat, search, bookmarks…)" as services
+  component "Telemetry sink\n(Faro / OTLP adapter)" as sink
+}
+
+package "UI (Vue components)" as ui {
+  component "PDFViewer.vue (shell)\nPageStream · PageView ×N\nSelection menu · Explain card · TopBar · Navigator" as shell
+}
+
+package "Composables (Vue glue)" as comp {
+  component "useViewerController\n(Facade)" as facade
+  component "useDocumentLoader · useTextSelection\nuseKeyboardShortcuts · useTheme\nuseAnnouncer · useEmbeddedMetadata" as glue
+}
+
+database "Pinia stores\nviewer = host port · document · search · assistant" as stores
+
+package "Core (framework-free, unit-tested)" as core {
+  component "EventBus\n(Observer)" as bus <<focus>>
+  component "Telemetry\n(batching recorder)" as tel
+  component "instrumentHost\n(Decorator)" as deco
+  component "document · selection · citation\n(pure modules)" as modules
+}
+
+component "pdf.js\n(one worker per viewer)" as pdfjs
+
+ctl --> facade : commands · getState · subscribe · on
+facade --> stores
+shell --> glue
+glue --> stores
+glue --> modules
+glue --> pdfjs
+stores --> bus : emit
+bus -[$accent()]-> ctl : <b>events</b> (+ options.on* callbacks)
+bus --> tel : bridge, content stripped
+stores --> deco : bind options
+deco --> services : calls, timed as host.call
+tel -[$accent()]-> sink : <b>batched export</b>
+
+caption One controller in, one event stream out. Every viewer event is emitted once on the bus and fans out to host listeners, legacy callbacks and telemetry.
+footer ELVIRA · FIIT STU · EvilFlowersViewer · docs/diagrams/component-viewer-architecture.puml
+@enduml

@@ -291,10 +291,23 @@ export const useSearchStore = defineStore('search', () => {
     return null;
   };
 
-  // ---- host callbacks ----
-  const report = (summary: ISearchSummary) => {
-    const cb = useViewerStore().onSearch;
-    if (cb) useDocumentStore().callHost(() => cb(summary));
+  // ---- reporting ----
+  // The public event (host callback, `controller.on('search')`), plus timing
+  // for telemetry; telemetry gets the query's length, never the query.
+  const report = (summary: ISearchSummary, startedAt?: number) => {
+    const { events, telemetry } = useViewerStore();
+    events.emit('search', summary);
+    telemetry.record(
+      'search',
+      {
+        source: summary.source,
+        total: summary.total,
+        pages: summary.pages,
+        truncated: summary.truncated,
+        queryLength: summary.query.length,
+      },
+      startedAt !== undefined ? { durationMs: performance.now() - startedAt } : {}
+    );
   };
 
   const summaryOf = (kind: SEARCH_SOURCE): ISearchSummary => {
@@ -314,6 +327,7 @@ export const useSearchStore = defineStore('search', () => {
   /** Text search over the whole document; hits arrive page by page. */
   const run = async (q: string, opts: ISearchOptions = {}): Promise<ISearchSummary> => {
     const id = ++runId;
+    const startedAt = performance.now();
     query.value = q;
     options.value = { ...options.value, ...opts };
     const doc = pdf();
@@ -336,7 +350,13 @@ export const useSearchStore = defineStore('search', () => {
     let firstSelected = false;
     const startPage = useDocumentStore().activePage;
 
-    const publish = () => {
+    // At most ~16 list updates a second while pages stream in: re-flattening
+    // and re-rendering the list after every page made long books stutter.
+    let publishedAt = 0;
+    const publish = (force = false) => {
+      const now = performance.now();
+      if (!force && now - publishedAt < 60) return;
+      publishedAt = now;
       results.value.text = perPage.flat().slice(0, MAX_HITS);
     };
 
@@ -353,9 +373,11 @@ export const useSearchStore = defineStore('search', () => {
           perPage[page - 1] = [];
         }
         progress.value = { done: progress.value.done + 1, total };
-        publish();
         // Jump to the first hit at or after the reader's page as soon as it exists.
-        if (!firstSelected && source.value === 'text') {
+        const firstChance =
+          !firstSelected && source.value === 'text' && page >= startPage && !!perPage[page - 1]?.length;
+        publish(firstChance);
+        if (firstChance) {
           const at = results.value.text.findIndex((h) => h.page >= startPage);
           if (at >= 0) {
             firstSelected = true;
@@ -366,13 +388,13 @@ export const useSearchStore = defineStore('search', () => {
     };
     await Promise.all(Array.from({ length: CONCURRENCY }, worker));
     if (id !== runId) return summaryOf('text');
-    publish();
+    publish(true);
     truncated.value = count >= MAX_HITS;
     status.value = 'done';
     if (!firstSelected && results.value.text.length && source.value === 'text')
       select(0, 'text');
     const summary = summaryOf('text');
-    report(summary);
+    report(summary, startedAt);
     return summary;
   };
 
@@ -386,12 +408,13 @@ export const useSearchStore = defineStore('search', () => {
       return;
     }
     semanticStatus.value = 'searching';
+    const startedAt = performance.now();
     try {
       const found = await fn(q, { page: useDocumentStore().activePage });
       if (id !== semanticId) return;
       results.value.semantic = await toHits(found ?? [], 'semantic', q);
       semanticStatus.value = 'done';
-      report(summaryOf('semantic'));
+      report(summaryOf('semantic'), startedAt);
     } catch (error) {
       if (id !== semanticId) return;
       console.error('Semantic search failed:\n', error);
@@ -455,13 +478,12 @@ export const useSearchStore = defineStore('search', () => {
     active.value = index;
     selectSeq.value++;
     useDocumentStore().goTo(hit.page, 'search');
-    const cb = useViewerStore().onSearchResultSelect;
-    if (cb) {
+    const { events } = useViewerStore();
+    if (events.has('search-select')) {
       const isOwnId = kind === 'text' || /^[sh]\d+$/.test(hit.id);
-      useDocumentStore().callHost(() =>
-        cb({ source: kind, index, page: hit.page, id: isOwnId ? null : hit.id })
-      );
+      events.emit('search-select', { source: kind, index, page: hit.page, id: isOwnId ? null : hit.id });
     }
+    useViewerStore().telemetry.record('search.select', { source: kind, index, page: hit.page });
   };
 
   const step = (dir: 1 | -1) => {

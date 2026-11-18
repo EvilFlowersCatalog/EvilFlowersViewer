@@ -2,6 +2,57 @@
 
 ## Unreleased
 
+### Text selection and Explain, reimagined
+
+- `controller.open()`: the page stream is rebuilt per document (keyed), so pages never carry state over from the previous document.
+- **Selection no longer jumps or flickers.** The viewer builds pdf.js text layers itself but never had pdf.js' selection guard (`.endOfContent` moved after the span under the moving end): dragging over the gaps between words selected whole blocks. It now has it. The selection menu appears when the reader lets go, never mid-drag (it was re-shown on a 150 ms debounce while dragging), and figure/highlight hover cards stay quiet during a selection. One selection engine per viewer replaces a `selectionchange` listener per mounted page. Copied and selected text keeps line breaks as spaces and joins hyphenated words (a `user-select: none` on `<br>` had glued lines together: "SQLTáto").
+- **Selection menu, redesigned**: a translucent pill above the text, positioned in page fractions, so it scrolls and zooms with the text. *Explain* is the primary action; then Highlight, Copy, Ask, and Find (all occurrences of a short phrase). *Similar* moved into Explain ("In other publications") and stays in the menu only for hosts without Explain. A toolbar with ←/→ navigation; icon-only with tooltips on phones.
+- **Explain card**: opens beside the page, or below/above the passage, never over it, follows the passage on scroll and zoom until dragged, and keeps the passage marked on the page while open. The explanation streams in (`IExplainContext.onPartial`) and the request is cancelled when the card closes (`signal`). New optional sections from `IExplainResult`: *In depth* (`detailed`), examples, key terms (each explainable in turn), *Elsewhere in this book* (`related`, or derived from `semanticSearchFunction`), *In other publications* (`suggestionsFunction`) and follow-up questions that open the chat already asked. Select text inside an explanation to explain it (`IExplainContext.parent`); Back returns. `IExplainResult.examples` is now optional.
+
+### Reference managers
+
+- With `citationBib`, the Zotero Connector (and importers reading the same tags) can save the open publication: Highwire `citation_*` meta tags in the head (removed on unmount, skipped when the host has its own), a COinS span, and a `ZoteroItemUpdated` event for single-page apps. New option `citationMetadata` (default true). The Cite card exports CSL-JSON.
+
+### Host integration
+
+- **Events**: `controller.on(event, listener)` with a typed `IViewerEventMap` (`document-open`, `document-loaded`, `first-page-rendered`, `document-error`, `load-progress`, `stream-error`, `page-change`, `scale-change`, `theme-change`, `panel-change`, `search`, `search-select`, `selection-change`, `action`). The `options.on*` callbacks are listeners on the same bus; new `onSelectionChange`.
+- **State for React**: `getState()` returns a frozen snapshot that keeps its identity until something changes, and `subscribe(listener)` notifies on change: `useSyncExternalStore(viewer.subscribe, viewer.getState)` works as is.
+- **`setOptions(partial)`**: replace services, callbacks, telemetry, title, language and more without remounting (React hosts with fresh closures).
+- **AI context**: `getSelection()`, `clearSelection()`, `getPageText(page)`.
+- **Telemetry**: `options.telemetry` (`ITelemetrySink`) receives batched events with no document content: lifecycle and timing (open, parse, first paint, download), page renders, reading time per page, navigation, zoom, panels, actions, search timing, selection, explain, chat time to first token, the latency and outcome of every host function, main-thread stalls and component errors. See docs/telemetry.md.
+- `rootId` may be an element. `keyboardShortcuts: 'off'` turns single-key shortcuts off; by default they act only in the viewer last used (several viewers on a page no longer react together).
+- Each viewer has its own translations: `setLang` on one no longer switches every viewer on the page.
+
+### Performance
+
+- ES entry **6.4 MB → 1.09 MB** (1.68 MB → 301 kB gzip); `style.css` **1017 kB → 244 kB** (603 → 147 kB gzip). Lazy chunks: the pdf.js worker, citations (citation-js reduced to core + BibTeX/CSL/RIS, without Wikidata/DOI/BibJSON), QR code, print-js. New `pdfWorkerUrl` to serve the worker as a cacheable file instead of the bundled chunk.
+- One pdf.js worker per viewer, reused for every `open()` (no worker start-up and 1 MB script compile per book switch); the worker starts in parallel with the first Range request.
+- Inter as one variable woff2 per subset, no woff fallback (was 8 static files in two formats).
+- Only pdf.js' text-layer CSS ships, scoped under `.efv-viewer` (the whole 169 kB `pdf_viewer.css` was imported globally, including `:root` variables).
+- Bundled pinia and vue-i18n are built without their dev branches (devtools hooks, warnings).
+- Search publishes results at most ~16× per second while pages stream in (was a full re-flatten per page).
+- Outline entries resolve in parallel; the parsed document is no longer made deeply reactive.
+- Only the public types ship as declarations (5 files instead of 100, no 240 kB inferred store types).
+
+### Accessibility
+
+- A polite live region announces the page (debounced while scrolling), search results, copy and explain status.
+- `forced-colors` styles for focus, highlights, the explained passage and the selection menu.
+- Top-bar tooltips (name and shortcut) also show on keyboard focus.
+- Native, labelled range input for the drawing size (replaces vue-3-slider-component).
+
+### Architecture
+
+- `PDFViewer.vue` (1181 lines) split into composables (`useDocumentLoader`, `useViewerController`, `useTheme`, `useKeyboardShortcuts`, `useTextSelection`, `useAnnouncer`, `useEmbeddedMetadata`, `useExplanation`) and framework-free `src/core` modules (event bus, telemetry, document source, load errors, outline, page ranges, selection, citation, preferences), with unit tests (vitest, run in CI).
+- One emission point per event (Observer); host services timed by a decorator; `viewerStore.bindOptions` replaces 30 hand-copied assignments.
+- Docs: README rewritten; new docs/host-integration.md, telemetry.md, architecture.md, accessibility.md, development.md and an architecture diagram.
+
+### Dependencies
+
+- All dependencies at their latest compatible versions (Vite 8.3, Vue 3.5.45, Pinia 4.1, vue-i18n 11.4.22, vue-tsc 3.3.14, DOMPurify 3.4.18, `@vue/tsconfig` 0.9.1, …); vitest 5 added.
+- Removed: `citation-js` (→ `@citation-js/core` + plugins), `@fontsource/inter` (→ `@fontsource-variable/inter`), `@kalimahapps/vue-icons` (one icon), `vue-3-slider-component`, `qrcode` (unused), `vite-plugin-svgr` (unused), `@types/prettier`.
+- Kept deliberately: Tailwind 3 (v4 raises every host's browser floor), TypeScript 6 (7.0.2 tried: vue-tsc 3.3.14 does not start on it), citation-js 0.7 (0.9's core needs Node's `sync-fetch-undici`). `npm audit --omit=dev`: 0; dev-only findings come from `picomatch`, which has no patched release.
+
 ### Redesign: a document-centric reader (#152)
 
 - **Continuous scroll.** All pages in one scroll, laid out at their real size (estimated from the first page until each loads, so no full-file fetch). Only pages near the view are mounted; bitmaps are freed when they leave (measured: 2–3 pages, ~12 MP of canvas at DPR 2 anywhere in a 319-page book). Scrolling sets the current page (`onPageChange` cause `scroll`, no history); jumps scroll to their page, even when it is already the current one. Each page draws its own layers (search hits, highlights, regions, focus, links, bookmark).
