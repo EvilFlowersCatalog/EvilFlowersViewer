@@ -1,5 +1,9 @@
 <script lang="ts" setup>
+// One row of the contents: disclosure, title, page. The section the reader
+// is in is marked, so the contents double as a "you are here".
+import { computed, inject, type ComputedRef } from 'vue';
 import type { ITOCItem } from '@/assets/utils/interfaces';
+import { useDocumentStore } from '@/stores';
 
 const { item } = defineProps<{ item: ITOCItem }>();
 
@@ -8,55 +12,52 @@ const emit = defineEmits<{
   (event: 'toggle-expand', item: ITOCItem): void;
 }>();
 
-const handleItemClick = (page: number) => emit('item-click', page);
-const handleToggleExpand = () => emit('toggle-expand', item);
+const docStore = useDocumentStore();
+const current = inject<ComputedRef<ITOCItem | null>>('tocCurrent', computed(() => null));
+const isCurrent = computed(() => current.value === item);
 </script>
 
 <template>
   <div
-    class="flex w-full items-baseline gap-2 mb-2"
-    :style="{ paddingLeft: `${item.level * 12}px` }"
+    class="group flex w-full items-center rounded-[7px] transition-colors"
+    :class="isCurrent ? 'bg-[#0077cc]/10' : 'hover:bg-black/[0.04] dark:hover:bg-white/5'"
+    :style="{ paddingLeft: `${item.level * 14}px` }"
   >
-    <!-- Title -->
-    <button
-      @click="handleItemClick(item.pageNumber)"
-      class="text-[10px] leading-[18px] tracking-[0.1px] text-left text-gray-800 dark:text-gray-200 hover:text-secondary dark:hover:text-secondary transition-colors min-w-0 max-w-[70%] truncate"
-      :class="item.level === 0 ? 'font-semibold' : 'font-normal text-gray-600 dark:text-gray-400'"
-    >
-      {{ item.title }}
-    </button>
-
-    <!-- Dotted line -->
-    <span class="border-b border-dashed border-gray-300 dark:border-gray-600 flex-1 mb-0.5"></span>
-
-    <!-- Page number -->
-    <button
-      v-if="item.pageNumber !== -1"
-      @click="handleItemClick(item.pageNumber)"
-      class="text-xs text-gray-500 dark:text-gray-400 hover:text-secondary transition-colors shrink-0 font-medium"
-    >
-      {{ item.pageNumber }}
-    </button>
-
-    <!-- Expand toggle -->
     <button
       v-if="item.children.length > 0"
-      @click="handleToggleExpand"
-      class="text-gray-400 dark:text-gray-500 hover:text-secondary dark:hover:text-secondary transition-colors shrink-0"
+      type="button"
+      class="size-6 shrink-0 inline-flex items-center justify-center text-[#8e8e93] hover:text-[#1d1d1f] dark:hover:text-white"
+      :aria-expanded="item.isExpanded"
+      :aria-label="item.title"
+      @click="emit('toggle-expand', item)"
     >
-      <svg class="size-3.5" viewBox="0 0 12 12" fill="none">
-        <path
-          :d="item.isExpanded ? 'M2 8L6 4L10 8' : 'M2 4L6 8L10 4'"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
+      <svg class="size-3 transition-transform" :class="item.isExpanded ? 'rotate-90' : ''" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+        <path d="M4.5 2.5L8 6l-3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
+    </button>
+    <span v-else class="w-6 shrink-0" />
+
+    <button
+      type="button"
+      class="flex-1 min-w-0 flex items-baseline gap-3 py-[5px] pr-2 text-left"
+      :disabled="item.pageNumber === -1"
+      @click="emit('item-click', item.pageNumber)"
+    >
+      <span
+        class="flex-1 min-w-0 text-[13px] leading-[1.35]"
+        :class="[
+          item.level === 0 ? 'font-medium text-[#1d1d1f] dark:text-white' : 'text-[#3a3a3c] dark:text-gray-300',
+          isCurrent ? '!text-[#0077cc]' : '',
+        ]"
+      >
+        {{ item.title }}
+      </span>
+      <span v-if="item.pageNumber !== -1" class="shrink-0 text-[12px] tabular-nums text-[#8e8e93]">
+        {{ docStore.pageLabel(item.pageNumber) ?? item.pageNumber }}
+      </span>
     </button>
   </div>
 
-  <!-- Children -->
   <div v-if="item.isExpanded && item.children.length > 0">
     <TOCItem
       v-for="(child, j) in item.children"

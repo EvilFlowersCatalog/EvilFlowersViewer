@@ -2,9 +2,55 @@
 
 ## Unreleased
 
+### Redesign: a document-centric reader (#152)
+
+- **Continuous scroll.** All pages in one scroll, laid out at their real size (estimated from the first page until each loads, so no full-file fetch). Only pages near the view are mounted; bitmaps are freed when they leave (measured: 2–3 pages, ~12 MP of canvas at DPR 2 anywhere in a 319-page book). Scrolling sets the current page (`onPageChange` cause `scroll`, no history); jumps scroll to their page, even when it is already the current one. Each page draws its own layers (search hits, highlights, regions, focus, links, bookmark).
+- **Pinch to zoom** on trackpads (Chrome, Edge, Firefox `ctrl+wheel`; Safari gesture events) and touch screens, with an instant preview and a sharp re-render anchored at the fingers; the browser's own page zoom no longer kicks in. Ctrl/Cmd + `+` `-` `0` zoom the document. Zoom keeps the reading position, and re-rendering never flashes a blank page (double-buffered). Max zoom 400 %.
+- **Opens at the width of the view** (up to 140 %) and stays fitted while the Navigator, chat or window change size, until the reader zooms by hand. Zoom menu: Fit width, Actual size.
+- **One top bar**: Navigator, title (`options.title` or the PDF's own), page box with page labels, find, zoom, and the actions, each visible with its shortcut in a tooltip: Cite `C`, Share `S`, Print `P`, Download `D`, Info `I`, Recommendations `R`, Draw `E`, Ask `A`. On narrow screens the rarer ones fold into `⋯` (theme, fullscreen, close, shortcut list).
+- **Actions open where they are asked for**: Cite, Share, Print and Info are cards under their own button. **Cite**: APA, Harvard, Vancouver, BibTeX, BibLaTeX, RIS; the in-text form; "Cite page N"; copy and download. **Share**: whole document, this page or pages; 1/7/30 days; with annotations; then the link (copied), a QR code, Open and the system share sheet, all in the card. **Print**: same scopes. **Info**: the document's metadata and file size.
+- **Navigator** (left, `T`): Contents (readable rows, "you are here"), Pages (thumbnail grid, replaces the bottom strip), Search, Notes (bookmarks + highlights). Docked beside the pages on wide screens, over them on narrow ones (it closes after a jump there).
+- **Drawing is a mode** (`E`): the tool rail appears only in it; saved drawings show on every page, read-only where the drawing canvas is not (it is one instance that follows the current page; while a tool is picked the page is pinned, so saves land on the right page).
+- Removed: the left icon rail, the bottom bar with the thumbnail strip, the floating side panels, the citation and QR modals.
+- API: `openPanel('share' | 'info' | 'print')` opens the card under its button; `openPanel('pages')` is new; `NAVIGATION_CAUSE` gains `scroll`; `IViewerOptions.title`.
+
+### Security
+
+- **pdf.js 6.1.200 → 6.5.438** (#151): fixes GHSA-hq66-cqwq-w95j / CVE-2026-16633 (arbitrary JavaScript on opening a malicious PDF, needs `enableScripting` in the AnnotationLayer, which the viewer does not use) and brings the range-loading fixes for a document destroyed mid-request (#22164, #22173). XFA is kept off explicitly. `isEvalSupported` no longer exists in pdf.js 6.x. README has a CSP note for hosts.
+
 ### Added
 
+- **Refreshable range loading** (#151): `httpHeaders` may be a function `({ retry }) => headers`, called before every request. The viewer then fetches the ranges itself; a 401/403 is retried once with `{ retry: true }`, and concurrent failures share one refresh. The first chunk doubles as the length probe, so there is no aborted full GET. Optional `length`.
+- **`streaming`** (#151): range-only loading for `url` (`disableAutoFetch` + `disableStream`); the outline is then read when the reader opens the contents.
+- **Controller** (#151): `renderViewer` returns the app with `app.viewer` (`IViewerController`): `open` (swap the document without remounting), `retry`, `goToPage`, `goToLabel`, `goToDestination`, `nextPage`, `previousPage`, `back`, `forward`, `focus`, `getOutline`, `search`, `openPanel`, `setTheme`, `setLang`, `setScale`, `getState`. `.unmount()` and the default export are unchanged.
+- **Navigation**: a back/forward history of jumps (in-PDF links, contents, search, citations, host jumps; stepping through search hits is one jump), a **Back to p. N** chip, Alt+←/→, Home/End, PageUp/PageDown. PDF page labels: the page box shows and accepts printed page numbers ("iv", "12").
+- **Host events**: `onDocumentLoaded`, `onLoadProgress` (one per frame), `onPageChange({ page, totalPages, pageLabel, previousPage, cause, canGoBack, canGoForward })`, `onStreamError({ status })`. `onFirstPageRendered` gains `source`, `streaming`, `bytesLoaded`, `totalBytes`; `onDocumentError` gains `reason`, `status`, `source`.
+- **`pdfAssetsUrl`**: where the host serves pdf.js' `wasm/`, `cmaps/`, `standard_fonts/`, `iccs/`. Without it JPX/JBIG2 scans had no Wasm decoder and CJK/non-embedded fonts no data.
+- **`workerRendering`** (opt-in): pages are drawn in pdf.js' renderer worker; its script is a lazy chunk, loaded only when enabled.
+- **Stream errors**: a range that fails after the document opened shows a "Reconnect" notice instead of a page that never paints; a thin bar shows the background download after page 1.
+- **Search, redesigned**: one field and one list. Matches are found across text items, ignore case and diacritics by default ("databaz" finds "databáz"; match case and whole words sit behind "⋯"), arrive page by page with progress, and are grouped by chapter from the outline. Every match on the page is highlighted (the selected one stronger) by an overlay, tight to the words; selecting one no longer repaints the canvas. With `semanticSearchFunction`, "Related passages" (top 3, expandable) appear above the matches, with no mode to switch; a passage without `rects` is found on its page by its text and marked. A find pill keeps ‹ › stepping after the panel closes; Ctrl/Cmd+F, Enter/Shift+Enter, F3, Ctrl/Cmd+G and Esc work. On wide screens the panel pushes the page aside instead of covering it.
+- **Search API**: `controller.search(query, options)` resolves with `{ total, pages, truncated }`, plus `searchNext`, `searchPrevious` and `clearSearch`. `controller.showResults(passages, { label })` lists, highlights and steps the host's own passages (e.g. the sources of a chat answer). `ISemanticSearchResult` gains optional `id`, `title`, `reason` and `rects`; `semanticSearchFunction` receives `{ page }`. New `onSearch(summary)` and `onSearchResultSelect({ source, index, page, id })`.
+- **Sharp pages on HiDPI screens**: pages and thumbnails were rasterised at CSS pixels and upscaled by the browser (blurry on every Retina/HiDPI display). They now render at `devicePixelRatio` (capped under Safari's canvas limit) and re-render when it changes (browser zoom, another monitor).
+- New exported types: `IViewerController`, `IViewerState`, `IOutlineEntry`, `IPageChangeInfo`, `NAVIGATION_CAUSE`, `IDocumentLoadedInfo`, `ILoadProgressInfo`, `IStreamErrorInfo`, `HttpHeadersSource`, `DOCUMENT_SOURCE_KIND`, `LOAD_ERROR_REASON`, `VIEWER_PANEL`, `ViewerApp`, `IHostSearchResult`, `ISearchHit`, `ISearchOptions`, `ISearchSummary`, `ISearchSelectInfo`, `SEARCH_SOURCE`.
 - **Open timing for the host** (#150, elvira-portal#59): new optional `options.onFirstPageRendered({ page, durationMs })`, called once per opened document when its first page is painted, with `durationMs` measured from the start of the load inside the viewer. New optional `options.onDocumentError({ stage })`, called at most once per document when it fails before that paint (`download`, `parse` or `render`). Neither carries document content, and a throwing callback is logged without breaking the viewer. New exported types `IFirstPageRenderedInfo` and `IDocumentErrorInfo`.
+
+### Changed
+
+- `rangeChunkSize` defaults to 512 KiB with `url` (was pdf.js' 64 KiB).
+- The bundle inlines the minified pdf.js worker: the ES bundle went from 7.9 MB to 6.5 MB.
+- Switching documents while one is still loading destroys the unfinished load at once.
+- Failure screen: readable in the light theme (the title was white on light grey), says when the session expired or the file is gone (`load-error-auth`, `load-error-not-found`), and offers **Close** when the host has a `closeFunction`.
+- Viewer shortcuts ignore Ctrl/Cmd combinations (so e.g. Cmd+P and Cmd+C stay the browser's), except Ctrl/Cmd+F (search in the book, as in every PDF viewer) and Ctrl/Cmd+G (next match).
+- Screen readers: the current search match is announced through a live region ("3 / 42") instead of being marked on its text-layer span (#140); the page highlights are decorative.
+
+### Fixed
+
+- **Links inside the PDF** (contents pages, cross-references): pdf.js 6.5 removed `PageViewport.convertToViewportRectangle`, which silently dropped every link annotation.
+- `npm run type-check` checked nothing (the root `tsconfig.json` has `files: []`); it now checks `tsconfig.app.json`. Dropped the TS 6-deprecated `baseUrl`.
+- A `goToPage`/`focus` issued while the document loads is no longer lost.
+- A host without `editPackage` no longer hits an error on mount (the drawing layer assumed the package); drawings are then session-only.
+- A page whose bytes fail to arrive after the first paint (pdf.js' own `url` loader) shows the Reconnect notice and calls `onStreamError`, instead of the generic error notice.
+- Unmounting the viewer drops the document from its store, so a remount never touches a destroyed pdf.js document.
 
 ### Build
 

@@ -1,0 +1,33 @@
+@startuml component-reader-shell
+!include elvira.iuml
+' What: the reader shell is reduced to a page stream with one top bar and one Navigator drawer; every page draws its own layers, while the drawing canvas stays a single instance on the active page.
+' Kind: UML component diagram. Scope: EvilFlowersViewer UI shell (redesign); host packages and stores unchanged.
+' Source: src/components/PDFViewer.vue, src/components/pdf-viewer-page/*, src/stores/* (2026-11-18)
+
+title Document-centric reader shell (proposal, 2026-11-18)
+
+component "PDFViewer.vue\n(root, controller)" as root
+component "ReaderTopBar\n(title · page · search · ⋯)" as top <<proposed>>
+component "Navigator drawer\n(Contents · Pages · Search · Notes)" as nav <<proposed>>
+component "PageStream\n(continuous scroll, virtual window)" as stream <<proposed>> <<focus>>
+component "PageView ×N\n(canvas · text · links · highlight layers)" as page <<proposed>>
+component "EditCanvas\n(single instance, teleported to the active page)" as edit
+component "ChatPanel\n(right, host chat)" as chat
+database "document store\n(activePage, navigation, history)" as docstore
+database "search store" as search
+
+root --> top : renders
+root --> nav : renders
+root --> stream : renders
+root --> chat : renders when chatPackage
+stream --> page : mounts pages in the window
+stream -[$accent()]-> docstore : <b>activePage from scroll</b>\n(cause: scroll)
+docstore --> stream : jumps (goTo) scroll the stream
+page --> search : reads hits of its page
+edit --> docstore : loads / saves by activePage
+nav --> docstore : goTo(page, outline / search)
+top --> docstore : page box, zoom, panels
+
+caption One scroll container shows every page; layers are per page, the drawing canvas is one instance that follows the active page. The rail and the bottom bar are removed; their features move to the top bar, the Navigator and the ⋯ menu.
+footer ELVIRA · FIIT STU · EvilFlowersViewer · docs/diagrams/component-reader-shell.puml
+@enduml

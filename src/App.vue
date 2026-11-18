@@ -52,12 +52,34 @@ const options: IViewerOptions = {
   printFunction: examplePrintFunction,
   // Dev stub for semantic search — returns a few fake hits after a short delay
   // so the two-column search layout can be exercised locally.
+  // Passages of SampleTOC.pdf, so the viewer can locate and mark them; `rects`
+  // are omitted on purpose to exercise that path.
   semanticSearchFunction: async (query: string) => {
     await new Promise((r) => setTimeout(r, 500));
     return [
-      { page: 3, text: `Sémanticky podobné k „${query}“: úvod do témy.`, score: 0.94 },
-      { page: 8, text: `Kontext súvisiaci s „${query}“ v kapitole 2.`, score: 0.88 },
-      { page: 21, text: `Ďalšia relevantná pasáž pre „${query}“.`, score: 0.79 },
+      {
+        page: 16,
+        id: 'sql-history',
+        title: '3.1 História SQL',
+        text: 'Prvotná verzia jazyka SQL (Structured Query Language) nazývaná ako Sequel',
+        reason: `Opisuje vznik jazyka, na ktorý sa pýtate („${query}“).`,
+        score: 0.94,
+      },
+      {
+        page: 16,
+        id: 'sql-standard',
+        title: '3.1 História SQL',
+        text: 'Prvý štandard bol vydaný v roku 1986 s označením SQL-86',
+        score: 0.88,
+      },
+      {
+        page: 9,
+        id: 'intro',
+        title: '1 Úvod do databázových systémov',
+        text: 'Úvod do databázových systémov',
+        score: 0.71,
+      },
+      { page: 12, id: 'model', title: '2 Dátový model', text: 'Dátový model', score: 0.6 },
     ];
   },
   homeFunction,
@@ -116,12 +138,52 @@ const options: IViewerOptions = {
 };
 
 // `?source=url` exercises the streamed path: pdf.js fetches the sample itself,
-// with HTTP Range requests when the server allows them (small chunks, so the
-// 206s are easy to see). `?url=<pdf>` loads another file the same way; the
-// Vite dev server does not answer Range, a static server that does will.
+// with HTTP Range requests when the server allows them. `?url=<pdf>` loads
+// another file the same way; the Vite dev server does not answer Range, a
+// static server that does will. More switches:
+//   `?chunk=16384`   Range chunk size (default: the viewer's 512 KiB)
+//   `?streaming=1`   range-only loading (no background prefetch)
+//   `?token=<url>`   headers as a function: a Bearer token fetched from <url>,
+//                    refreshed whenever the viewer asks again after a 401
+//   `?worker=1`      draw pages in the pdf.js renderer worker
 const query = new URLSearchParams(window.location.search);
 const sourceUrl = query.get('url') ?? pdf;
 const useUrl = query.get('source') === 'url' || query.has('url');
+const chunk = Number(query.get('chunk')) || null;
+const streaming = query.get('streaming') === '1';
+const tokenUrl = query.get('token');
+let token: string | null = null;
+// The test server's tokens expire after 3 requests; like a real host, this
+// one keeps its token until the viewer reports a 401 (`retry: true`).
+const headers = tokenUrl
+  ? async ({ retry }: { retry: boolean }) => {
+      if (!token || retry) token = await (await fetch(tokenUrl)).text();
+      return { Authorization: `Bearer ${token}` };
+    }
+  : null;
+options.workerRendering = query.get('worker') === '1';
+options.onDocumentLoaded = (info) => console.info('[viewer] document loaded', info);
+// `?mark=<url>`: ping a test server at first paint, to order it among the ranges.
+const markUrl = query.get('mark');
+if (markUrl) {
+  const report = options.onFirstPageRendered;
+  options.onFirstPageRendered = (info) => {
+    report?.(info);
+    fetch(`${markUrl}?bytes=${info.bytesLoaded}&ms=${info.durationMs}`).catch(() => undefined);
+  };
+}
+options.onLoadProgress = (info) => console.debug('[viewer] progress', info);
+options.onPageChange = (info) => console.info('[viewer] page', info);
+options.onStreamError = (info) => console.warn('[viewer] stream error', info);
+// pdf.js resources served by the dev server straight from node_modules.
+options.pdfAssetsUrl = '/node_modules/pdfjs-dist/';
+
+// The controller, for poking at from the console: `viewer.goToPage(5)`.
+const viewerRef = ref<{ controller: unknown } | null>(null);
+onMounted(() => {
+  (window as unknown as { viewer: () => unknown }).viewer = () =>
+    viewerRef.value?.controller;
+});
 
 onMounted(async () => {
   if (useUrl) return;
@@ -135,13 +197,16 @@ onMounted(async () => {
 <template>
   <PDFViewer
     v-if="useUrl"
+    ref="viewerRef"
     :url="sourceUrl"
-    :range-chunk-size="16384"
+    :http-headers="headers"
+    :range-chunk-size="chunk"
+    :streaming="streaming"
     :config="config"
     :options="options"
   />
   <div v-else-if="!data" class="flex w-screen h-screen justify-center items-center">
     <Loader :size="100" color="#4a9cff" />
   </div>
-  <PDFViewer v-else :data="data" :config="config" :options="options" />
+  <PDFViewer v-else ref="viewerRef" :data="data" :config="config" :options="options" />
 </template>

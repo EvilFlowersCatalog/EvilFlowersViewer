@@ -6,6 +6,7 @@ import { useAssistantStore, useDocumentStore, useViewerStore } from '@/stores';
 import SelectionMenu from './SelectionMenu.vue';
 import SimilarBooksPopup from './SimilarBooksPopup.vue';
 import { useEscapeLayer } from '@/components/pdf-aids/useEscapeLayer';
+import { usePageContext } from '../usePageContext';
 
 const props = defineProps<{
   textLayerRef: HTMLDivElement | null;
@@ -17,6 +18,8 @@ const emit = defineEmits<{ highlight: [rects: DOMRect[], text: string] }>();
 const docStore = useDocumentStore();
 const viewerStore = useViewerStore();
 const assistantStore = useAssistantStore();
+// The page this layer watches; a selection belongs to the page it starts on.
+const { page } = usePageContext();
 
 const selectionText = ref('');
 const selectionRects = ref<DOMRect[]>([]);
@@ -106,7 +109,7 @@ const handleHighlight = () => {
 const handleExplain = () => {
   assistantStore.openExplain({
     text: selectionText.value,
-    page: docStore.activePage,
+    page: page.value,
     anchor: props.pageBodyRef?.getBoundingClientRect() ?? null,
   });
   window.getSelection()?.removeAllRanges();
@@ -114,7 +117,7 @@ const handleExplain = () => {
 };
 
 const handleAsk = () => {
-  assistantStore.addContext({ kind: 'selection', text: selectionText.value.trim(), page: docStore.activePage });
+  assistantStore.addContext({ kind: 'selection', text: selectionText.value.trim(), page: page.value });
   window.getSelection()?.removeAllRanges();
   clearSelection();
 };

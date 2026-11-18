@@ -21,6 +21,16 @@ const lastRectCords = ref<{ x: number; y: number }>({
 const recreatElement = ref<boolean>(true);
 const path = ref<string>('M');
 const layerCache = ref<Map<string, ILayer | null>>(new Map());
+// Every cached layer is mirrored into the store by page, so the pages this
+// single canvas is not on (continuous scroll) still show their drawings.
+const cacheLayer = (key: string, layer: ILayer | null) => {
+  layerCache.value.set(key, layer);
+  const separator = key.lastIndexOf('-');
+  const page = Number(key.slice(separator + 1));
+  if (key.slice(0, separator) === docStore.groupId || !docStore.groupId) {
+    if (Number.isInteger(page)) docStore.setPageLayerSvg(page, layer?.svg ?? null);
+  }
+};
 const currentLoadingPage = ref<number | null>(null);
 const currentPageForSvg = ref<number | null>(null);
 const savingPages = ref<Map<number, boolean>>(new Map()); // Track which pages are saving
@@ -103,7 +113,7 @@ const updateCacheForPage = async (pageNum: number, svgContent: string) => {
   
   if (existingLayer) {
     const updatedLayer = { ...existingLayer, svg: svgContent };
-    layerCache.value.set(cacheKey, updatedLayer);
+    cacheLayer(cacheKey, updatedLayer);
     pageLayerMap.value.set(pageNum, updatedLayer);
     
     // Update the store if this is the currently active page
@@ -112,7 +122,7 @@ const updateCacheForPage = async (pageNum: number, svgContent: string) => {
     }
   } else {
     const tempLayer = { id: `temp-${pageNum}`, svg: svgContent };
-    layerCache.value.set(cacheKey, tempLayer);
+    cacheLayer(cacheKey, tempLayer);
     pageLayerMap.value.set(pageNum, tempLayer);
     
     // Update the store if this is the currently active page
@@ -159,7 +169,7 @@ const performSave = async (pageNum: number, svgContent: string, timestamp: numbe
       // Check if we have a newer pending save
       const pendingSave = pendingSaves.value.get(pageNum);
       if (!pendingSave || pendingSave.timestamp <= timestamp) {
-        layerCache.value.set(cacheKey, resultLayer);
+        cacheLayer(cacheKey, resultLayer);
         pageLayerMap.value.set(pageNum, resultLayer);
         
         // Update the store if this is still the current page
@@ -429,10 +439,10 @@ const warmLayerCache = async (groupId: string): Promise<boolean> => {
   try {
     const layers = await getLayers(groupId);
     for (let page = 1; page <= docStore.totalPages; page++) {
-      layerCache.value.set(`${groupId}-${page}`, null);
+      cacheLayer(`${groupId}-${page}`, null);
     }
     for (const { page, ...layer } of layers) {
-      layerCache.value.set(`${groupId}-${page}`, layer);
+      cacheLayer(`${groupId}-${page}`, layer);
     }
     return true;
   } catch (error) {
@@ -442,8 +452,18 @@ const warmLayerCache = async (groupId: string): Promise<boolean> => {
 };
 
 onMounted(async () => {
+  // Without an editPackage nothing is persisted: drawings and selection
+  // highlights live on this canvas for the session (saves need a groupId).
+  if (!viewerStore.editPackage) {
+    layersReady.value = true;
+    docStore.undoFn = performUndo;
+    docStore.redoFn = performRedo;
+    syncHistoryFlags();
+    return;
+  }
+
   // Get groups
-  const groups = await viewerStore.editPackage!.getGroupsFunc();
+  const groups = await viewerStore.editPackage.getGroupsFunc();
 
   // If there is no group create one
   let groupId: string;
@@ -550,7 +570,7 @@ watch(
       }
 
       // Cache the loaded layer
-      layerCache.value.set(cacheKey, layer);
+      cacheLayer(cacheKey, layer);
       
       // Load into SVG
       await loadLayerIntoSvg(layer, pageToLoad);
@@ -558,7 +578,7 @@ watch(
     } catch (error) {
       console.error(`Failed to load layer for page ${pageToLoad}:`, error);
       // Set empty layer on error
-      layerCache.value.set(cacheKey, null);
+      cacheLayer(cacheKey, null);
       pageLayerMap.value.set(pageToLoad, null);
     } finally {
       // Only update state if we're still on the same page

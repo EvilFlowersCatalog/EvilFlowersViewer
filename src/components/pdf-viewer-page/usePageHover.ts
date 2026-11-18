@@ -52,6 +52,47 @@ export const boxStyle = (box: IPageBox) => ({
   height: `${(box.y1 - box.y0) * 100}%`,
 });
 
+/**
+ * Scrolls the page scroller (never the host page) so `box` is in view:
+ * centred when it fits, else its top-left corner with a margin. `ifNeeded`
+ * leaves the scroll alone when the box is already fully visible.
+ */
+export const scrollPageToBox = (
+  pageBody: HTMLElement | null,
+  box: IPageBox,
+  { ifNeeded = false }: { ifNeeded?: boolean } = {}
+) => {
+  const scroller = pageBody?.closest<HTMLElement>('[data-page-scroll]');
+  if (!pageBody || !scroller) return;
+  const page = pageBody.getBoundingClientRect();
+  const view = scroller.getBoundingClientRect();
+  if (!page.width || !page.height) return;
+
+  const margin = 24;
+  const top = page.top - view.top + scroller.scrollTop + box.y0 * page.height;
+  const height = (box.y1 - box.y0) * page.height;
+  const left = page.left - view.left + scroller.scrollLeft + box.x0 * page.width;
+  const width = (box.x1 - box.x0) * page.width;
+
+  if (ifNeeded) {
+    const visible =
+      top >= scroller.scrollTop + margin &&
+      top + height <= scroller.scrollTop + scroller.clientHeight - margin &&
+      left >= scroller.scrollLeft &&
+      left + width <= scroller.scrollLeft + scroller.clientWidth;
+    if (visible) return;
+  }
+
+  const center = (start: number, size: number, viewSize: number) =>
+    size + 2 * margin > viewSize ? start - margin : start + size / 2 - viewSize / 2;
+
+  scroller.scrollTo({
+    top: Math.max(0, center(top, height, scroller.clientHeight)),
+    left: Math.max(0, center(left, width, scroller.clientWidth)),
+    behavior: 'smooth',
+  });
+};
+
 /** `box` (page fractions) in viewport pixels, for cards placed beside it. */
 export const boxToViewport = (pageBody: HTMLElement | null, box: IPageBox) => {
   if (!pageBody) return null;

@@ -4,6 +4,10 @@ import type {
   IReaderHighlightPackage,
   IChatPackage,
   IDocumentErrorInfo,
+  IDocumentLoadedInfo,
+  ILoadProgressInfo,
+  IPageChangeInfo,
+  IStreamErrorInfo,
   IEditPackage,
   IFirstPageRenderedInfo,
   IExplainContext,
@@ -11,6 +15,8 @@ import type {
   IRegionPackage,
   IPageBookmarkPackage,
   ISemanticSearchResult,
+  ISearchSelectInfo,
+  ISearchSummary,
   ISuggestedEntry,
   IViewerConfig,
 } from '@/assets/utils/interfaces';
@@ -29,6 +35,7 @@ export const useViewerStore = defineStore('viewer', () => {
   const citationType = ref<CITATION_TYPE>(CITATION_TYPE.BIB);
   const citationFormat = ref<CITATION_FORMAT>(CITATION_FORMAT.BIBTEX);
   const lang = ref<string>('en');
+  const title = ref<string | null>(null);
   const homeFunction = ref<(() => void) | null>(null);
   const closeFunction = ref<(() => void) | null>(null);
   const shareFunction = ref<
@@ -38,8 +45,16 @@ export const useViewerStore = defineStore('viewer', () => {
     null
   );
   const semanticSearchFunction = ref<
-    ((query: string) => Promise<ISemanticSearchResult[]>) | null
+    | ((
+        query: string,
+        context?: { page: number }
+      ) => Promise<ISemanticSearchResult[]>)
+    | null
   >(null);
+  const onSearch = ref<((summary: ISearchSummary) => void) | null>(null);
+  const onSearchResultSelect = ref<((info: ISearchSelectInfo) => void) | null>(
+    null
+  );
   const editPackage = ref<IEditPackage | null>(null);
   const pageBookmarkPackage = ref<IPageBookmarkPackage | null>(null);
   const openEntryDetailFunction = ref<((entry: ISuggestedEntry) => void) | null>(
@@ -71,6 +86,12 @@ export const useViewerStore = defineStore('viewer', () => {
   const onDocumentError = ref<((info: IDocumentErrorInfo) => void) | null>(
     null
   );
+  const onDocumentLoaded = ref<((info: IDocumentLoadedInfo) => void) | null>(
+    null
+  );
+  const onLoadProgress = ref<((info: ILoadProgressInfo) => void) | null>(null);
+  const onPageChange = ref<((info: IPageChangeInfo) => void) | null>(null);
+  const onStreamError = ref<((info: IStreamErrorInfo) => void) | null>(null);
   const config = ref<IViewerConfig>({
     download: false,
     share: false,
@@ -85,11 +106,14 @@ export const useViewerStore = defineStore('viewer', () => {
     citationType,
     citationFormat,
     lang,
+    title,
     homeFunction,
     closeFunction,
     shareFunction,
     printFunction,
     semanticSearchFunction,
+    onSearch,
+    onSearchResultSelect,
     editPackage,
     pageBookmarkPackage,
     openEntryDetailFunction,
@@ -102,6 +126,10 @@ export const useViewerStore = defineStore('viewer', () => {
     readerHighlightPackage,
     onFirstPageRendered,
     onDocumentError,
+    onDocumentLoaded,
+    onLoadProgress,
+    onPageChange,
+    onStreamError,
     config,
   };
 });

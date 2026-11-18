@@ -1,0 +1,56 @@
+@startuml sequence-viewer-streaming
+!include elvira.iuml
+' What: with a `url` pdf.js loads the file in Range chunks; with a header callback the viewer fetches the chunks itself and refreshes an expired token once for all requests that hit 401 together, instead of breaking the read.
+' Kind: UML sequence diagram. Scope: the viewer's document open (issue #151); the portal and catalog sides are the linked issues.
+' Source: src/components/PDFViewer.vue, src/assets/utils/rangeTransport.ts, src/main.ts (2026-11-18)
+
+title Streamed document open in EvilFlowersViewer (implemented on feature/151, not released, 2026-11-18)
+
+participant "elvira-portal\n(host)" as host
+participant "PDFViewer.vue" as viewer <<focus>>
+participant "pdf.js worker" as pdfjs
+participant "catalog\n(Range-capable)" as catalog
+
+host -> viewer : renderViewer({ url, httpHeaders: fn, streaming })
+activate viewer
+
+alt httpHeaders is an object (fixed for the whole document)
+  viewer -> pdfjs : getDocument({ url, httpHeaders, rangeChunkSize: 512 KiB })
+  pdfjs -> catalog : GET url (read headers, then abort)
+  pdfjs -> catalog : GET url, Range: bytes=a-b
+  catalog --> pdfjs : 206 Partial Content
+else httpHeaders is a function (refreshable)
+  viewer -> host : httpHeaders({ retry: false })
+  host --> viewer : { Authorization } (cached token)
+  viewer -[$accent_msg()]> catalog : <b>GET url, Range: bytes=0-(chunk-1)</b>
+  catalog --> viewer : 206 + Content-Range (total length)
+  viewer -> pdfjs : getDocument({ range: RangeTransport(length, initialData) })
+  loop each missing range (several in parallel)
+    pdfjs -> viewer : requestDataRange(begin, end)
+    viewer -> host : httpHeaders({ retry: false })
+    viewer -> catalog : GET url, Range: bytes=begin-end
+    alt 401 / 403 (token expired)
+      catalog --> viewer : 401
+      viewer -> host : httpHeaders({ retry: true }), one call shared by all concurrent 401s
+      host --> viewer : { Authorization } (new token)
+      viewer -> catalog : GET url, Range (retried once)
+    end
+    alt still failing
+      viewer -> host : onStreamError({ status }), Reconnect notice
+    else
+      catalog --> viewer : 206 chunk
+      viewer -> pdfjs : onDataRange(begin, chunk)
+    end
+  end
+end
+
+pdfjs --> viewer : PDFDocumentProxy
+viewer -> host : onDocumentLoaded({ totalPages, source, streaming })
+viewer -> pdfjs : getPage(initialPage).render()
+viewer -> host : onFirstPageRendered({ page, durationMs, source, streaming, bytesLoaded })
+viewer -> host : onLoadProgress({ loaded, total }) (background fetch, unless streaming)
+deactivate viewer
+
+caption With `streaming: true` pdf.js fetches only the ranges the open page needs (disableAutoFetch + disableStream). Otherwise it keeps fetching in the background, so search and print behave as with `data`.
+footer ELVIRA · FIIT STU · EvilFlowersViewer · docs/diagrams/sequence-viewer-streaming.puml
+@enduml

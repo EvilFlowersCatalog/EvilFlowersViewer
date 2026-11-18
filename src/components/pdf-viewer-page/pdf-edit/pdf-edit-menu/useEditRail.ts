@@ -12,7 +12,14 @@ export const useEditRail = () => {
   const viewerStore = useViewerStore();
 
   const visible = computed(
-    () => !!(viewerStore.config.edit && viewerStore.editPackage && !docStore.isMobile && docStore.edit)
+    () =>
+      !!(
+        viewerStore.config.edit &&
+        viewerStore.editPackage &&
+        !docStore.isMobile &&
+        docStore.edit &&
+        docStore.drawMode
+      )
   );
   const offset = computed(() => (visible.value ? EDIT_RAIL_WIDTH : 0));
 

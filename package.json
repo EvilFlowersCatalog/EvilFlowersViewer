@@ -21,7 +21,7 @@
     "build": "run-p type-check \"build-only {@}\"",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --noEmit --skipLibCheck",
+    "type-check": "vue-tsc --noEmit --skipLibCheck -p tsconfig.app.json",
     "prepare": "npm run build-only"
   },
   "dependencies": {
@@ -30,7 +30,7 @@
     "@vue/devtools-api": "^8.1.5",
     "citation-js": "^0.7.22",
     "dompurify": "^3.4.12",
-    "pdfjs-dist": "^6.1.200",
+    "pdfjs-dist": "^6.5.438",
     "pinia": "^4.0.2",
     "print-js": "^1.6.0",
     "qrcode": "^1.5.4",

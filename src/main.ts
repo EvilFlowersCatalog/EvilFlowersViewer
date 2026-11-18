@@ -6,7 +6,10 @@ import 'pdfjs-dist/web/pdf_viewer.css';
 
 import { createApp, type App } from 'vue';
 import { createPinia } from 'pinia';
-import type { IRenderViewerProps } from './assets/utils/interfaces';
+import type {
+  IRenderViewerProps,
+  IViewerController,
+} from './assets/utils/interfaces';
 import { PDFViewer } from './components';
 import i18n from './assets/lang/i18n';
 
@@ -44,27 +47,50 @@ export type {
   IViewerFocus,
   IFirstPageRenderedInfo,
   IDocumentErrorInfo,
+  IDocumentLoadedInfo,
+  ILoadProgressInfo,
+  IPageChangeInfo,
+  IOutlineEntry,
+  NAVIGATION_CAUSE,
+  ISemanticSearchResult,
+  IHostSearchResult,
+  ISearchHit,
+  ISearchOptions,
+  ISearchSummary,
+  ISearchSelectInfo,
+  SEARCH_SOURCE,
+  IStreamErrorInfo,
+  IViewerController,
+  IViewerState,
+  VIEWER_PANEL,
+  DOCUMENT_SOURCE_KIND,
+  LOAD_ERROR_REASON,
+  HttpHeadersSource,
 } from './assets/utils/interfaces';
 export type { SUGGESTION_KIND } from './assets/utils/enums';
+
+/** The mounted viewer: the Vue app (`.unmount()` on teardown) plus its controller (exported type). */
+export type ViewerApp = App & { viewer: IViewerController };
 
 /**
  * Imperatively mount the viewer into `rootId`. Each call is fully isolated
  * (its own Pinia store), so multiple viewers can coexist. Returns the Vue app
- * instance so the host can `.unmount()` it on teardown.
+ * instance so the host can `.unmount()` it on teardown, with `app.viewer` to
+ * drive it afterwards (open another document, go to a page, switch theme…).
  */
 const renderPDFViewer = ({
   rootId,
   options = null,
   config = null,
   ...source
-}: IRenderViewerProps): App => {
+}: IRenderViewerProps): ViewerApp => {
   const app = createApp(PDFViewer, { ...source, options, config });
 
   app.use(i18n);
   app.use(createPinia());
-  app.mount(rootId);
+  const root = app.mount(rootId) as unknown as { controller: IViewerController };
 
-  return app;
+  return Object.assign(app, { viewer: root.controller });
 };
 
 export default renderPDFViewer;
