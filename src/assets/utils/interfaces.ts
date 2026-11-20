@@ -577,6 +577,7 @@ export interface IViewerOptions {
    * (copied verbatim, trailing slash included). Without it, JPX/JBIG2 scans
    * decode on the slower JS fallback where one exists, and PDFs with CJK
    * CMaps or non-embedded standard fonts may render with wrong glyphs.
+   * May be relative (`/pdfjs/`): the viewer resolves it against the page.
    */
   pdfAssetsUrl?: string | null;
   /**

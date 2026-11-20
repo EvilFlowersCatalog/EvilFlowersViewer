@@ -2,6 +2,33 @@ import { describe, expect, it } from 'vitest';
 import { describeLoadError, failureStage, isPageFetchFailure } from './loadErrors';
 import { isPageRange, pagesForScope } from './pageRange';
 import { toOutline } from './outline';
+import { assetUrls } from './assetUrls';
+
+describe('assetUrls (#158)', () => {
+  const page = 'https://dev.elvira.stuba.sk/entries/40c6/read?page=77';
+
+  it('resolves a root-relative base against the page, so the worker can fetch it', () => {
+    expect(assetUrls('/pdfjs/', page)).toEqual({
+      wasmUrl: 'https://dev.elvira.stuba.sk/pdfjs/wasm/',
+      cMapUrl: 'https://dev.elvira.stuba.sk/pdfjs/cmaps/',
+      standardFontDataUrl: 'https://dev.elvira.stuba.sk/pdfjs/standard_fonts/',
+      iccUrl: 'https://dev.elvira.stuba.sk/pdfjs/iccs/',
+    });
+  });
+
+  it('adds the trailing slash and resolves document-relative paths', () => {
+    expect(assetUrls('pdfjs', page).wasmUrl).toBe('https://dev.elvira.stuba.sk/entries/40c6/pdfjs/wasm/');
+  });
+
+  it('keeps absolute bases', () => {
+    expect(assetUrls('https://cdn.example.org/pdfjs', page).iccUrl).toBe('https://cdn.example.org/pdfjs/iccs/');
+  });
+
+  it('passes the value through without a usable page base, and is empty without a base', () => {
+    expect(assetUrls('/pdfjs/', null).wasmUrl).toBe('/pdfjs/wasm/');
+    expect(assetUrls(null, page)).toEqual({});
+  });
+});
 
 describe('describeLoadError', () => {
   it.each([

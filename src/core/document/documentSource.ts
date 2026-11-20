@@ -4,6 +4,7 @@ import { GlobalWorkerOptions, PDFWorker } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import type { DocumentInitParameters } from 'pdfjs-dist/types/src/display/api';
 import type { DOCUMENT_SOURCE_KIND, IDocumentSource } from '@/assets/utils/interfaces';
 import { openRangeSource, type RefreshableRangeTransport } from '@/assets/utils/rangeTransport';
+import { assetUrls } from './assetUrls';
 
 /** 512 KiB: a 7 MB book in ~14 Range requests instead of ~100 at pdf.js' 64 KiB. */
 export const DEFAULT_RANGE_CHUNK = 512 * 1024;
@@ -21,18 +22,6 @@ export interface LoaderOptions {
   /** IViewerOptions.workerRendering. */
   workerRendering?: boolean;
 }
-
-// pdf.js resource folders the host serves.
-const assetParams = (base: string | null | undefined): Partial<DocumentInitParameters> => {
-  if (!base) return {};
-  const root = base.endsWith('/') ? base : `${base}/`;
-  return {
-    wasmUrl: `${root}wasm/`,
-    cMapUrl: `${root}cmaps/`,
-    standardFontDataUrl: `${root}standard_fonts/`,
-    iccUrl: `${root}iccs/`,
-  };
-};
 
 // ---- workers ----------------------------------------------------------------
 // The bundled worker is a lazily imported chunk (inlined as a data: URL, so
@@ -112,7 +101,7 @@ export const prepareSource = async (
 ): Promise<PreparedSource> => {
   const useRenderer = options.workerRendering === true && (await ensureRenderer());
   const common: Partial<DocumentInitParameters> = {
-    ...assetParams(options.pdfAssetsUrl),
+    ...assetUrls(options.pdfAssetsUrl),
     // The viewer renders no forms or AnnotationLayer, so PDF JavaScript has no
     // way in (CVE-2026-16633 needs `enableScripting`); XFA stays off as well.
     enableXfa: false,
