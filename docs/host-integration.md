@@ -90,7 +90,7 @@ them; measure on real files (`first-page-rendered` carries `bytesLoaded` and `to
 
 | Option | |
 | --- | --- |
-| `pdfAssetsUrl` | Where the host serves `pdfjs-dist`'s `wasm/`, `cmaps/`, `standard_fonts/`, `iccs/` (same version). Enables the Wasm JPX/JBIG2 decoders and correct CJK/standard-font glyphs. |
+| `pdfAssetsUrl` | Where the host serves `pdfjs-dist`'s `wasm/`, `cmaps/`, `standard_fonts/`, `iccs/` (same version). Enables the Wasm JPX/JBIG2 decoders and correct CJK/standard-font glyphs. May be relative (`/pdfjs/`); the viewer resolves it against the page, because pdf.js fetches `wasm/` and `iccs/` inside its worker. |
 | `pdfWorkerUrl` | `pdfjs-dist/legacy/build/pdf.worker.min.mjs` served by the host. Without it the bundled copy is loaded (a 1.7 MB `data:` chunk). |
 | `workerRendering` | Draw pages in pdf.js' renderer worker (OffscreenCanvas), keeping the main thread free. |
 | `telemetry` | `ITelemetrySink`: see [telemetry.md](telemetry.md). |
