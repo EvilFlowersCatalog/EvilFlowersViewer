@@ -1,0 +1,54 @@
+name: Deploy portal dev
+
+# Every push to develop redeploys elvira-portal `dev`: dev.elvira.stuba.sk, e-knihy.ku.sk (KU production
+# runs the dev packages) and the :dev image. The portal run looks up develop itself and installs that
+# commit, so nothing is passed along. Portal side: elvira-portal .github/workflows/deploy.yml, job `viewer`.
+# When the portal goes back to pinned viewer releases, delete this workflow and the
+# ELVIRA_PORTAL_DISPATCH_TOKEN secret (#160).
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+# A newer push supersedes a pending one; the portal queues its own runs (concurrency deploy-dev).
+concurrency:
+  group: deploy-portal-dev
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # KU production is downstream: don't redeploy it with a develop that doesn't type-check or pass tests.
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: npm
+      - name: Install & build
+        run: npm ci
+      - name: Type check
+        run: npm run type-check
+      - name: Unit tests
+        run: npm test
+
+  dispatch:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      # Fine-grained token for EvilFlowersCatalog/elvira-portal only, Actions: Read and write.
+      # GITHUB_TOKEN can't start workflows in another repository.
+      - name: Start elvira-portal Deploy on dev
+        env:
+          GH_TOKEN: ${{ secrets.ELVIRA_PORTAL_DISPATCH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Repository secret ELVIRA_PORTAL_DISPATCH_TOKEN is not set (see #160)"
+            exit 1
+          fi
+          gh workflow run deploy.yml --repo EvilFlowersCatalog/elvira-portal --ref dev
+          echo "Started elvira-portal Deploy on dev for viewer develop @ \`${GITHUB_SHA::7}\`: https://github.com/EvilFlowersCatalog/elvira-portal/actions/workflows/deploy.yml?query=branch%3Adev" >> "$GITHUB_STEP_SUMMARY"
